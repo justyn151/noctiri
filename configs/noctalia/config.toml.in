@@ -1,0 +1,85 @@
+[bar.default]
+background_opacity = 0.69999998435378075
+capsule = true
+capsule_opacity = 0.29999999329447746
+capsule_padding = 12.0
+capsule_thickness = 0.79999998584389687
+center = [ "workspaces" ]
+concave_edge_corners = false
+end = [ "media", "tray", "group:g1", "caffeine", "session" ]
+margin_edge = 8
+margin_ends = 200
+padding = 8
+panel_overlap = 0
+radius = 16
+shadow = false
+start = [ "wallpaper", "settings", "audio_visualizer", "clock-time", "clock-date" ]
+thickness = 32
+
+    [[bar.default.capsule_group]]
+    accordion = false
+    accordion_direction = "end"
+    enabled = true
+    fill = "surface_variant"
+    id = "g1"
+    members = [ "network", "bluetooth", "volume", "brightness", "battery" ]
+    opacity = 0.30000001192092896
+    padding = 16.0
+    widget_spacing = 12
+
+[control_center]
+show_session_button = false
+show_shortcut_labels = false
+
+[dock]
+background_opacity = 0.8399999812245369
+
+
+[notification]
+background_opacity = 0.4999999888241291
+border = false
+max_visible = 2
+offset_x = 12
+offset_y = 10
+scale = 0.80000000447034836
+
+[osd]
+background_opacity = 0.4999999888241291
+border = false
+offset_y = 24
+position = "bottom_center"
+scale = 0.80000000447034836
+
+[shell]
+button_borders = false
+card_borders = false
+corner_radius_scale = 0.85000001266598701
+font_family = "Inter"
+popup_borders = false
+
+    [shell.greeter_sync]
+    auto_sync = true
+
+    [shell.launcher]
+    categories = false
+
+    [shell.panel]
+    borders = false
+    transparency_mode = "soft"
+
+    [shell.shadow]
+    alpha = 0.39999999105930328
+
+[theme]
+builtin = "Noctalia"
+community_palette = "Oxocarbon"
+mode = "dark"
+source = "builtin"
+wallpaper_scheme = "m3-content"
+
+    [theme.templates]
+    enable_builtin_templates = true
+    builtin_ids = [ "btop", "cava", "kcolorscheme", "kitty", "niri" ]
+
+[wallpaper]
+directory = "@@HOME@@/Pictures/Wallpapers"
