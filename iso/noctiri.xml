@@ -11,14 +11,16 @@
   </repository>
 
   <profiles>
+    <profile name="Noctiri-Desktop" description="Noctiri desktop">
+      <requires profile="DesktopCommon"/>
+    </profile>
     <profile name="Noctiri-Live" description="Noctiri Fedora Live ISO">
-      <!-- Reuse Fedora's maintained Sway live-media plumbing (SDDM + livesys),
-           then switch the actual autologin session to Niri in config.sh. -->
-      <requires profile="Sway-Live"/>
+      <requires profile="Noctiri-Desktop"/>
+      <requires profile="LiveInstall"/>
     </profile>
   </profiles>
 
-  <packages type="image" patternType="plusRecommended" profiles="Noctiri-Live">
+  <packages type="image" patternType="plusRecommended" profiles="Noctiri-Desktop">
     <!-- Noctiri desktop -->
     <package name="niri"/>
     <package name="noctalia"/>
@@ -73,5 +75,12 @@
 
     <!-- Fonts -->
     <package name="rsms-inter-fonts"/>
+  </packages>
+
+  <packages type="image" patternType="plusRecommended" profiles="Noctiri-Live">
+    <!-- Fedora livesys normally gets a display manager from the desktop profile.
+         Noctiri uses SDDM only on the live medium for reliable autologin, then
+         the Anaconda post script switches installed systems to greetd. -->
+    <package name="sddm"/>
   </packages>
 </image>
