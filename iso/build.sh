@@ -5,8 +5,10 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 ISO_DIR="$ROOT_DIR/iso"
 OUT_DIR="${OUT_DIR:-$ROOT_DIR/out}"
 WORK_DIR="${WORK_DIR:-$ROOT_DIR/.iso-work}"
+ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts}"
 FEDORA_BRANCH="${FEDORA_BRANCH:-f44}"
 FEDORA_KIWI_REPO="${FEDORA_KIWI_REPO:-https://forge.fedoraproject.org/releng/fedora-kiwi-descriptions.git}"
+EROFS_COMPRESSION="${EROFS_COMPRESSION:-zstd,level=3}"
 
 if [[ $EUID -ne 0 ]]; then
     printf 'ERROR: KIWI image builds need root privileges. Run this script with sudo.\n' >&2
@@ -20,8 +22,8 @@ for cmd in git python3 kiwi-ng; do
     }
 done
 
-rm -rf "$WORK_DIR"
-mkdir -p "$WORK_DIR" "$OUT_DIR"
+rm -rf "$WORK_DIR" "$ARTIFACT_DIR"
+mkdir -p "$WORK_DIR" "$OUT_DIR" "$ARTIFACT_DIR"
 
 printf '==> Cloning Fedora KIWI descriptions (%s)\n' "$FEDORA_BRANCH"
 git clone --depth 1 --branch "$FEDORA_BRANCH" "$FEDORA_KIWI_REPO"     "$WORK_DIR/fedora-kiwi-descriptions"
@@ -31,19 +33,34 @@ DESC="$WORK_DIR/fedora-kiwi-descriptions"
 printf '==> Adding Noctiri image profile\n'
 install -Dm0644 "$ISO_DIR/noctiri.xml" "$DESC/teams/noctiri.xml"
 
-python3 - "$DESC/Fedora.kiwi" <<'PY'
+python3 - "$DESC/Fedora.kiwi" "$DESC/components/liveinstall.xml" "$EROFS_COMPRESSION" <<'PY'
 from pathlib import Path
+import re
 import sys
 
-path = Path(sys.argv[1])
-text = path.read_text()
+fedora = Path(sys.argv[1])
+liveinstall = Path(sys.argv[2])
+compression = sys.argv[3]
+
+text = fedora.read_text()
 include = '\t<include from="this://./teams/noctiri.xml"/>\n'
 if include not in text:
     marker = '\t<packages type="bootstrap">'
     if marker not in text:
         raise SystemExit("Could not locate Fedora.kiwi bootstrap package marker")
     text = text.replace(marker, include + marker, 1)
-    path.write_text(text)
+    fedora.write_text(text)
+
+text = liveinstall.read_text()
+updated, count = re.subn(
+    r'erofscompression="[^"]+"',
+    f'erofscompression="{compression}"',
+    text,
+)
+if count == 0:
+    raise SystemExit("Could not locate EROFS compression setting in liveinstall.xml")
+liveinstall.write_text(updated)
+print(f"Using EROFS compression: {compression}")
 PY
 
 printf '==> Installing Noctiri root overlay\n'
@@ -76,4 +93,13 @@ printf '==> Building Noctiri live ISO\n'
 cd "$DESC"
 ./kiwi-build     --kiwi-file=Fedora.kiwi     --image-type=iso     --image-profile=Noctiri-Live     --output-dir="$OUT_DIR/noctiri"
 
-printf '\nBuild finished. ISO output should be under:\n  %s\n' "$OUT_DIR"
+iso_file="$(find "$OUT_DIR/noctiri-build" -maxdepth 1 -type f -name '*.iso' -print -quit)"
+[[ -n "$iso_file" ]] || {
+    printf 'ERROR: KIWI completed but no ISO was found in %s\n' "$OUT_DIR/noctiri-build" >&2
+    exit 1
+}
+
+artifact="$ARTIFACT_DIR/Noctiri-Fedora-44-x86_64.iso"
+install -m 0644 "$iso_file" "$artifact"
+
+printf '\nBuild finished. ISO artifact:\n  %s\n' "$artifact"
