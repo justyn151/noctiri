@@ -60,6 +60,16 @@ updated, count = re.subn(
 if count == 0:
     raise SystemExit("Could not locate EROFS compression setting in liveinstall.xml")
 
+# Keep boot output visible while Noctiri is still being tested. Fedora's
+# default "quiet rhgb" hides exactly the failures we need to see right now.
+updated, count = re.subn(
+    r'kernelcmdline="[^"]*"',
+    'kernelcmdline="rd.systemd.show_status=1 systemd.show_status=1"',
+    updated,
+)
+if count == 0:
+    raise SystemExit("Could not locate kernelcmdline setting in liveinstall.xml")
+
 # Fedora live media ships every glibc locale by default. That costs roughly
 # 238 MB installed. Noctiri's testing image only needs English and Indonesian.
 all_langpacks = '<package name="glibc-all-langpacks"/>'
@@ -73,6 +83,7 @@ updated = updated.replace(all_langpacks, replacement, 1)
 
 liveinstall.write_text(updated)
 print(f"Using EROFS compression: {compression}")
+print("Using verbose boot output (quiet/rhgb disabled)")
 print("Using glibc locales: en, id")
 PY
 
