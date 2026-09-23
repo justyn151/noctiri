@@ -120,22 +120,22 @@ command = "/usr/bin/noctalia-greeter-session"
 user = "greetd"
 EOF
 
-# Fedora's config.sh runs after package installation and can override service
-# enablement from the root overlay. Configure the live display manager there,
-# once greetd.service definitely exists in the image.
+# This build invokes KIWI only for Noctiri-Live. Do not gate the login setup
+# on kiwi_profiles: on the built ISO greetd ended up disabled, leaving a TTY.
+# Configure it after package installation, when greetd.service exists.
 cat >> "$DESC/config.sh" <<'EOF'
 
 # Noctiri live session
-if [[ "$kiwi_profiles" == *"Noctiri-Live"* ]]; then
-    echo 'livesys_session="niri"' > /etc/sysconfig/livesys
-    systemctl set-default graphical.target
-    systemctl enable greetd.service
-    mkdir -p /etc/systemd/system/graphical.target.wants
-    ln -sfn /usr/lib/systemd/system/greetd.service \
-        /etc/systemd/system/graphical.target.wants/greetd.service
-    ln -sfn /usr/lib/systemd/system/greetd.service \
-        /etc/systemd/system/display-manager.service
-fi
+echo 'livesys_session="niri"' > /etc/sysconfig/livesys
+systemctl set-default graphical.target
+systemctl enable --force greetd.service
+mkdir -p /etc/systemd/system/graphical.target.wants
+ln -sfn /usr/lib/systemd/system/greetd.service \
+    /etc/systemd/system/graphical.target.wants/greetd.service
+ln -sfn /usr/lib/systemd/system/greetd.service \
+    /etc/systemd/system/display-manager.service
+test -L /etc/systemd/system/graphical.target.wants/greetd.service
+test -L /etc/systemd/system/display-manager.service
 EOF
 
 chmod 0755     "$DESC/root/usr/libexec/noctiri-first-login"     "$DESC/root/usr/bin/noctiri-session"
