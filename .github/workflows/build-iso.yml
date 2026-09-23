@@ -49,7 +49,7 @@ jobs:
           HOST_UID="$(id -u)"
           HOST_GID="$(id -g)"
 
-          docker run --privileged --rm             -e FEDORA_BRANCH="$FEDORA_BRANCH"             -e EROFS_COMPRESSION="zstd,level=3"             -e HOST_UID="$HOST_UID"             -e HOST_GID="$HOST_GID"             -v "$PWD:/workspace"             -v "$PWD/.ci-cache/dnf:/var/cache/libdnf5"             -v "$PWD/.ci-cache/kiwi:/var/cache/kiwi"             -w /workspace             fedora:44             bash -lc '
+          docker run --privileged --rm             -e FEDORA_BRANCH="$FEDORA_BRANCH"             -e EROFS_COMPRESSION="lzma,level=6"             -e HOST_UID="$HOST_UID"             -e HOST_GID="$HOST_GID"             -v "$PWD:/workspace"             -v "$PWD/.ci-cache/dnf:/var/cache/libdnf5"             -v "$PWD/.ci-cache/kiwi:/var/cache/kiwi"             -w /workspace             fedora:44             bash -lc '
               set -Eeuo pipefail
               dnf -y --setopt=keepcache=True install                 git curl tar xz python3                 kiwi kiwi-systemdeps distribution-gpg-keys
 
