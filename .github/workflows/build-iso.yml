@@ -20,7 +20,7 @@ on:
       - "v*"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-iso:
@@ -66,3 +66,13 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
+
+      - name: Publish testing release
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/live-iso'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TARGET: ${{ github.event.pull_request.head.sha }}
+        run: |
+          gh release delete testing-build             --repo "$GITHUB_REPOSITORY"             --cleanup-tag             --yes 2>/dev/null || true
+
+          gh release create testing-build             artifacts/*.iso             --repo "$GITHUB_REPOSITORY"             --target "$RELEASE_TARGET"             --title "Noctiri Testing Build"             --notes "Experimental Noctiri live ISO for testing. Built automatically from the feat/live-iso branch. Not intended as a stable release."             --prerelease
