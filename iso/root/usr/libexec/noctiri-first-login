@@ -11,6 +11,28 @@ mkdir -p     "$HOME/.config/niri"     "$HOME/.config/noctalia"     "$HOME/.confi
 sed "s|@@HOME@@|$HOME|g" "$SRC/niri/config.kdl.in"     > "$HOME/.config/niri/config.kdl"
 : > "$HOME/.config/niri/noctalia.kdl"
 
+# Niri can fail to select GNOME Boxes/QEMU's VirtIO render node automatically,
+# leaving a running compositor on a black screen. Apply the workaround only
+# to the ephemeral liveuser and only when the VM is actually using virtio-pci.
+if [[ "$(id -un)" == "liveuser" ]]; then
+    for driver in /sys/class/drm/card*/device/driver; do
+        [[ -L "$driver" ]] || continue
+        if [[ "$(basename "$(readlink -f "$driver")")" == "virtio-pci" ]]; then
+            render_node="$(find /dev/dri -maxdepth 1 -type c -name 'renderD*' -print | sort | head -n1)"
+            if [[ -n "$render_node" ]]; then
+                cat >> "$HOME/.config/niri/config.kdl" <<EOF
+
+// Live VM workaround: explicitly use the VirtIO render node.
+debug {
+    render-drm-device "$render_node"
+}
+EOF
+            fi
+            break
+        fi
+    done
+fi
+
 sed "s|@@HOME@@|$HOME|g" "$SRC/noctalia/config.toml.in"     > "$HOME/.config/noctalia/config.toml"
 
 cp "$SRC/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
