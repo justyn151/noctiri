@@ -7,6 +7,14 @@ on:
         description: Fedora KIWI description branch
         required: true
         default: f44
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "iso/**"
+      - "configs/**"
+      - ".github/workflows/build-iso.yml"
+      - "README.md"
   push:
     tags:
       - "v*"
