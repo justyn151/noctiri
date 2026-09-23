@@ -31,20 +31,38 @@ jobs:
       - name: Check out Noctiri
         uses: actions/checkout@v4
 
+      - name: Restore DNF and KIWI caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            .ci-cache/dnf
+            .ci-cache/kiwi
+          key: noctiri-iso-f44-${{ runner.arch }}-${{ hashFiles('iso/noctiri.xml') }}
+          restore-keys: |
+            noctiri-iso-f44-${{ runner.arch }}-
+
       - name: Build Fedora live ISO
         env:
           FEDORA_BRANCH: ${{ github.event.inputs.fedora_branch || 'f44' }}
         run: |
-          docker run --privileged --rm             -e FEDORA_BRANCH="$FEDORA_BRANCH"             -v "$PWD:/workspace"             -w /workspace             fedora:44             bash -lc '
+          mkdir -p .ci-cache/dnf .ci-cache/kiwi artifacts
+          HOST_UID="$(id -u)"
+          HOST_GID="$(id -g)"
+
+          docker run --privileged --rm             -e FEDORA_BRANCH="$FEDORA_BRANCH"             -e EROFS_COMPRESSION="zstd,level=3"             -e HOST_UID="$HOST_UID"             -e HOST_GID="$HOST_GID"             -v "$PWD:/workspace"             -v "$PWD/.ci-cache/dnf:/var/cache/libdnf5"             -v "$PWD/.ci-cache/kiwi:/var/cache/kiwi"             -w /workspace             fedora:44             bash -lc '
               set -Eeuo pipefail
-              dnf -y install                 git curl tar xz python3                 kiwi kiwi-systemdeps distribution-gpg-keys
+              dnf -y --setopt=keepcache=True install                 git curl tar xz python3                 kiwi kiwi-systemdeps distribution-gpg-keys
+
               bash iso/build.sh
+
+              chown -R "$HOST_UID:$HOST_GID"                 /workspace/artifacts                 /workspace/.ci-cache
             '
 
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
         with:
           name: noctiri-live-iso
-          path: out/**/*.iso
+          path: artifacts/*.iso
           if-no-files-found: error
           retention-days: 7
+          compression-level: 0
