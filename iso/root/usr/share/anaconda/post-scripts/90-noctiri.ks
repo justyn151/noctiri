@@ -13,13 +13,26 @@ echo "==> Installing deferred Noctiri desktop packages"
 dnf5 -y group install fonts multimedia
 dnf5 -y install btop cava fastfetch
 
-# Replace the live-media autologin config with the normal installed-system
-# Noctalia greeter config, then keep greetd as the display manager.
+# The live image uses an ephemeral liveuser autologin. The installed system
+# must not retain that config because liveuser is not copied to the target.
 install -Dm0644 /usr/share/noctiri/configs/greetd/config.toml /etc/greetd/config.toml
-systemctl enable greetd.service 2>/dev/null || true
-systemctl set-default graphical.target 2>/dev/null || true
 
-if command -v noctalia-greeter-apply-appearance >/dev/null 2>&1; then
-    noctalia-greeter-apply-appearance --setup-system || true
+# greetd's Fedora package defines its service account through systemd-sysusers.
+# Live-image installation can copy the package payload without materializing
+# that account in the target /etc/passwd, so create it explicitly.
+systemd-sysusers /usr/lib/sysusers.d/greetd.conf
+systemd-tmpfiles --create /usr/lib/tmpfiles.d/greetd.conf
+
+if ! getent passwd greetd >/dev/null; then
+    echo "ERROR: greetd system account was not created." >&2
+    exit 1
 fi
+
+# Prepare Noctalia Greeter's writable state after the greetd account exists.
+if command -v noctalia-greeter-apply-appearance >/dev/null 2>&1; then
+    noctalia-greeter-apply-appearance --setup-system
+fi
+
+systemctl enable greetd.service
+systemctl set-default graphical.target
 %end
