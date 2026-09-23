@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+/usr/libexec/noctiri-first-login || true
+exec /usr/bin/niri-session
