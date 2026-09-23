@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+MARKER="${XDG_STATE_HOME:-$HOME/.local/state}/noctiri/initialized"
+SRC=/usr/share/noctiri/configs
+
+[[ -e "$MARKER" ]] && exit 0
+
+mkdir -p     "$HOME/.config/niri"     "$HOME/.config/noctalia"     "$HOME/.config/kitty/themes"     "$HOME/.config/qt6ct"     "$HOME/.config/xdg-desktop-portal"     "$HOME/.config/systemd/user/plasma-xdg-desktop-portal-kde.service.d"     "$HOME/.local/share/color-schemes"     "$HOME/Pictures/Screenshots"     "$HOME/Pictures/Wallpapers"     "$(dirname "$MARKER")"
+
+sed "s|@@HOME@@|$HOME|g" "$SRC/niri/config.kdl.in"     > "$HOME/.config/niri/config.kdl"
+: > "$HOME/.config/niri/noctalia.kdl"
+
+# Niri can fail to select GNOME Boxes/QEMU's VirtIO render node automatically,
+# leaving a running compositor on a black screen. Apply the workaround only
+# to the ephemeral liveuser and only when the VM is actually using virtio-pci.
+if [[ "$(id -un)" == "liveuser" ]]; then
+    for driver in /sys/class/drm/card*/device/driver; do
+        [[ -L "$driver" ]] || continue
+        if [[ "$(basename "$(readlink -f "$driver")")" == "virtio-pci" ]]; then
+            render_node="$(find /dev/dri -maxdepth 1 -type c -name 'renderD*' -print | sort | head -n1)"
+            if [[ -n "$render_node" ]]; then
+                cat >> "$HOME/.config/niri/config.kdl" <<EOF
+
+// Live VM workaround: explicitly use the VirtIO render node.
+debug {
+    render-drm-device "$render_node"
+}
+EOF
+            fi
+            break
+        fi
+    done
+fi
+
+sed "s|@@HOME@@|$HOME|g" "$SRC/noctalia/config.toml.in"     > "$HOME/.config/noctalia/config.toml"
+
+cp "$SRC/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
+: > "$HOME/.config/kitty/themes/noctalia.conf"
+
+sed "s|@@HOME@@|$HOME|g" "$SRC/qt6ct/qt6ct.conf.in"     > "$HOME/.config/qt6ct/qt6ct.conf"
+
+cp "$SRC/kde/kdeglobals" "$HOME/.config/kdeglobals"
+cp "$SRC/portals/niri-portals.conf"     "$HOME/.config/xdg-desktop-portal/niri-portals.conf"
+cp "$SRC/systemd/kde-portal-override.conf"     "$HOME/.config/systemd/user/plasma-xdg-desktop-portal-kde.service.d/override.conf"
+
+# GUI state can override declarative Noctalia configuration.
+rm -f "$HOME/.local/state/noctalia/settings.toml"
+
+touch "$MARKER"

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<image>
+  <repository
+      type="rpm-md"
+      alias="terra"
+      sourcetype="baseurl"
+      imageinclude="true"
+      repository_gpgcheck="false"
+      package_gpgcheck="false">
+    <source path="https://repos.fyralabs.com/terra$releasever"/>
+  </repository>
+
+  <profiles>
+    <profile name="Noctiri-Desktop" description="Noctiri desktop">
+      <!-- Keep only Fedora's base + hardware support in the live image.
+           DesktopCommon's large optional desktop collections are deferred
+           until installation. -->
+      <requires profile="BaseCommon"/>
+      <requires profile="HardwareCommon"/>
+    </profile>
+    <profile name="Noctiri-Live" description="Noctiri Fedora Live ISO">
+      <requires profile="Noctiri-Desktop"/>
+      <requires profile="LiveInstall"/>
+    </profile>
+  </profiles>
+
+  <packages type="image" patternType="plusRecommended" profiles="Noctiri-Desktop">
+    <!-- Noctiri desktop -->
+    <package name="niri"/>
+    <package name="noctalia"/>
+    <package name="greetd"/>
+    <package name="greetd-selinux"/>
+    <package name="noctalia-greeter"/>
+    <package name="terra-release"/>
+    <package name="xwayland-satellite"/>
+
+    <!-- Networking needed by the live installer -->
+    <namedCollection name="networkmanager-submodules"/>
+    <package name="NetworkManager"/>
+    <package name="NetworkManager-wifi"/>
+
+    <!-- Portals, audio, keyring -->
+    <package name="xdg-desktop-portal"/>
+    <package name="xdg-desktop-portal-gnome"/>
+    <package name="xdg-desktop-portal-gtk"/>
+    <package name="xdg-desktop-portal-kde"/>
+    <package name="pipewire"/>
+    <package name="wireplumber"/>
+    <package name="polkit"/>
+    <package name="gnome-keyring"/>
+    <package name="gnome-keyring-pam"/>
+
+    <!-- Shell / utilities -->
+    <package name="kitty"/>
+    <!-- Fedora's current live Anaconda Web UI opens in Firefox, so Firefox
+         remains on the live medium for the installer. -->
+    <package name="firefox"/>
+    <package name="flatpak"/>
+    <package name="git"/>
+    <package name="curl"/>
+    <package name="tar"/>
+    <package name="xz"/>
+    <package name="unzip"/>
+    <package name="python3"/>
+    <package name="xdg-utils"/>
+    <package name="playerctl"/>
+    <package name="brightnessctl"/>
+
+    <!-- Qt integration -->
+    <package name="qt6ct"/>
+    <package name="plasma-breeze-qt6"/>
+    <package name="breeze-icon-theme"/>
+
+    <!-- Apps kept on the live image -->
+    <package name="dolphin"/>
+    <package name="ark"/>
+    <package name="fooyin"/>
+    <package name="qimgv"/>
+    <package name="mpv"/>
+    <package name="zathura"/>
+    <package name="zathura-pdf-mupdf"/>
+    <package name="qpwgraph"/>
+
+    <!-- Fonts required by the Noctiri UI itself -->
+    <package name="rsms-inter-fonts"/>
+  </packages>
+</image>

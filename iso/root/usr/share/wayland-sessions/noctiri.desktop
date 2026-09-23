@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Noctiri
+Comment=Niri + Noctalia desktop
+Exec=/usr/bin/noctiri-session
+Type=Application
+DesktopNames=niri

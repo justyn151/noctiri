@@ -1,0 +1,123 @@
+name: Build Noctiri Live ISO
+
+on:
+  workflow_dispatch:
+    inputs:
+      fedora_branch:
+        description: Fedora KIWI description branch
+        required: true
+        default: f44
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "iso/**"
+      - "configs/**"
+      - ".github/workflows/build-iso.yml"
+      - "README.md"
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-iso-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Check out Noctiri
+        uses: actions/checkout@v4
+
+      - name: Restore DNF and KIWI caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            .ci-cache/dnf
+            .ci-cache/kiwi
+          key: noctiri-iso-f44-${{ runner.arch }}-${{ hashFiles('iso/noctiri.xml') }}
+          restore-keys: |
+            noctiri-iso-f44-${{ runner.arch }}-
+
+      - name: Build Fedora live ISO
+        env:
+          FEDORA_BRANCH: ${{ github.event.inputs.fedora_branch || 'f44' }}
+        run: |
+          mkdir -p .ci-cache/dnf .ci-cache/kiwi artifacts
+          HOST_UID="$(id -u)"
+          HOST_GID="$(id -g)"
+
+          docker run --privileged --rm \
+            -e FEDORA_BRANCH="$FEDORA_BRANCH" \
+            -e EROFS_COMPRESSION="lzma,level=9" \
+            -e HOST_UID="$HOST_UID" \
+            -e HOST_GID="$HOST_GID" \
+            -v "$PWD:/workspace" \
+            -v "$PWD/.ci-cache/dnf:/var/cache/libdnf5" \
+            -v "$PWD/.ci-cache/kiwi:/var/cache/kiwi" \
+            -w /workspace \
+            fedora:44 \
+            bash -lc '
+              set -Eeuo pipefail
+              dnf -y --setopt=keepcache=True install \
+                git curl tar xz python3 \
+                kiwi kiwi-systemdeps distribution-gpg-keys
+
+              bash iso/build.sh
+
+              chown -R "$HOST_UID:$HOST_GID" \
+                /workspace/artifacts \
+                /workspace/.ci-cache
+            '
+
+      - name: Show ISO size
+        run: |
+          iso="$(find artifacts -maxdepth 1 -type f -name '*.iso' -print -quit)"
+          bytes="$(stat -c '%s' "$iso")"
+          mib="$(awk "BEGIN { printf \"%.1f\", $bytes / 1048576 }")"
+          printf 'ISO size: %s bytes (%s MiB)\n' "$bytes" "$mib"
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: noctiri-live-iso
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+      - name: Publish testing release
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/live-iso'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TARGET: ${{ github.event.pull_request.head.sha }}
+        run: |
+          iso="$(find artifacts -maxdepth 1 -type f -name '*.iso' -print -quit)"
+          size="$(stat -c '%s' "$iso")"
+
+          if (( size >= 2147483648 )); then
+            echo "ISO is still too large for a GitHub Release asset: $size bytes" >&2
+            exit 1
+          fi
+
+          for id in $(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate \
+              --jq '.[] | select(.tag_name == "testing-build") | .id'); do
+            gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$id"
+          done
+
+          gh api -X DELETE "repos/$GITHUB_REPOSITORY/git/refs/tags/testing-build" \
+            >/dev/null 2>&1 || true
+
+          gh release create testing-build \
+            "$iso" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$RELEASE_TARGET" \
+            --title "Noctiri Testing Build" \
+            --notes "Experimental Noctiri live ISO for testing. Built automatically from the feat/live-iso branch. Not intended as a stable release." \
+            --prerelease
