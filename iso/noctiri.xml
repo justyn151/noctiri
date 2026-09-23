@@ -90,5 +90,8 @@
          Noctiri uses SDDM only on the live medium for reliable autologin, then
          the Anaconda post script switches installed systems to greetd. -->
     <package name="sddm"/>
+    <!-- Fedora splits the SDDM greeter display server out of the base package.
+         Without this, sddm.service runs but the VM only gets a black screen. -->
+    <package name="sddm-x11"/>
   </packages>
 </image>
