@@ -115,4 +115,10 @@ iso_file="$(find "$OUT_DIR/noctiri-build" -maxdepth 1 -type f -name '*.iso' -pri
 artifact="$ARTIFACT_DIR/Noctiri-Fedora-44-x86_64.iso"
 install -m 0644 "$iso_file" "$artifact"
 
+packages_file="$(find "$OUT_DIR/noctiri-build" -maxdepth 1 -type f -name '*.packages' -print -quit)"
+if [[ -n "$packages_file" ]]; then
+    install -m 0644 "$packages_file" \
+        "$ARTIFACT_DIR/Noctiri-Fedora-44-x86_64.packages"
+fi
+
 printf '\nBuild finished. ISO artifact:\n  %s\n' "$artifact"

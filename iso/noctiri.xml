@@ -12,7 +12,11 @@
 
   <profiles>
     <profile name="Noctiri-Desktop" description="Noctiri desktop">
-      <requires profile="DesktopCommon"/>
+      <!-- Keep only Fedora's base + hardware support in the live image.
+           DesktopCommon's large optional desktop collections are deferred
+           until installation. -->
+      <requires profile="BaseCommon"/>
+      <requires profile="HardwareCommon"/>
     </profile>
     <profile name="Noctiri-Live" description="Noctiri Fedora Live ISO">
       <requires profile="Noctiri-Desktop"/>
@@ -30,6 +34,11 @@
     <package name="terra-release"/>
     <package name="xwayland-satellite"/>
 
+    <!-- Networking needed by the live installer -->
+    <namedCollection name="networkmanager-submodules"/>
+    <package name="NetworkManager"/>
+    <package name="NetworkManager-wifi"/>
+
     <!-- Portals, audio, keyring -->
     <package name="xdg-desktop-portal"/>
     <package name="xdg-desktop-portal-gnome"/>
@@ -43,6 +52,8 @@
 
     <!-- Shell / utilities -->
     <package name="kitty"/>
+    <!-- Fedora's current live Anaconda Web UI opens in Firefox, so Firefox
+         must remain on the live medium unless we replace the installer browser. -->
     <package name="firefox"/>
     <package name="flatpak"/>
     <package name="git"/>
@@ -60,20 +71,17 @@
     <package name="plasma-breeze-qt6"/>
     <package name="breeze-icon-theme"/>
 
-    <!-- Apps -->
+    <!-- Apps kept on the live image -->
     <package name="dolphin"/>
     <package name="ark"/>
     <package name="fooyin"/>
-    <package name="btop"/>
-    <package name="cava"/>
-    <package name="fastfetch"/>
     <package name="qimgv"/>
     <package name="mpv"/>
     <package name="zathura"/>
     <package name="zathura-pdf-mupdf"/>
     <package name="qpwgraph"/>
 
-    <!-- Fonts -->
+    <!-- Fonts required by the Noctiri UI itself -->
     <package name="rsms-inter-fonts"/>
   </packages>
 
