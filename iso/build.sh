@@ -59,8 +59,21 @@ updated, count = re.subn(
 )
 if count == 0:
     raise SystemExit("Could not locate EROFS compression setting in liveinstall.xml")
+
+# Fedora live media ships every glibc locale by default. That costs roughly
+# 238 MB installed. Noctiri's testing image only needs English and Indonesian.
+all_langpacks = '<package name="glibc-all-langpacks"/>'
+replacement = (
+    '<package name="glibc-langpack-en"/>\n'
+    '\t\t<package name="glibc-langpack-id"/>'
+)
+if all_langpacks not in updated:
+    raise SystemExit("Could not locate glibc-all-langpacks in liveinstall.xml")
+updated = updated.replace(all_langpacks, replacement, 1)
+
 liveinstall.write_text(updated)
 print(f"Using EROFS compression: {compression}")
+print("Using glibc locales: en, id")
 PY
 
 printf '==> Installing Noctiri root overlay\n'
