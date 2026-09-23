@@ -13,9 +13,9 @@ echo "==> Installing deferred Noctiri desktop packages"
 dnf5 -y group install fonts multimedia
 dnf5 -y install btop cava fastfetch
 
-# The live image uses SDDM because Fedora's livesys tooling already knows how
-# to autologin a live user there. Installed Noctiri switches to greetd.
-systemctl disable sddm.service 2>/dev/null || true
+# Replace the live-media autologin config with the normal installed-system
+# Noctalia greeter config, then keep greetd as the display manager.
+install -Dm0644 /usr/share/noctiri/configs/greetd/config.toml /etc/greetd/config.toml
 systemctl enable greetd.service 2>/dev/null || true
 systemctl set-default graphical.target 2>/dev/null || true
 

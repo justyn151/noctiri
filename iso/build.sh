@@ -102,8 +102,30 @@ cp "$ROOT_DIR/configs/portals/niri-portals.conf" "$share/portals/niri-portals.co
 cp "$ROOT_DIR/configs/systemd/kde-portal-override.conf" "$share/systemd/kde-portal-override.conf"
 cp "$ROOT_DIR/configs/greetd/config.toml" "$share/greetd/config.toml"
 
-# The live image uses the same greetd config after installation.
-install -Dm0644 "$ROOT_DIR/configs/greetd/config.toml"     "$DESC/root/etc/greetd/config.toml"
+# The live medium uses greetd directly. Its initial_session autologins the
+# ephemeral liveuser into Noctiri; after logout, greetd falls back to the
+# normal Noctalia greeter. The installed system gets the regular config back
+# from /usr/share/noctiri/configs in the Anaconda post script.
+install -d "$DESC/root/etc/greetd"
+cat > "$DESC/root/etc/greetd/config.toml" <<'EOF'
+[terminal]
+vt = 1
+
+[initial_session]
+command = "/usr/bin/noctiri-session"
+user = "liveuser"
+
+[default_session]
+command = "/usr/bin/noctalia-greeter-session"
+user = "greetd"
+EOF
+
+# Explicitly make greetd the live image display manager.
+mkdir -p "$DESC/root/etc/systemd/system/graphical.target.wants"
+ln -sfn /usr/lib/systemd/system/greetd.service \
+    "$DESC/root/etc/systemd/system/graphical.target.wants/greetd.service"
+ln -sfn /usr/lib/systemd/system/greetd.service \
+    "$DESC/root/etc/systemd/system/display-manager.service"
 
 chmod 0755     "$DESC/root/usr/libexec/noctiri-first-login"     "$DESC/root/usr/bin/noctiri-session"
 
