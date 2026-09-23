@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+ISO_DIR="$ROOT_DIR/iso"
+OUT_DIR="${OUT_DIR:-$ROOT_DIR/out}"
+WORK_DIR="${WORK_DIR:-$ROOT_DIR/.iso-work}"
+FEDORA_BRANCH="${FEDORA_BRANCH:-f44}"
+FEDORA_KIWI_REPO="${FEDORA_KIWI_REPO:-https://forge.fedoraproject.org/releng/fedora-kiwi-descriptions.git}"
+
+if [[ $EUID -ne 0 ]]; then
+    printf 'ERROR: KIWI image builds need root privileges. Run this script with sudo.\n' >&2
+    exit 1
+fi
+
+for cmd in git python3 kiwi-ng; do
+    command -v "$cmd" >/dev/null 2>&1 || {
+        printf 'ERROR: required command not found: %s\n' "$cmd" >&2
+        exit 1
+    }
+done
+
+rm -rf "$WORK_DIR"
+mkdir -p "$WORK_DIR" "$OUT_DIR"
+
+printf '==> Cloning Fedora KIWI descriptions (%s)\n' "$FEDORA_BRANCH"
+git clone --depth 1 --branch "$FEDORA_BRANCH" "$FEDORA_KIWI_REPO"     "$WORK_DIR/fedora-kiwi-descriptions"
+
+DESC="$WORK_DIR/fedora-kiwi-descriptions"
+
+printf '==> Adding Noctiri image profile\n'
+install -Dm0644 "$ISO_DIR/noctiri.xml" "$DESC/teams/noctiri.xml"
+
+python3 - "$DESC/Fedora.kiwi" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text()
+include = '\t<include from="this://./teams/noctiri.xml"/>\n'
+if include not in text:
+    marker = '\t<packages type="bootstrap">'
+    if marker not in text:
+        raise SystemExit("Could not locate Fedora.kiwi bootstrap package marker")
+    text = text.replace(marker, include + marker, 1)
+    path.write_text(text)
+PY
+
+printf '==> Installing Noctiri root overlay\n'
+cp -a "$ISO_DIR/root/." "$DESC/root/"
+
+# Ship the same configuration sources used by the normal installer.
+share="$DESC/root/usr/share/noctiri/configs"
+mkdir -p "$share"/{niri,noctalia,kitty,qt6ct,kde,portals,systemd,greetd}
+cp "$ROOT_DIR/configs/niri/config.kdl.in" "$share/niri/config.kdl.in"
+cp "$ROOT_DIR/configs/noctalia/config.toml.in" "$share/noctalia/config.toml.in"
+cp "$ROOT_DIR/configs/kitty/kitty.conf" "$share/kitty/kitty.conf"
+cp "$ROOT_DIR/configs/qt6ct/qt6ct.conf.in" "$share/qt6ct/qt6ct.conf.in"
+cp "$ROOT_DIR/configs/kde/kdeglobals" "$share/kde/kdeglobals"
+cp "$ROOT_DIR/configs/portals/niri-portals.conf" "$share/portals/niri-portals.conf"
+cp "$ROOT_DIR/configs/systemd/kde-portal-override.conf" "$share/systemd/kde-portal-override.conf"
+cp "$ROOT_DIR/configs/greetd/config.toml" "$share/greetd/config.toml"
+
+# The live image uses the same greetd config after installation.
+install -Dm0644 "$ROOT_DIR/configs/greetd/config.toml"     "$DESC/root/etc/greetd/config.toml"
+
+chmod 0755     "$DESC/root/usr/libexec/noctiri-first-login"     "$DESC/root/usr/bin/noctiri-session"
+
+printf '==> Fetching JetBrainsMono Nerd Font for the live image\n'
+font_tmp="$WORK_DIR/JetBrainsMono.tar.xz"
+curl -fL --retry 3     -o "$font_tmp"     https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz
+mkdir -p "$DESC/root/usr/share/fonts/noctiri/JetBrainsMonoNerd"
+tar -xf "$font_tmp" -C "$DESC/root/usr/share/fonts/noctiri/JetBrainsMonoNerd"
+
+printf '==> Building Noctiri live ISO\n'
+cd "$DESC"
+./kiwi-build     --kiwi-file=Fedora.kiwi     --image-type=iso     --image-profile=Noctiri-Live     --output-dir="$OUT_DIR/noctiri"
+
+printf '\nBuild finished. ISO output should be under:\n  %s\n' "$OUT_DIR"
