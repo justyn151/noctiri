@@ -1,0 +1,42 @@
+name: Build Noctiri Live ISO
+
+on:
+  workflow_dispatch:
+    inputs:
+      fedora_branch:
+        description: Fedora KIWI description branch
+        required: true
+        default: f44
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Check out Noctiri
+        uses: actions/checkout@v4
+
+      - name: Build Fedora live ISO
+        env:
+          FEDORA_BRANCH: ${{ github.event.inputs.fedora_branch || 'f44' }}
+        run: |
+          docker run --privileged --rm             -e FEDORA_BRANCH="$FEDORA_BRANCH"             -v "$PWD:/workspace"             -w /workspace             fedora:44             bash -lc '
+              set -Eeuo pipefail
+              dnf -y install                 git curl tar xz python3                 kiwi kiwi-systemdeps distribution-gpg-keys
+              bash iso/build.sh
+            '
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: noctiri-live-iso
+          path: out/*.iso
+          if-no-files-found: error
+          retention-days: 7
