@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Noctiri first-login setup
+Exec=/usr/libexec/noctiri-first-login
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
