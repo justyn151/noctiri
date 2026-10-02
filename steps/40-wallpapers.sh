@@ -22,9 +22,10 @@ configure_wallpapers() {
     printf '  2) AbegAshford/rice-walls\n'
     printf '  3) na-ive/wallpapers\n'
     printf '  4) makccr/wallpapers\n'
-    printf '  a) all four\n'
+    printf '  5) krishna4a6av/Wallpapers\n'
+    printf '  a) all five\n'
     printf '  s) skip wallpapers\n\n'
-    read -r -p 'Select any combination (example: 1 3 4), or s to skip: ' choices || true
+    read -r -p 'Select any combination (example: 1 3 5), or s to skip: ' choices || true
     choices="${choices:-s}"
 
     rm -f "$HOME/.config/noctalia/99-wallpaper.toml"
@@ -32,7 +33,7 @@ configure_wallpapers() {
 
     local nums=()
     if [[ "$choices" =~ ^[Aa]$ ]]; then
-        nums=(1 2 3 4)
+        nums=(1 2 3 4 5)
     else
         read -r -a nums <<< "$choices"
     fi
@@ -44,6 +45,7 @@ configure_wallpapers() {
             2) clone_wall_repo https://github.com/AbegAshford/rice-walls.git rice-walls; picked=1 ;;
             3) clone_wall_repo https://github.com/na-ive/wallpapers.git na-ive; picked=1 ;;
             4) clone_wall_repo https://github.com/makccr/wallpapers.git makccr; picked=1 ;;
+            5) clone_wall_repo https://github.com/krishna4a6av/Wallpapers.git krishna; picked=1 ;;
             *) warn "Ignoring unknown wallpaper choice: $n" ;;
         esac
     done

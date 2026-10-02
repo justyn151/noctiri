@@ -20,6 +20,7 @@ install_configs() {
     fi
 
     install_file "$ROOT_DIR/configs/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
+    install_file "$ROOT_DIR/configs/vim/vimrc" "$HOME/.vimrc"
     render_home_template "$ROOT_DIR/configs/qt6ct/qt6ct.conf.in" "$HOME/.config/qt6ct/qt6ct.conf"
     install_file "$ROOT_DIR/configs/kde/kdeglobals" "$HOME/.config/kdeglobals"
     install_file "$ROOT_DIR/configs/portals/niri-portals.conf" "$HOME/.config/xdg-desktop-portal/niri-portals.conf"

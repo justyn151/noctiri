@@ -25,6 +25,7 @@ Theme/integration:
 Apps:
 - Firefox
 - Kitty
+- Vim (with the included VimTeX/FZF configuration)
 - Dolphin + Ark
 - fooyin
 - btop
@@ -48,6 +49,7 @@ Wallpaper downloads are optional. The installer lets you choose any subset of:
 2. https://github.com/AbegAshford/rice-walls
 3. https://github.com/na-ive/wallpapers
 4. https://github.com/makccr/wallpapers
+5. https://github.com/krishna4a6av/Wallpapers
 
 You can also choose all or skip wallpapers entirely.
 

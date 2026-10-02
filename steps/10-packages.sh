@@ -8,7 +8,7 @@ install_packages() {
         xwayland-satellite
         xdg-desktop-portal xdg-desktop-portal-gnome xdg-desktop-portal-gtk xdg-desktop-portal-kde
         pipewire wireplumber polkit gnome-keyring gnome-keyring-pam
-        kitty firefox flatpak git curl tar xz unzip python3 xdg-utils
+        kitty firefox vim-enhanced ripgrep latexmk flatpak git curl tar xz unzip python3 xdg-utils
         playerctl brightnessctl
         qt6ct plasma-breeze-qt6 breeze-icon-theme
         dolphin ark fooyin btop cava fastfetch qimgv mpv
