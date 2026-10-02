@@ -1,6 +1,32 @@
-# Fedora Niri + Noctalia Setup
+# Noctiri
 
-A reproducible installer built from a working Fedora 44 + Niri + Noctalia configuration.
+A reproducible Fedora 44 + Niri + Noctalia rice, available as both a normal installer and an experimental live ISO.
+
+## Installation paths
+
+### Existing Fedora installation
+
+Run the normal installer as your regular user:
+
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+### Live ISO
+
+Noctiri also has an experimental Fedora KIWI live-image build under `iso/`. It boots directly into the Noctiri Niri + Noctalia session and includes Anaconda live-install support.
+
+Build locally on Fedora:
+
+```bash
+sudo dnf install kiwi kiwi-systemdeps distribution-gpg-keys git curl
+sudo FEDORA_BRANCH=f44 bash iso/build.sh
+```
+
+Or run **Build Noctiri Live ISO** from GitHub Actions. See [iso/README.md](iso/README.md) for details.
+
+The ISO intentionally leaves Spotify, Vesktop, Spicetify, and wallpaper collections to the post-install setup rather than baking them into the image.
 
 ## What it installs
 
