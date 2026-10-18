@@ -1,6 +1,7 @@
-# Fedora Niri + Noctalia Setup
+# Fedora / Void Linux Niri + Noctalia Setup
 
-A reproducible installer built from a working Fedora 44 + Niri + Noctalia configuration.
+A reproducible Niri + Noctalia installer for Fedora 44+ and Void Linux (glibc or musl),
+built from a working Fedora configuration.
 
 ## What it installs
 
@@ -62,7 +63,9 @@ chmod +x install.sh
 ./install.sh
 ```
 
-The script requests sudo only for system packages/configuration.
+The script detects the distribution from `/etc/os-release` and requests sudo only for system
+packages/configuration. On Void, it performs a full XBPS update first because partial upgrades are
+unsupported, then builds the latest stable Noctalia and Noctalia Greeter releases from source.
 
 ## Important behavior
 
@@ -71,8 +74,11 @@ The script requests sudo only for system packages/configuration.
 - The installer is designed to be safe to rerun.
 - Noctalia GUI state (`~/.local/state/noctalia/settings.toml`) is backed up and removed,
   because GUI state overrides declarative config files.
-- The installer enables greetd and sets `graphical.target`, but deliberately does **not**
-  start/restart greetd during installation. This avoids terminating an active graphical session.
+- On Fedora, the installer enables greetd and sets `graphical.target`, but deliberately does **not**
+  start/restart greetd during installation.
+- On Void, enabling a runit service starts it immediately. The installer therefore configures
+  greetd but leaves activation to you. From a TTY, after resolving any display-manager warning, run
+  `sudo ln -s /etc/sv/greetd /var/service/`.
 - If another display manager is configured, the installer warns instead of blindly disabling it.
 
 ## Spotify / Spicetify
@@ -90,12 +96,28 @@ The Flatpak receives access to Downloads, Documents, and Pictures. This fixes th
 
 ## Greeter
 
-Noctalia Greeter comes from the Terra repository on Fedora 44+. The installer:
+Noctalia Greeter comes from the Terra repository on Fedora 44+. On Void it is built from the latest
+stable upstream release using the upstream-documented Void dependencies. The installer:
+
 - installs the greeter,
 - runs the greeter system setup helper,
 - installs the known-good greetd config,
 - enables the constrained passwordless appearance-sync rule for the current user,
-- enables greetd for the next boot.
+- enables greetd for the next boot on Fedora; Void activation is left as an explicit TTY step so the
+  installer cannot replace the current GUI session.
+
+## Distribution-specific behavior
+
+Fedora and Void support lives in one installer. Most configuration, backup, Flatpak, wallpaper, and
+application-default behavior is shared; only package installation, Firefox's system policy path, the
+greetd account, and service management differ.
+
+- Fedora uses DNF, the Fedora Noctalia package, Terra's Noctalia Greeter package, and systemd.
+- Void uses XBPS, builds Noctalia and Noctalia Greeter from their latest stable release tags, uses
+  Void's `_greeter` account, enables the required system D-Bus service, configures PipeWire with
+  WirePlumber and PulseAudio compatibility, and follows runit service conventions.
+- Both Void glibc and musl are accepted. Noctalia's Meson configuration automatically skips
+  jemalloc on musl.
 
 After your first Noctalia login, use **Settings -> Security -> Noctalia Greeter -> Sync Now** once.
 The provided Noctalia config has Auto-Sync Greeter enabled afterward.

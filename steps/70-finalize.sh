@@ -17,7 +17,7 @@ finalize_setup() {
     fi
 
     # Restart portal services only if a user manager is available right now.
-    if systemctl --user show-environment >/dev/null 2>&1; then
+    if have systemctl && systemctl --user show-environment >/dev/null 2>&1; then
         systemctl --user restart plasma-xdg-desktop-portal-kde.service >/dev/null 2>&1 || true
         systemctl --user restart xdg-desktop-portal.service >/dev/null 2>&1 || true
     fi
@@ -26,6 +26,9 @@ finalize_setup() {
     printf 'Backups (if any): %s\n' "$BACKUP_DIR"
     printf '\nBefore rebooting:\n'
     printf '  - If the installer warned about another display manager, resolve that first.\n'
+    if [[ "$DISTRO_ID" == "void" && ! -e /var/service/greetd ]]; then
+        printf '  - Void: from a TTY, enable greetd with: sudo ln -s /etc/sv/greetd /var/service/\n'
+    fi
     printf '  - A logout/reboot is recommended so Niri, portals, Qt variables and greetd start cleanly.\n'
     printf '  - After first Noctalia login, use Settings -> Security -> Noctalia Greeter -> Sync Now once.\n'
     printf '  - Noctalia Auto-Sync Greeter is already enabled by the supplied config.\n'

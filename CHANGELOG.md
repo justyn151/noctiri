@@ -3,6 +3,10 @@
 This installer was generated from the supplied `setup-export.tar.gz`.
 
 Sanitization/portability changes:
+- Added automatic Fedora/Void detection with distro-specific package, Firefox policy, greeter-user,
+  and service-management paths.
+- Added Void XBPS package installation and stable-source builds for Noctalia and Noctalia Greeter.
+- Made Firefox policy merging privilege-safe and refuse to overwrite malformed existing JSON.
 - Replaced `/home/mikoo` with the target user's `$HOME` at installation time.
 - Removed disabled Noctalia lock-screen widget placement tied to `eDP-1`.
 - Removed exported per-monitor wallpaper paths and made wallpaper repositories optional.

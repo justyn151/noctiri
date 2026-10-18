@@ -24,47 +24,91 @@ install_configs() {
     render_home_template "$ROOT_DIR/configs/qt6ct/qt6ct.conf.in" "$HOME/.config/qt6ct/qt6ct.conf"
     install_file "$ROOT_DIR/configs/kde/kdeglobals" "$HOME/.config/kdeglobals"
     install_file "$ROOT_DIR/configs/portals/niri-portals.conf" "$HOME/.config/xdg-desktop-portal/niri-portals.conf"
-    install_file "$ROOT_DIR/configs/systemd/kde-portal-override.conf" \
-        "$HOME/.config/systemd/user/plasma-xdg-desktop-portal-kde.service.d/override.conf"
+    if [[ "$DISTRO_ID" == "fedora" ]]; then
+        install_file "$ROOT_DIR/configs/systemd/kde-portal-override.conf" \
+            "$HOME/.config/systemd/user/plasma-xdg-desktop-portal-kde.service.d/override.conf"
+    fi
 
     mkdir -p "$HOME/Pictures/Screenshots" "$HOME/Pictures/Wallpapers"
 
     # Reload user systemd if this shell currently has a user manager; harmless on a TTY.
-    systemctl --user daemon-reload >/dev/null 2>&1 || true
+    if have systemctl; then
+        systemctl --user daemon-reload >/dev/null 2>&1 || true
+    fi
 }
 
 merge_firefox_policy() {
     log "Configuring Firefox to use the XDG portal file picker"
-    local tmp
-    tmp="$(mktemp)"
-    sudo python3 - "$tmp" <<'PY'
-import json, os, sys
-path='/etc/firefox/policies/policies.json'
-out=sys.argv[1]
-data={}
-if os.path.exists(path):
-    try:
-        with open(path, encoding='utf-8') as f: data=json.load(f)
-    except Exception:
-        data={}
-policies=data.setdefault('policies', {})
-prefs=policies.setdefault('Preferences', {})
+    local policy_path
+    case "$DISTRO_ID" in
+        fedora) policy_path=/etc/firefox/policies/policies.json ;;
+        void) policy_path=/usr/lib/firefox/distribution/policies.json ;;
+        *) die "No Firefox policy path for $DISTRO_ID" ;;
+    esac
+    merge_firefox_policy_at_path "$policy_path"
+}
+
+merge_firefox_policy_at_path() {
+    local policy_path="$1" tmp_dir input_file output_file backup_file
+    tmp_dir="$(mktemp -d)"
+    input_file="$tmp_dir/policies.json"
+    output_file="$tmp_dir/policies.updated.json"
+
+    if sudo test -e "$policy_path"; then
+        # Redirection is performed by the normal-user shell. sudo is used only to
+        # read the protected source, avoiding root-owned temporary files.
+        if ! sudo cat -- "$policy_path" > "$input_file"; then
+            rm -rf "$tmp_dir"
+            return 1
+        fi
+        backup_file="$BACKUP_DIR/${policy_path#/}"
+        mkdir -p "$(dirname "$backup_file")"
+        if ! sudo cat -- "$policy_path" > "$backup_file"; then
+            rm -rf "$tmp_dir"
+            return 1
+        fi
+    else
+        printf '{}\n' > "$input_file"
+    fi
+
+    if ! python3 - "$input_file" "$output_file" "$policy_path" <<'PY'
+import json
+import sys
+
+source, destination, policy_path = sys.argv[1:]
+try:
+    with open(source, encoding='utf-8') as stream:
+        data = json.load(stream)
+except (OSError, json.JSONDecodeError) as error:
+    raise SystemExit(f"Cannot parse existing Firefox policy {policy_path}: {error}")
+
+if not isinstance(data, dict):
+    raise SystemExit(f"Existing Firefox policy {policy_path} must contain a JSON object")
+policies = data.setdefault('policies', {})
+if not isinstance(policies, dict):
+    raise SystemExit(f"The 'policies' value in {policy_path} must be a JSON object")
+prefs = policies.setdefault('Preferences', {})
+if not isinstance(prefs, dict):
+    raise SystemExit(f"The 'Preferences' value in {policy_path} must be a JSON object")
 prefs['widget.use-xdg-desktop-portal.file-picker']={
     'Value': 1,
     'Status': 'user',
     'Type': 'number'
 }
-with open(out,'w',encoding='utf-8') as f:
-    json.dump(data,f,indent=2)
-    f.write('\n')
+with open(destination, 'w', encoding='utf-8') as stream:
+    json.dump(data, stream, indent=2)
+    stream.write('\n')
 PY
-    if sudo test -e /etc/firefox/policies/policies.json; then
-        sudo mkdir -p "$BACKUP_DIR/etc/firefox/policies"
-        sudo cp -a /etc/firefox/policies/policies.json "$BACKUP_DIR/etc/firefox/policies/policies.json"
+    then
+        rm -rf "$tmp_dir"
+        return 1
     fi
-    sudo mkdir -p /etc/firefox/policies
-    sudo install -m 0644 "$tmp" /etc/firefox/policies/policies.json
-    rm -f "$tmp"
+    if ! sudo mkdir -p "$(dirname "$policy_path")" \
+        || ! sudo install -m 0644 "$output_file" "$policy_path"; then
+        rm -rf "$tmp_dir"
+        return 1
+    fi
+    rm -rf "$tmp_dir"
 }
 
 set_default_apps() {

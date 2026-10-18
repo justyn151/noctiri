@@ -5,6 +5,9 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKUP_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}/niri-noctalia-installer-backup"
 RUN_STAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_DIR="$BACKUP_ROOT/$RUN_STAMP"
+DISTRO_ID=""
+DISTRO_NAME=""
+GREETER_USER=""
 
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 ok()   { printf '\033[1;32m  ✓\033[0m %s\n' "$*"; }
@@ -47,3 +50,17 @@ render_home_template() {
 }
 
 have() { command -v "$1" >/dev/null 2>&1; }
+
+clone_latest_release() {
+    local repo="$1" dest="$2" tag
+    tag="$({ git ls-remote --refs --tags "$repo" 2>/dev/null || true; } \
+        | awk '{sub("refs/tags/", "", $2); if ($2 ~ /^v?[0-9]+\.[0-9]+\.[0-9]+$/) print $2}' \
+        | sort -V \
+        | tail -n 1)"
+    if [[ -n "$tag" ]]; then
+        git clone --depth 1 --branch "$tag" "$repo" "$dest"
+    else
+        warn "Could not determine the latest release tag for $repo; using its default branch."
+        git clone --depth 1 "$repo" "$dest"
+    fi
+}

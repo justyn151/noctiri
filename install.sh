@@ -11,8 +11,11 @@ done
 trap 'printf "\nInstaller stopped at line %s. Existing files were backed up under: %s\n" "$LINENO" "$BACKUP_DIR" >&2' ERR
 
 checks
-printf '\nThis installer will configure a Fedora 44+ Niri + Noctalia desktop and install the selected app stack.\n'
+printf '\nThis installer will configure a Niri + Noctalia desktop on %s and install the selected app stack.\n' "$DISTRO_NAME"
 printf 'It DOES NOT start/restart greetd during the run, so it will not intentionally kill your current GUI session.\n\n'
+if [[ "$DISTRO_ID" == "void" ]]; then
+    printf 'Void note: this performs a full XBPS upgrade and builds Noctalia + its greeter from stable source releases.\n\n'
+fi
 ask_yes_no "Continue?" y || exit 0
 
 install_packages
