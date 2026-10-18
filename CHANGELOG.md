@@ -6,6 +6,8 @@ Sanitization/portability changes:
 - Added automatic Fedora/Void detection with distro-specific package, Firefox policy, greeter-user,
   and service-management paths.
 - Added Void XBPS package installation and stable-source builds for Noctalia and Noctalia Greeter.
+- Fixed Void installation failing on the nonexistent `nlohmann-json-devel` package by installing
+  the header-only dependency from its latest stable release.
 - Made Firefox policy merging privilege-safe and refuse to overwrite malformed existing JSON.
 - Replaced `/home/mikoo` with the target user's `$HOME` at installation time.
 - Removed disabled Noctalia lock-screen widget placement tied to `eDP-1`.

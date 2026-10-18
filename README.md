@@ -66,6 +66,8 @@ chmod +x install.sh
 The script detects the distribution from `/etc/os-release` and requests sudo only for system
 packages/configuration. On Void, it performs a full XBPS update first because partial upgrades are
 unsupported, then builds the latest stable Noctalia and Noctalia Greeter releases from source.
+It also installs `nlohmann-json` from its latest stable release because Void does not provide the
+development package required by those builds.
 
 ## Important behavior
 

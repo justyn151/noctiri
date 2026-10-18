@@ -83,6 +83,34 @@ configure_void_runtime() {
     fi
 }
 
+install_nlohmann_json_void() {
+    # Meson installs the generated pkg-config file here. Exporting the path makes
+    # the source install discoverable even when Void's pkgconf excludes /usr/local.
+    local local_pkgconfig=/usr/local/lib/pkgconfig
+    export PKG_CONFIG_PATH="$local_pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+
+    if pkg-config --exists nlohmann_json; then
+        ok "nlohmann-json is already installed"
+        return 0
+    fi
+
+    log "Installing nlohmann-json from its latest stable release"
+    local tmp src
+    tmp="$(mktemp -d)"
+    src="$tmp/nlohmann-json"
+    clone_latest_release https://github.com/nlohmann/json.git "$src"
+    (
+        cd "$src"
+        meson setup build-release --prefix=/usr/local --libdir=lib --buildtype=release
+        sudo meson install -C build-release
+    )
+    rm -rf "$tmp"
+
+    pkg-config --exists nlohmann_json \
+        || die "nlohmann-json installed, but pkg-config cannot find it"
+    ok "nlohmann-json installed"
+}
+
 install_noctalia_void() {
     log "Installing Noctalia build dependencies for Void Linux"
     local build_pkgs=(
@@ -94,9 +122,11 @@ install_noctalia_void() {
         pipewire-devel wireplumber-devel libcurl-devel
         libwebp-devel libjxl-devel libsndfile-devel librsvg-devel
         libqalculate-devel libxml2-devel libmd4c-devel libical-devel
-        nlohmann-json-devel tomlplusplus-devel stb
+        tomlplusplus-devel stb
     )
     sudo xbps-install -y "${build_pkgs[@]}"
+
+    install_nlohmann_json_void
 
     log "Building the latest stable Noctalia release"
     local tmp src
@@ -115,7 +145,7 @@ install_noctalia_void() {
 install_noctalia_greeter_void() {
     log "Installing Noctalia Greeter build dependencies for Void Linux"
     local build_pkgs=(
-        wlroots-devel tomlplusplus-devel nlohmann-json-devel stb
+        wlroots-devel tomlplusplus-devel stb
     )
     sudo xbps-install -y "${build_pkgs[@]}"
 
