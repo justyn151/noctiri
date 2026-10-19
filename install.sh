@@ -19,14 +19,16 @@ case "${1:-}" in
     --void-runtime-only) MODE=void-runtime ;;
     --theme-only) MODE=theme ;;
     --services-only) MODE=services ;;
+    --dwl-only) MODE=dwl ;;
     -h|--help)
-        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only]\n' "$0"
+        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --dwl-only]\n' "$0"
         printf '  --wallpapers-only  Install or update wallpaper collections without rerunning setup\n'
         printf '  --spicetify-only   Finish Spicetify after Spotify has created its graphical profile\n'
         printf '  --greeter-only     Repair greetd/Noctalia Greeter configuration without rebuilding\n'
         printf '  --void-runtime-only  Repair Void graphics and seat services without rebuilding\n'
         printf '  --theme-only       Repair Noctalia app colors and bar clocks without rebuilding\n'
         printf '  --services-only    Repair Wi-Fi, Bluetooth, PipeWire, and brightness persistence\n'
+        printf '  --dwl-only         Install the optional Void DWL + Foot + Somebar preview\n'
         exit 0
         ;;
     *) die "Unknown option: $1 (try --help)" ;;
@@ -80,6 +82,16 @@ if [[ "$MODE" == "services" ]]; then
     printf '\nServices-only mode: the desktop stack and personal configuration will not be rebuilt.\n\n'
     repair_connectivity_audio
     printf '\nWi-Fi, Bluetooth, audio, and brightness persistence repaired. Log out and back in once if group membership or PipeWire changed.\n'
+    exit 0
+fi
+
+if [[ "$MODE" == "dwl" ]]; then
+    printf '\nDWL preview mode: Niri and Noctalia will not be changed or rebuilt.\n'
+    printf 'A separate greeter session will be installed; your existing default session is preserved.\n\n'
+    install_dwl_preview
+    printf '\n\033[1;32mDWL preview installation complete.\033[0m\n'
+    printf 'Log out normally, then select "DWL (Noctiri Preview)" in the greeter.\n'
+    printf 'DWL is intentionally not started or made the default by this installer.\n'
     exit 0
 fi
 

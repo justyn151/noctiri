@@ -1,0 +1,35 @@
+#!/bin/sh
+set -eu
+
+export PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_CURRENT_DESKTOP=dwl
+export XDG_SESSION_DESKTOP=dwl
+export XDG_SESSION_TYPE=wayland
+export LIBSEAT_BACKEND=seatd
+export MOZ_ENABLE_WAYLAND=1
+export QT_QPA_PLATFORM=wayland
+
+# The target laptop is Intel + nouveau hybrid graphics. Prefer the Intel card
+# automatically when both drivers are present; leave other machines alone.
+intel_card=''
+nouveau_card=''
+for card in /dev/dri/by-path/pci-*-card; do
+    [ -L "$card" ] || continue
+    device="${card##*/pci-}"
+    device="${device%-card}"
+    [ -L "/sys/bus/pci/devices/$device/driver" ] || continue
+    driver="$(basename "$(readlink -f "/sys/bus/pci/devices/$device/driver")")"
+    case "$driver" in
+        i915) intel_card="$card" ;;
+        nouveau) nouveau_card="$card" ;;
+    esac
+done
+if [ -n "$intel_card" ] && [ -n "$nouveau_card" ]; then
+    export WLR_DRM_DEVICES="$intel_card"
+fi
+
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/noctiri/dwl"
+mkdir -p "$state_dir"
+exec dbus-run-session -- /usr/local/bin/dwl \
+    -s "$XDG_CONFIG_HOME/dwl/autostart.sh" >>"$state_dir/session.log" 2>&1

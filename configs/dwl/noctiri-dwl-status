@@ -1,0 +1,50 @@
+#!/bin/sh
+case "${1:-}" in
+    memory)
+        awk '
+            /MemTotal:/ { total = $2 }
+            /MemAvailable:/ { available = $2 }
+            END { printf "MEM %.1fG", (total - available) / 1048576 }
+        ' /proc/meminfo
+        ;;
+    audio)
+        if command -v wpctl >/dev/null 2>&1; then
+            wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null \
+                | awk '{ printf "VOL %d%%%s", $2 * 100, /MUTED/ ? " M" : "" }'
+        else
+            printf 'VOL --'
+        fi
+        ;;
+    network)
+        if command -v nmcli >/dev/null 2>&1; then
+            ssid="$(nmcli -t -f active,ssid device wifi 2>/dev/null \
+                | awk -F: '$1 == "yes" { sub(/^yes:/, ""); print; exit }')"
+            if [ -n "$ssid" ]; then
+                printf 'WIFI %.24s' "$ssid"
+            else
+                printf 'NET --'
+            fi
+        else
+            printf 'NET --'
+        fi
+        ;;
+    battery)
+        battery=''
+        for candidate in /sys/class/power_supply/BAT*; do
+            [ -r "$candidate/capacity" ] || continue
+            battery="$candidate"
+            break
+        done
+        if [ -n "$battery" ]; then
+            printf 'BAT %s%%' "$(cat "$battery/capacity")"
+        fi
+        ;;
+    clock)
+        date '+%a %d %b  %H:%M'
+        ;;
+    *)
+        printf 'usage: noctiri-dwl-status {memory|audio|network|battery|clock}\n' >&2
+        exit 2
+        ;;
+esac
+printf '\n'

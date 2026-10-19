@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=DWL (Noctiri Preview)
+Comment=Experimental DWL, Foot and Somebar session
+Exec=/usr/local/bin/noctiri-dwl-session
+Type=Application
+DesktopNames=dwl
