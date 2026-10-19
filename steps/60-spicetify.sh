@@ -7,10 +7,12 @@ find_spicetify() {
 
 install_spicetify() {
     printf '\n'
-    if ! ask_yes_no "Install and configure Spicetify + Marketplace for Spotify?" y; then
-        ok "Skipping Spicetify"
+    if ! ask_yes_no "Install Spotify and configure Spicetify + Marketplace?" y; then
+        ok "Skipping Spotify and Spicetify"
         return
     fi
+
+    ensure_spotify_flatpak
 
     local prefs="$HOME/.var/app/com.spotify.Client/config/spotify/prefs"
     if [[ ! -f "$prefs" ]]; then

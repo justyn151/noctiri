@@ -24,7 +24,7 @@ case "${1:-}" in
     -h|--help)
         printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --dwl-only | --font-only]\n' "$0"
         printf '  --wallpapers-only  Install or update wallpaper collections without rerunning setup\n'
-        printf '  --spicetify-only   Finish Spicetify after Spotify has created its graphical profile\n'
+        printf '  --spicetify-only   Install Spotify if needed, then finish Spicetify setup\n'
         printf '  --greeter-only     Repair greetd/Noctalia Greeter configuration without rebuilding\n'
         printf '  --void-runtime-only  Repair Void graphics and seat services without rebuilding\n'
         printf '  --theme-only       Repair Noctalia app colors and bar clocks without rebuilding\n'
@@ -128,7 +128,7 @@ run_stateful_step fantasque-system-font-v1 "Fantasque Sans Mono system font" ins
 run_stateful_step configs "Desktop configuration" install_configs
 run_stateful_step firefox-policy-v2 "Firefox portal and Pywalfox extension policy" merge_firefox_policy
 run_stateful_step pywalfox "Noctalia Pywalfox native host" configure_pywalfox
-run_stateful_step default-apps "Default application associations" set_default_apps
+run_stateful_step default-apps-v2 "Default application associations" set_default_apps
 run_stateful_step flatpaks "Flatpak applications" install_flatpaks
 run_stateful_step wallpapers "Wallpaper collections" configure_wallpapers
 run_stateful_step greeter "greetd and Noctalia Greeter configuration" configure_greeter

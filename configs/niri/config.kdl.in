@@ -361,12 +361,6 @@ window-rule {
     open-floating true
 }
 
-// The shortcut reference is a regular Quickshell toplevel so Niri can move it.
-window-rule {
-    match app-id="noctiri-shortcuts"
-    open-floating true
-}
-
 // Example: block out two password managers from screen capture.
 // (This example rule is commented out with a "/-" in front.)
 /-window-rule {
@@ -385,6 +379,17 @@ window-rule {
     geometry-corner-radius 10 
     clip-to-geometry true
     draw-border-with-background false
+}
+
+// The shortcut reference draws its own border. Match its corner radius and
+// suppress Niri's focus ring so the two outlines do not overlap.
+window-rule {
+    match app-id="noctiri-shortcuts"
+    open-floating true
+    geometry-corner-radius 18
+    clip-to-geometry true
+    draw-border-with-background false
+    focus-ring { off; }
 }
 
 binds {

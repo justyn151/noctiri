@@ -176,8 +176,8 @@ ShellRoot {
         minimumSize.height: 480
         maximumSize.width: 1600
         maximumSize.height: 1000
-        color: "transparent"
-        surfaceFormat.opaque: false
+        color: root.backgroundColor
+        surfaceFormat.opaque: true
 
         Rectangle {
             anchors.fill: parent

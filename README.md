@@ -34,7 +34,7 @@ Apps:
 - qimgv
 - mpv
 - qpwgraph
-- Spotify (Flatpak)
+- Spotify (Flatpak, installed by the optional Spicetify stage)
 - Vesktop (Flatpak)
 - Spicetify + Marketplace (optional interactive stage)
 
@@ -79,9 +79,9 @@ installation, configuration replacement, or source compilation, run:
 ./install.sh --wallpapers-only
 ```
 
-When installing from a TTY, the Spicetify stage is deferred because Spotify cannot create its
-profile without a graphical session. After logging into Niri, launch Spotify once, log in, close
-Spotify, and finish only that stage with:
+When installing from a TTY, the Spicetify stage installs Spotify if it is missing, then defers the
+patch because Spotify cannot create its profile without a graphical session. After logging into
+Niri, launch Spotify once, log in, close Spotify, and finish only that stage with:
 
 ```bash
 ./install.sh --spicetify-only
