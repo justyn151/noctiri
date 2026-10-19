@@ -662,4 +662,7 @@ binds {
     Mod+Shift+P { power-off-monitors; }
 }
 
+// Installer-managed hardware workarounds live separately so the main config
+// remains portable between machines.
+include "noctiri-hardware.kdl"
 include "noctalia.kdl"

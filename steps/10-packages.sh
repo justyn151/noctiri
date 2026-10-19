@@ -105,6 +105,7 @@ repair_void_runtime() {
     log "Installing the Void Wayland graphics and seat runtime"
     sudo xbps-install -y mesa-dri dbus elogind
     configure_void_runtime
+    configure_niri_gpu_override
 }
 
 install_nlohmann_json_void() {
