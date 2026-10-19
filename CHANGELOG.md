@@ -59,6 +59,8 @@ Sanitization/portability changes:
   a conservative hybrid Intel/nouveau GPU override for the Mango session.
 - Reduced the Void display-backlight persistence poll from one second to ten seconds while still
   saving once more on shutdown.
+- Leaves Mango's disable-while-typing input option at its enabled default so Tatami also validates
+  against older Mango builds still available from some Void repository mirrors.
 - Preserves the current Niri keybindings, blur/opacity, rounded windows, hot-corner setting,
   screenshot binding, Kitty config, Qt/KDE configuration, portal routing and greetd config.
 - Adds default application associations beyond the single JPEG association in the export.

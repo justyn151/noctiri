@@ -26,7 +26,7 @@ Modern desktop:
 Tatami desktop (Void only):
 - Mango with a traditional master-stack layout; grid, monocle and deck are optional layouts
 - Waybar with compact Japanese-number tags, a constrained media title and icon-only system status;
-  it uses Mango 0.14.4's ext-workspace and dwl-ipc protocols, which Void's Waybar supports
+  it uses Mango's ext-workspace and dwl-ipc protocols, which Void's Waybar supports
 - awww wallpaper daemon
 - Fuzzel launcher and SwayNotificationCenter
 - swaylock + swayidle, cliphist, and grim + slurp + swappy
