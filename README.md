@@ -26,7 +26,7 @@ Modern desktop:
 Tatami desktop (Void only):
 - Mango with a traditional master-stack layout; grid, monocle and deck are optional layouts
 - Waybar with compact Japanese-number tags, a constrained media title and icon-only system status;
-  it uses Mango's ext-workspace and dwl-ipc protocols, which Void's Waybar supports
+  it uses Mango's ext-workspace protocol, which Void's Waybar supports
 - awww wallpaper daemon
 - Fuzzel launcher and SwayNotificationCenter
 - swaylock + swayidle, cliphist, and grim + slurp + swappy
@@ -278,5 +278,5 @@ another machine to use that monitor mode or scale.
 - Vesktop Flatpak: https://github.com/flathub/dev.vencord.Vesktop
 - Bibata: https://github.com/ful1e5/Bibata_Cursor
 - Mango: https://github.com/mangowm/mango
-- Waybar ext-workspace and dwl modules: https://github.com/Alexays/Waybar
+- Waybar ext-workspace module: https://github.com/Alexays/Waybar
 - awww: https://codeberg.org/LGFae/awww

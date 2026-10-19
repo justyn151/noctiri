@@ -9,7 +9,6 @@
   "modules-left": [
     "custom/launcher",
     "ext/workspaces",
-    "dwl/window",
     "mpris"
   ],
   "modules-center": ["clock"],
@@ -48,10 +47,6 @@
     "sort-by-id": true,
     "on-click": "activate",
     "on-click-right": "deactivate"
-  },
-  "dwl/window": {
-    "format": "{layout}  {title}",
-    "max-length": 42
   },
   "mpris": {
     "format": "{player_icon} {dynamic}",

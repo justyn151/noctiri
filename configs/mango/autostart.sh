@@ -21,6 +21,13 @@ dbus-update-activation-environment \
     DISPLAY WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP \
     XDG_SESSION_TYPE >/dev/null 2>&1 || true
 
+start_once pipewire pipewire.log pipewire
+attempts=0
+while ! pw-cli info 0 >/dev/null 2>&1 && [ "$attempts" -lt 50 ]; do
+    sleep 0.1
+    attempts=$((attempts + 1))
+done
+
 start_once swaync swaync.log swaync
 start_once waybar waybar.log waybar \
     --config "$HOME/.config/waybar/config.jsonc" \
@@ -53,7 +60,13 @@ if ! awww query >/dev/null 2>&1; then
     done
 fi
 
-if ! awww restore >/dev/null 2>&1; then
+restored=false
+if awww restore >/dev/null 2>&1 \
+    && awww query 2>/dev/null | grep -q 'currently displaying: image:'; then
+    restored=true
+fi
+
+if [ "$restored" = false ]; then
     wallpaper="$(cat "$HOME/.config/noctiri/tatami-wallpaper" 2>/dev/null || true)"
     if [ ! -f "$wallpaper" ]; then
         wallpaper="$(find "$HOME/Pictures/Wallpapers" -type f \

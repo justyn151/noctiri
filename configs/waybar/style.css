@@ -25,7 +25,6 @@ window#waybar {
 
 #custom-launcher,
 #workspaces,
-#window,
 #mpris,
 #clock,
 #cpu,
@@ -68,12 +67,6 @@ window#waybar {
 #workspaces button.urgent {
   color: @urgent;
   border-bottom-color: @urgent;
-}
-
-#window {
-  min-width: 70px;
-  color: @accent2;
-  border-left: 1px solid @border;
 }
 
 #mpris {

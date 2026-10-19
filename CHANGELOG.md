@@ -63,6 +63,13 @@ Sanitization/portability changes:
   against older Mango builds still available from some Void repository mirrors.
 - Resolves hybrid-GPU PCI symlinks to `/dev/dri/cardN` before exporting `WLR_DRM_DEVICES`; the
   variable treats the colons in a raw PCI by-path as device-list separators.
+- Avoids Waybar's `dwl/window` module with Mango 0.17, where the missing dwl status protocol makes
+  Waybar 0.15 segfault, while retaining working ext-workspace tags and constrained MPRIS metadata.
+- Falls back to the saved or first installed wallpaper when `awww restore` succeeds without
+  restoring an image and leaves the output on a plain color.
+- Starts the Void PipeWire core from Tatami before Waybar, allowing the system-wide PipeWire
+  drop-ins to launch WirePlumber and pipewire-pulse without duplicate processes or a disabled
+  Waybar volume module.
 - Preserves the current Niri keybindings, blur/opacity, rounded windows, hot-corner setting,
   screenshot binding, Kitty config, Qt/KDE configuration, portal routing and greetd config.
 - Adds default application associations beyond the single JPEG association in the export.
