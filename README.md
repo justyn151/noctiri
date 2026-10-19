@@ -125,6 +125,16 @@ Pywalfox, uBlock Origin, SponsorBlock, and Ctrl+Number to switch tabs. Normal-in
 can still be disabled by the user. Restart Firefox after installation so it reads the policy and connects Pywalfox.
 To install or repair only that browser setup, run `./install.sh --firefox-only`.
 
+Zsh is the default interactive shell, with Oh My Zsh installed from its official Git repository.
+The managed `.zshrc` enables the standard `robbyrussell` theme and Git plugin while retaining
+Noctiri's `~/.local/bin`, `EDITOR`, and `VISUAL` environment. To install or repair only the shell:
+
+```bash
+./install.sh --zsh-only
+```
+
+Log out once after the first installation so terminals and SSH sessions use Zsh by default.
+
 The installer also adds `~/.local/bin` to interactive/login shell startup and to the graphical Niri
 session. Log out and back in once after applying this to an existing installation so every desktop
 application inherits the updated `PATH`.

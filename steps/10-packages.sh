@@ -16,6 +16,37 @@ install_neovim_editor() {
     esac
 }
 
+install_zsh_shell() {
+    log "Installing Zsh and Oh My Zsh"
+    case "$DISTRO_ID" in
+        fedora) sudo dnf install -y zsh git ;;
+        void) sudo xbps-install -Sy zsh git ;;
+        *) die "No Zsh package installation implementation for $DISTRO_ID" ;;
+    esac
+
+    local oh_my_zsh_dir="$HOME/.oh-my-zsh"
+    if [[ -d "$oh_my_zsh_dir/.git" ]]; then
+        ok "Oh My Zsh is already installed"
+    elif [[ -e "$oh_my_zsh_dir" ]]; then
+        die "$oh_my_zsh_dir already exists but is not an Oh My Zsh Git checkout"
+    else
+        git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$oh_my_zsh_dir"
+    fi
+
+    install_file "$ROOT_DIR/configs/zsh/zshrc" "$HOME/.zshrc"
+
+    local zsh_path current_shell
+    zsh_path="$(command -v zsh)"
+    current_shell="$(getent passwd "$USER" | cut -d: -f7)"
+    if [[ "$current_shell" != "$zsh_path" ]]; then
+        sudo usermod -s "$zsh_path" "$USER"
+        ok "Set $zsh_path as the login shell for $USER"
+    fi
+
+    zsh -ic '[[ -n "$ZSH" && -r "$ZSH/oh-my-zsh.sh" ]]' \
+        || die "Oh My Zsh did not load from the installed .zshrc"
+}
+
 install_packages_fedora() {
     log "Installing Fedora packages"
     sudo dnf install -y dnf5-plugins
@@ -27,7 +58,7 @@ install_packages_fedora() {
         NetworkManager bluez bluez-tools upower
         pipewire pipewire-alsa pipewire-pulseaudio wireplumber alsa-utils
         polkit gnome-keyring gnome-keyring-pam
-        kitty firefox neovim ripgrep latexmk flatpak git curl tar xz unzip python3 xdg-utils wl-clipboard
+        kitty firefox neovim zsh ripgrep latexmk flatpak git curl tar xz unzip python3 xdg-utils wl-clipboard
         playerctl brightnessctl
         qt6ct plasma-breeze-qt6 breeze-icon-theme
         dolphin ark btop cava fastfetch qimgv mpv
@@ -70,7 +101,7 @@ install_packages_void() {
         NetworkManager bluez rfkill upower
         pipewire wireplumber libspa-bluetooth alsa-pipewire alsa-utils pulseaudio-utils
         polkit gnome-keyring
-        kitty firefox neovim ripgrep texlive-latexmk flatpak git curl tar xz unzip python3 xdg-utils wl-clipboard
+        kitty firefox neovim zsh ripgrep texlive-latexmk flatpak git curl tar xz unzip python3 xdg-utils wl-clipboard
         playerctl brightnessctl
         qt6ct breeze-qt6 breeze-icons
         dolphin ark btop cava fastfetch qimgv mpv
