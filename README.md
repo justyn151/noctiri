@@ -117,7 +117,9 @@ greetd account, and service management differ.
 - Fedora uses DNF, the Fedora Noctalia package, Terra's Noctalia Greeter package, and systemd.
 - Void uses XBPS, builds Noctalia and Noctalia Greeter from their latest stable release tags, uses
   Void's `_greeter` account, enables the required system D-Bus service, configures PipeWire with
-  WirePlumber and PulseAudio compatibility, and follows runit service conventions.
+  WirePlumber and PulseAudio compatibility, and follows runit service conventions. Because Void's
+  Polkit rules directory is owned by `polkitd`, the installer uses Noctalia Greeter's constrained
+  manual rule after the upstream command validates the installed helper and policy.
 - Both Void glibc and musl are accepted. Noctalia's Meson configuration automatically skips
   jemalloc on musl.
 

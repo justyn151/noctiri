@@ -8,6 +8,8 @@ Sanitization/portability changes:
 - Added Void XBPS package installation and stable-source builds for Noctalia and Noctalia Greeter.
 - Fixed Void installation failing on the nonexistent `nlohmann-json-devel` package by installing
   the header-only dependency from its latest stable release.
+- Added a Void-specific fallback for Noctalia Greeter passwordless sync when the upstream rule
+  manager rejects Void's `polkitd`-owned rules directory.
 - Made Firefox policy merging privilege-safe and refuse to overwrite malformed existing JSON.
 - Replaced `/home/mikoo` with the target user's `$HOME` at installation time.
 - Removed disabled Noctalia lock-screen widget placement tied to `eDP-1`.
