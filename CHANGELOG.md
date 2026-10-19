@@ -14,6 +14,10 @@ Sanitization/portability changes:
   `--wallpapers-only` mode that avoids package installation and source compilation.
 - Deferred Spicetify cleanly during TTY installs and added `--spicetify-only` for completing it
   after Spotify creates its profile in a graphical session.
+- Pinned Niri as Noctalia Greeter's default session and added `--greeter-only` for repairing the
+  greeter without reinstalling or recompiling the desktop stack.
+- Moved greetd from Void's tty1 to VT7 and repairs both the administrator default and remembered
+  Greeter session to Niri.
 - Made Firefox policy merging privilege-safe and refuse to overwrite malformed existing JSON.
 - Replaced `/home/mikoo` with the target user's `$HOME` at installation time.
 - Removed disabled Noctalia lock-screen widget placement tied to `eDP-1`.

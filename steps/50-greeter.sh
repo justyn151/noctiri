@@ -18,6 +18,7 @@ configure_greeter() {
     fi
 
     if have noctalia-greeter; then
+        pin_niri_greeter_session
         enable_passwordless_greeter_sync
     fi
 
@@ -38,6 +39,90 @@ configure_greeter() {
             warn "Do not enable two display managers at once. Review it before rebooting."
         fi
     fi
+}
+
+set_toml_table_value() {
+    local input_file="$1" output_file="$2" table="$3" key="$4" value="$5"
+    python3 - "$input_file" "$output_file" "$table" "$key" "$value" <<'PY'
+import json
+import pathlib
+import re
+import sys
+
+input_path, output_path, table, key, value = sys.argv[1:]
+text = pathlib.Path(input_path).read_text(encoding="utf-8")
+lines = text.splitlines()
+header_pattern = re.compile(r"^\s*\[([^]]+)]\s*(?:#.*)?$")
+key_pattern = re.compile(rf"^(\s*){re.escape(key)}\s*=.*$")
+
+section_start = None
+section_end = len(lines)
+for index, line in enumerate(lines):
+    match = header_pattern.match(line)
+    if not match:
+        continue
+    if section_start is not None:
+        section_end = index
+        break
+    if match.group(1).strip() == table:
+        section_start = index
+
+assignment = f"{key} = {json.dumps(value)}"
+if section_start is None:
+    if lines and lines[-1].strip():
+        lines.append("")
+    lines.extend((f"[{table}]", assignment))
+else:
+    for index in range(section_start + 1, section_end):
+        match = key_pattern.match(lines[index])
+        if match:
+            lines[index] = match.group(1) + assignment
+            break
+    else:
+        lines.insert(section_end, assignment)
+
+pathlib.Path(output_path).write_text("\n".join(lines) + "\n", encoding="utf-8")
+PY
+}
+
+set_protected_greeter_toml_value() {
+    local path="$1" key="$2" value="$3" greeter_group tmp_dir input_file output_file backup_file
+    greeter_group="$(id -gn "$GREETER_USER")"
+    tmp_dir="$(mktemp -d)"
+    input_file="$tmp_dir/input.toml"
+    output_file="$tmp_dir/output.toml"
+
+    if sudo test -L "$path"; then
+        rm -rf "$tmp_dir"
+        warn "Refusing to replace symlinked Noctalia Greeter state: $path"
+        return 1
+    fi
+    if sudo test -e "$path"; then
+        sudo cat -- "$path" > "$input_file"
+        backup_file="$BACKUP_DIR/${path#/}"
+        mkdir -p "$(dirname "$backup_file")"
+        sudo cat -- "$path" > "$backup_file"
+    else
+        : > "$input_file"
+    fi
+
+    set_toml_table_value "$input_file" "$output_file" session "$key" "$value"
+    sudo install -o "$GREETER_USER" -g "$greeter_group" -m 0640 "$output_file" "$path"
+    rm -rf "$tmp_dir"
+}
+
+pin_niri_greeter_session() {
+    local niri_session sessions
+    sessions="$(noctalia-greeter sessions 2>/dev/null || true)"
+    niri_session="$(printf '%s\n' "$sessions" | awk 'tolower($0) == "niri" { print; exit }')"
+    [[ -n "$niri_session" ]] \
+        || die "Noctalia Greeter cannot find the Niri session. Expected it in /usr/share/wayland-sessions/."
+
+    set_protected_greeter_toml_value /var/lib/noctalia-greeter/greeter.toml default "$niri_session"
+    # Also repair the remembered value because Greeter 1.5 has an open bug where
+    # session.last can override both the CLI and administrator default.
+    set_protected_greeter_toml_value /var/lib/noctalia-greeter/sync.toml last "$niri_session"
+    ok "Pinned Noctalia Greeter's startup session to $niri_session"
 }
 
 enable_passwordless_greeter_sync() {

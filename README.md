@@ -84,6 +84,12 @@ Spotify, and finish only that stage with:
 ./install.sh --spicetify-only
 ```
 
+To repair only greetd and Noctalia Greeter without reinstalling or rebuilding the desktop stack:
+
+```bash
+./install.sh --greeter-only
+```
+
 The script detects the distribution from `/etc/os-release` and requests sudo only for system
 packages/configuration. When the Void package stage runs, it performs a full XBPS update first
 because partial upgrades are unsupported, then builds the latest stable Noctalia and Noctalia
@@ -126,6 +132,9 @@ stable upstream release using the upstream-documented Void dependencies. The ins
 - installs the greeter,
 - runs the greeter system setup helper,
 - installs the known-good greetd config,
+- pins Niri as the startup session so another discovered or remembered desktop is not selected by
+  default,
+- runs greetd on VT7 on Void, leaving tty1 available as a recovery console,
 - enables the constrained passwordless appearance-sync rule for the current user,
 - enables greetd for the next boot on Fedora; Void activation is left as an explicit TTY step so the
   installer cannot replace the current GUI session.

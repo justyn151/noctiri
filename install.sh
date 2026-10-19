@@ -15,10 +15,12 @@ case "${1:-}" in
     "") ;;
     --wallpapers-only) MODE=wallpapers ;;
     --spicetify-only) MODE=spicetify ;;
+    --greeter-only) MODE=greeter ;;
     -h|--help)
-        printf 'Usage: %s [--wallpapers-only | --spicetify-only]\n' "$0"
+        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only]\n' "$0"
         printf '  --wallpapers-only  Install or update wallpaper collections without rerunning setup\n'
         printf '  --spicetify-only   Finish Spicetify after Spotify has created its graphical profile\n'
+        printf '  --greeter-only     Repair greetd/Noctalia Greeter configuration without rebuilding\n'
         exit 0
         ;;
     *) die "Unknown option: $1 (try --help)" ;;
@@ -38,6 +40,15 @@ fi
 if [[ "$MODE" == "spicetify" ]]; then
     printf '\nSpicetify-only mode: all other installer stages will be skipped.\n\n'
     run_stateful_step spicetify "Spicetify setup" install_spicetify true
+    exit 0
+fi
+
+if [[ "$MODE" == "greeter" ]]; then
+    printf '\nGreeter-only mode: package installation, source builds, desktop configs, and apps will be skipped.\n\n'
+    run_stateful_step greeter "greetd and Noctalia Greeter configuration" configure_greeter true
+    if [[ "$DISTRO_ID" == "void" && -e /var/service/greetd ]]; then
+        printf '\nThe configuration is repaired. From this TTY, apply it with: sudo sv restart greetd\n'
+    fi
     exit 0
 fi
 
