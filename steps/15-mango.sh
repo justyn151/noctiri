@@ -154,8 +154,10 @@ configure_mango_gpu_override() {
         [[ -L "$driver_path" ]] || continue
         driver="$(basename "$(readlink -f "$driver_path")")"
         case "$driver" in
-            i915) intel_card="$card_path" ;;
-            nouveau) nouveau_card="$card_path" ;;
+            # WLR_DRM_DEVICES uses ':' as its list separator, so the PCI
+            # by-path name itself cannot be exported. Resolve it to cardN.
+            i915) intel_card="$(readlink -f "$card_path")" ;;
+            nouveau) nouveau_card="$(readlink -f "$card_path")" ;;
         esac
     done
 

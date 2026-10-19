@@ -61,6 +61,8 @@ Sanitization/portability changes:
   saving once more on shutdown.
 - Leaves Mango's disable-while-typing input option at its enabled default so Tatami also validates
   against older Mango builds still available from some Void repository mirrors.
+- Resolves hybrid-GPU PCI symlinks to `/dev/dri/cardN` before exporting `WLR_DRM_DEVICES`; the
+  variable treats the colons in a raw PCI by-path as device-list separators.
 - Preserves the current Niri keybindings, blur/opacity, rounded windows, hot-corner setting,
   screenshot binding, Kitty config, Qt/KDE configuration, portal routing and greetd config.
 - Adds default application associations beyond the single JPEG association in the export.
