@@ -66,6 +66,8 @@ configure_system_fonts() {
     set_noctalia_font_preference
     fc-cache -f
 
+    discover_niri_environment_for_font_reload
+
     if have gsettings; then
         gsettings set org.gnome.desktop.interface font-name \
             'FantasqueSansM Nerd Font 10' >/dev/null 2>&1 || true
@@ -81,6 +83,22 @@ configure_system_fonts() {
     fi
 
     ok "Configured Fontconfig, GTK, Qt/KDE, Kitty, and Noctalia for Fantasque Sans Mono"
+}
+
+discover_niri_environment_for_font_reload() {
+    local process_id name value
+    process_id="$(pgrep -u "$(id -u)" -xo noctalia 2>/dev/null || true)"
+    [[ -n "$process_id" && -r "/proc/$process_id/environ" ]] || return 0
+
+    # An SSH or TTY installer does not inherit the graphical session's IPC
+    # variables. Import only the small set required by gsettings and Noctalia.
+    for name in XDG_RUNTIME_DIR DBUS_SESSION_BUS_ADDRESS WAYLAND_DISPLAY NIRI_SOCKET; do
+        value="$(tr '\0' '\n' < "/proc/$process_id/environ" \
+            | sed -n "s/^${name}=//p" | head -n 1)"
+        [[ -n "$value" ]] || continue
+        printf -v "$name" '%s' "$value"
+        export "$name"
+    done
 }
 
 set_kde_font_preferences() {
