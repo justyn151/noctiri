@@ -69,7 +69,10 @@ fi
 if [[ "$MODE" == "theme" ]]; then
     printf '\nTheme-only mode: packages, builds, greeter, wallpapers, and apps will be skipped.\n\n'
     repair_theme_sync
-    printf '\nColors and bar clocks repaired. Restart any open KDE/Qt applications to reload their palette.\n'
+    pywalfox_status=0
+    configure_pywalfox || pywalfox_status=$?
+    (( pywalfox_status == 0 || pywalfox_status == STEP_DEFERRED )) || exit "$pywalfox_status"
+    printf '\nColors, bar clocks, and Firefox theming repaired. Restart open applications to reload their palettes.\n'
     exit 0
 fi
 
@@ -100,7 +103,8 @@ fi
 run_stateful_step "services-$DISTRO_ID" "Wi-Fi, Bluetooth, PipeWire, and brightness persistence setup" repair_connectivity_audio
 run_stateful_step nerd-font "JetBrainsMono Nerd Font" install_nerd_font
 run_stateful_step configs "Desktop configuration" install_configs
-run_stateful_step firefox-policy "Firefox portal policy" merge_firefox_policy
+run_stateful_step firefox-policy-v2 "Firefox portal and Pywalfox extension policy" merge_firefox_policy
+run_stateful_step pywalfox "Noctalia Pywalfox native host" configure_pywalfox
 run_stateful_step default-apps "Default application associations" set_default_apps
 run_stateful_step flatpaks "Flatpak applications" install_flatpaks
 run_stateful_step wallpapers "Wallpaper collections" configure_wallpapers

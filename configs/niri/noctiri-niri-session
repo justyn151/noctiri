@@ -4,6 +4,10 @@ set -eu
 state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/noctiri"
 mkdir -p "$state_dir"
 
+# greetd does not necessarily start a login shell, so expose user-installed
+# commands to Niri and everything launched from the graphical session.
+export PATH="$HOME/.local/bin${PATH:+:$PATH}"
+
 # Void's elogind backend can stall while libseat takes control of the session.
 # seatd handles DRM/input access while elogind remains responsible for PAM and
 # XDG_RUNTIME_DIR. Keep a persistent log so startup failures survive a reboot.

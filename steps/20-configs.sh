@@ -2,6 +2,7 @@
 install_configs() {
     log "Installing Niri, Noctalia, Kitty, Qt and portal configuration"
 
+    install_user_path
     render_home_template "$ROOT_DIR/configs/niri/config.kdl.in" "$HOME/.config/niri/config.kdl"
     # Niri's config already includes this generated Noctalia theme fragment. Keep an empty
     # placeholder valid until Noctalia's template renderer writes the real one.
@@ -45,6 +46,7 @@ install_configs() {
 repair_theme_sync() {
     log "Repairing Noctalia application colors and bar widgets"
 
+    install_user_path
     local config_path="$HOME/.config/noctalia/config.toml"
     if [[ ! -f "$config_path" ]]; then
         mkdir -p "$(dirname "$config_path")"
@@ -52,6 +54,7 @@ repair_theme_sync() {
     else
         add_noctalia_builtin_template "$config_path" qt
     fi
+    add_noctalia_community_template "$config_path" pywalfox
 
     install_noctalia_widget_config
     install_yazi_integration
@@ -66,7 +69,40 @@ repair_theme_sync() {
         warn "Noctalia is not running; templates will render after the next login or color change."
     fi
 
-    ok "Enabled Noctalia clocks plus Qt/KDE, btop, and Yazi color synchronization"
+    ok "Enabled Noctalia clocks plus Qt/KDE, btop, Yazi, and Pywalfox color synchronization"
+}
+
+install_user_path() {
+    local path_config="$HOME/.config/noctiri/path.sh"
+    local loader='[ -r "$HOME/.config/noctiri/path.sh" ] && . "$HOME/.config/noctiri/path.sh"'
+    local startup_file
+
+    install_file "$ROOT_DIR/configs/shell/noctiri-path.sh" "$path_config"
+    for startup_file in "$HOME/.profile" "$HOME/.bashrc"; do
+        add_shell_startup_line "$startup_file" "$loader"
+    done
+    for startup_file in \
+        "$HOME/.bash_profile" "$HOME/.bash_login" \
+        "$HOME/.zprofile" "$HOME/.zshrc"; do
+        [[ -f "$startup_file" ]] || continue
+        add_shell_startup_line "$startup_file" "$loader"
+    done
+
+    # Make user executables available to the rest of this installer run too.
+    # shellcheck disable=SC1090
+    . "$path_config"
+}
+
+add_shell_startup_line() {
+    local startup_file="$1" line="$2"
+    grep -Fqx "$line" "$startup_file" 2>/dev/null && return 0
+
+    backup_path "$startup_file"
+    mkdir -p "$(dirname "$startup_file")"
+    if [[ -s "$startup_file" && -n "$(tail -c1 "$startup_file")" ]]; then
+        printf '\n' >> "$startup_file"
+    fi
+    printf '%s\n' "$line" >> "$startup_file"
 }
 
 install_noctalia_widget_config() {
@@ -125,6 +161,59 @@ text = text[:match.start()] + replacement + text[match.end():]
 with open(destination, "w", encoding="utf-8") as stream:
     stream.write(text)
 PY
+    install -m 0644 "$tmp" "$config_path"
+    rm -f "$tmp"
+}
+
+add_noctalia_community_template() {
+    local config_path="$1" template_id="$2" tmp
+    tmp="$(mktemp)"
+    if ! python3 - "$config_path" "$tmp" "$template_id" <<'PY'
+import re
+import sys
+
+source, destination, wanted = sys.argv[1:]
+text = open(source, encoding="utf-8").read()
+section_pattern = re.compile(
+    r'(?ms)^(?P<header>\s*\[theme\.templates\]\s*\n)'
+    r'(?P<body>.*?)(?=^\s*\[|\Z)'
+)
+match = section_pattern.search(text)
+if match is None:
+    raise SystemExit(f"Could not find [theme.templates] in {source}")
+
+body = match.group('body')
+enabled_pattern = re.compile(r'(?m)^(\s*enable_community_templates\s*=\s*).*$')
+if enabled_pattern.search(body):
+    body = enabled_pattern.sub(r'\g<1>true', body, count=1)
+else:
+    body += '    enable_community_templates = true\n'
+
+ids_pattern = re.compile(r'(?ms)^(\s*community_ids\s*=\s*)\[(.*?)\]')
+ids_match = ids_pattern.search(body)
+if ids_match:
+    items = re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', ids_match.group(2))
+    if wanted not in items:
+        items.append(wanted)
+    replacement = ids_match.group(1) + '[ ' + ', '.join(f'"{item}"' for item in items) + ' ]'
+    body = body[:ids_match.start()] + replacement + body[ids_match.end():]
+else:
+    body += f'    community_ids = [ "{wanted}" ]\n'
+
+updated = text[:match.start()] + match.group('header') + body + text[match.end():]
+with open(destination, 'w', encoding='utf-8') as stream:
+    stream.write(updated)
+PY
+    then
+        rm -f "$tmp"
+        return 1
+    fi
+
+    if cmp -s "$config_path" "$tmp"; then
+        rm -f "$tmp"
+        return 0
+    fi
+    backup_path "$config_path"
     install -m 0644 "$tmp" "$config_path"
     rm -f "$tmp"
 }
@@ -225,7 +314,7 @@ configure_niri_gpu_override() {
 }
 
 merge_firefox_policy() {
-    log "Configuring Firefox to use the XDG portal file picker"
+    log "Configuring Firefox portal integration and the Pywalfox extension"
     local policy_path
     case "$DISTRO_ID" in
         fedora) policy_path=/etc/firefox/policies/policies.json ;;
@@ -282,6 +371,16 @@ prefs['widget.use-xdg-desktop-portal.file-picker']={
     'Status': 'user',
     'Type': 'number'
 }
+extension_settings = policies.setdefault('ExtensionSettings', {})
+if not isinstance(extension_settings, dict):
+    raise SystemExit(f"The 'ExtensionSettings' value in {policy_path} must be a JSON object")
+pywalfox = extension_settings.setdefault('pywalfox@frewacom.org', {})
+if not isinstance(pywalfox, dict):
+    raise SystemExit(f"The Pywalfox ExtensionSettings value in {policy_path} must be a JSON object")
+pywalfox.update({
+    'installation_mode': 'normal_installed',
+    'install_url': 'https://addons.mozilla.org/firefox/downloads/latest/pywalfox/latest.xpi'
+})
 with open(destination, 'w', encoding='utf-8') as stream:
     json.dump(data, stream, indent=2)
     stream.write('\n')
@@ -296,6 +395,25 @@ PY
         return 1
     fi
     rm -rf "$tmp_dir"
+}
+
+configure_pywalfox() {
+    log "Installing Noctalia's Pywalfox native messaging host"
+    if ! have noctalia; then
+        warn "Noctalia is not available yet; Pywalfox native-host setup was deferred."
+        return "$STEP_DEFERRED"
+    fi
+    if ! noctalia firefox-theme install; then
+        warn "Noctalia could not install its Pywalfox native messaging manifest."
+        warn "If a legacy Python Pywalfox host exists, remove its manifest and rerun this step."
+        return "$STEP_DEFERRED"
+    fi
+
+    if pgrep -x noctalia >/dev/null 2>&1; then
+        noctalia msg templates-apply >/dev/null 2>&1 || true
+        noctalia firefox-theme update >/dev/null 2>&1 || true
+    fi
+    ok "Installed Noctalia's Pywalfox host; restart Firefox once to connect it"
 }
 
 set_default_apps() {

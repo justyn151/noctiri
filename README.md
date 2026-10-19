@@ -19,9 +19,9 @@ Theme/integration:
 - Inter UI font
 - JetBrainsMono Nerd Font Mono for Kitty
 - qt6ct + Breeze Qt style/icons
-- Noctalia templates for `btop`, `cava`, KDE/Qt, Kitty, Niri, and Yazi
+- Noctalia templates for `btop`, `cava`, KDE/Qt, Kitty, Niri, Yazi, and Pywalfox
 - KDE file picker through `xdg-desktop-portal-kde`
-- Firefox policy forcing the XDG portal file picker
+- Firefox policy forcing the XDG portal file picker and installing the Pywalfox extension
 
 Apps:
 - Firefox
@@ -91,16 +91,22 @@ To repair only greetd and Noctalia Greeter without reinstalling or rebuilding th
 ./install.sh --greeter-only
 ```
 
-To repair KDE/Qt, btop, and Yazi color synchronization without reinstalling or rebuilding anything:
+To repair KDE/Qt, btop, Yazi, and Firefox color synchronization without reinstalling or rebuilding anything:
 
 ```bash
 ./install.sh --theme-only
 ```
 
-This enables Noctalia's separate `qt` template, points qt6ct at the generated Qt palette, creates
-btop's first-run config when necessary, installs the dynamic Yazi template, defines the time/date
-bar entries as `clock` widgets, and immediately reloads Noctalia and reapplies templates if it is
-running. Reopen Yazi after changing palettes so it reloads the rendered theme.
+This enables Noctalia's separate `qt` template and community `pywalfox` template, points qt6ct at
+the generated Qt palette, creates btop's first-run config when necessary, installs the dynamic Yazi
+template, defines the time/date bar entries as `clock` widgets, and immediately reloads Noctalia and
+reapplies templates if it is running. The installer uses Noctalia's built-in Firefox native host,
+so no legacy Python Pywalfox daemon is installed. Restart Firefox once after initial setup; reopen
+Yazi after changing palettes so it reloads the rendered theme.
+
+The installer also adds `~/.local/bin` to interactive/login shell startup and to the graphical Niri
+session. Log out and back in once after applying this to an existing installation so every desktop
+application inherits the updated `PATH`.
 
 To install, configure, and check NetworkManager, Bluetooth, and PipeWire without rebuilding Niri or
 Noctalia:
