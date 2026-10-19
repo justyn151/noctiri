@@ -19,16 +19,18 @@ case "${1:-}" in
     --void-runtime-only) MODE=void-runtime ;;
     --theme-only) MODE=theme ;;
     --services-only) MODE=services ;;
+    --firefox-only) MODE=firefox ;;
     --dwl-only) MODE=dwl ;;
     --font-only) MODE=font ;;
     -h|--help)
-        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --dwl-only | --font-only]\n' "$0"
+        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --firefox-only | --dwl-only | --font-only]\n' "$0"
         printf '  --wallpapers-only  Install or update wallpaper collections without rerunning setup\n'
         printf '  --spicetify-only   Install Spotify if needed, then finish Spicetify setup\n'
         printf '  --greeter-only     Repair greetd/Noctalia Greeter configuration without rebuilding\n'
         printf '  --void-runtime-only  Repair Void graphics and seat services without rebuilding\n'
         printf '  --theme-only       Repair Noctalia app colors and bar clocks without rebuilding\n'
         printf '  --services-only    Repair Wi-Fi, Bluetooth, PipeWire, and brightness persistence\n'
+        printf '  --firefox-only     Install Firefox policies, extensions, and Noctalia theming\n'
         printf '  --dwl-only         Install the optional Void DWL + Foot + Somebar preview\n'
         printf '  --font-only        Install and apply Fantasque Sans Mono across the desktop\n'
         exit 0
@@ -96,6 +98,16 @@ if [[ "$MODE" == "services" ]]; then
     exit 0
 fi
 
+if [[ "$MODE" == "firefox" ]]; then
+    printf '\nFirefox-only mode: configuring the portal, extensions, and Noctalia theme integration.\n\n'
+    merge_firefox_policy
+    pywalfox_status=0
+    configure_pywalfox || pywalfox_status=$?
+    (( pywalfox_status == 0 || pywalfox_status == STEP_DEFERRED )) || exit "$pywalfox_status"
+    printf '\nFirefox setup complete. Fully close and reopen Firefox once to load the policy.\n'
+    exit 0
+fi
+
 if [[ "$MODE" == "dwl" ]]; then
     printf '\nDWL preview mode: Niri and Noctalia will not be changed or rebuilt.\n'
     printf 'A separate greeter session will be installed; your existing default session is preserved.\n\n'
@@ -125,8 +137,9 @@ fi
 
 run_stateful_step "services-$DISTRO_ID" "Wi-Fi, Bluetooth, PipeWire, and brightness persistence setup" repair_connectivity_audio
 run_stateful_step fantasque-system-font-v1 "Fantasque Sans Mono system font" install_fantasque_system_font
-run_stateful_step configs "Desktop configuration" install_configs
-run_stateful_step firefox-policy-v2 "Firefox portal and Pywalfox extension policy" merge_firefox_policy
+run_stateful_step neovim-editor-v1 "Neovim editor and Wayland clipboard" install_neovim_editor
+run_stateful_step configs-v2 "Desktop configuration" install_configs
+run_stateful_step firefox-policy-v3 "Firefox portal and extension policy" merge_firefox_policy
 run_stateful_step pywalfox "Noctalia Pywalfox native host" configure_pywalfox
 run_stateful_step default-apps-v2 "Default application associations" set_default_apps
 run_stateful_step flatpaks "Flatpak applications" install_flatpaks

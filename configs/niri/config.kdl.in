@@ -19,6 +19,8 @@ cursor {
 
 environment {
     PATH "@@HOME@@/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/bin:/sbin"
+    EDITOR "nvim"
+    VISUAL "nvim"
     QT_QPA_PLATFORMTHEME "qt6ct"
     XDG_DATA_DIRS "@@HOME@@/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share"
 }

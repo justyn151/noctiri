@@ -102,18 +102,28 @@ To repair only greetd and Noctalia Greeter without reinstalling or rebuilding th
 ./install.sh --greeter-only
 ```
 
-To repair KDE/Qt, btop, Yazi, and Firefox color synchronization without reinstalling or rebuilding anything:
+To repair KDE/Qt, btop, Yazi, Neovim, and Firefox color synchronization without reinstalling or rebuilding anything:
 
 ```bash
 ./install.sh --theme-only
 ```
 
 This enables Noctalia's separate `qt` template and community `pywalfox` template, points qt6ct at
-the generated Qt palette, creates btop's first-run config when necessary, installs the dynamic Yazi
+the generated Qt palette, creates btop's first-run config when necessary, installs dynamic Yazi and Neovim
 template, defines the time/date bar entries as `clock` widgets, and immediately reloads Noctalia and
 reapplies templates if it is running. The installer uses Noctalia's built-in Firefox native host,
 so no legacy Python Pywalfox daemon is installed. Restart Firefox once after initial setup; reopen
-Yazi after changing palettes so it reloads the rendered theme.
+Yazi or Neovim after changing palettes so it reloads the rendered theme.
+
+Neovim replaces Vim in the package set. Its Lua configuration keeps the original navigation,
+terminal, FZF, C++ highlighting, VimTeX, and TeX completion behavior while dropping every fixed
+colorscheme plugin. Noctalia renders `~/.config/nvim/colors/noctalia.lua` from the active wallpaper,
+and Neovim loads that palette as its only colorscheme. `EDITOR` and `VISUAL` are also set to `nvim`.
+
+Firefox receives a deliberately small default extension set through its normal-install policy:
+Pywalfox, uBlock Origin, SponsorBlock, and Vimium. Normal-installed extensions can still be disabled
+by the user. Restart Firefox after installation so it reads the policy and connects Pywalfox.
+To install or repair only that browser setup, run `./install.sh --firefox-only`.
 
 The installer also adds `~/.local/bin` to interactive/login shell startup and to the graphical Niri
 session. Log out and back in once after applying this to an existing installation so every desktop

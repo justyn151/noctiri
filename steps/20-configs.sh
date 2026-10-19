@@ -17,6 +17,7 @@ install_configs() {
     install_noctalia_widget_config
     install_shortcut_window
     install_yazi_integration
+    install_neovim_integration
 
     # GUI/runtime state overrides declarative config. Back it up and clear it so the
     # installer config is authoritative on first start.
@@ -26,7 +27,6 @@ install_configs() {
     fi
 
     install_file "$ROOT_DIR/configs/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
-    install_file "$ROOT_DIR/configs/vim/vimrc" "$HOME/.vimrc"
     render_home_template "$ROOT_DIR/configs/qt6ct/qt6ct.conf.in" "$HOME/.config/qt6ct/qt6ct.conf"
     ensure_btop_theme_selected
     install_file "$ROOT_DIR/configs/kde/kdeglobals" "$HOME/.config/kdeglobals"
@@ -171,6 +171,7 @@ repair_theme_sync() {
 
     install_noctalia_widget_config
     install_yazi_integration
+    install_neovim_integration
     render_home_template "$ROOT_DIR/configs/qt6ct/qt6ct.conf.in" "$HOME/.config/qt6ct/qt6ct.conf"
     ensure_btop_theme_selected
 
@@ -186,7 +187,7 @@ repair_theme_sync() {
         warn "Noctalia is not running; templates will render after the next login or color change."
     fi
 
-    ok "Enabled Noctalia clocks plus Qt/KDE, btop, Yazi, and Pywalfox color synchronization"
+    ok "Enabled Noctalia clocks plus Qt/KDE, btop, Yazi, Neovim, and Pywalfox color synchronization"
 }
 
 install_user_path() {
@@ -257,6 +258,15 @@ install_yazi_integration() {
         "$HOME/.config/noctalia/30-yazi-template.toml"
     install_file "$ROOT_DIR/configs/noctalia/templates/yazi-theme.toml" \
         "$HOME/.config/noctalia/templates/yazi-theme.toml"
+}
+
+install_neovim_integration() {
+    install_file "$ROOT_DIR/configs/nvim/init.lua" \
+        "$HOME/.config/nvim/init.lua"
+    install_file "$ROOT_DIR/configs/noctalia/nvim-template.toml" \
+        "$HOME/.config/noctalia/31-nvim-template.toml"
+    install_file "$ROOT_DIR/configs/noctalia/templates/nvim-colors.lua" \
+        "$HOME/.config/noctalia/templates/nvim-colors.lua"
 }
 
 add_noctalia_builtin_template() {
@@ -389,6 +399,7 @@ wait_for_theme_outputs() {
         "$HOME/.config/qt6ct/colors/noctalia.conf"
         "$HOME/.local/share/color-schemes/noctalia.colors"
         "$HOME/.config/yazi/theme.toml"
+        "$HOME/.config/nvim/colors/noctalia.lua"
     )
     while (( attempts < 50 )); do
         local missing=false path
@@ -396,7 +407,7 @@ wait_for_theme_outputs() {
             [[ -s "$path" ]] || missing=true
         done
         [[ "$missing" == false ]] && {
-            ok "Rendered btop, Qt, KDE, and Yazi color files"
+            ok "Rendered btop, Qt, KDE, Yazi, and Neovim color files"
             return 0
         }
         sleep 0.1
@@ -454,7 +465,7 @@ configure_niri_gpu_override() {
 }
 
 merge_firefox_policy() {
-    log "Configuring Firefox portal integration and the Pywalfox extension"
+    log "Configuring Firefox portal integration and the managed extension set"
     local policy_path
     case "$DISTRO_ID" in
         fedora) policy_path=/etc/firefox/policies/policies.json ;;
@@ -514,13 +525,22 @@ prefs['widget.use-xdg-desktop-portal.file-picker']={
 extension_settings = policies.setdefault('ExtensionSettings', {})
 if not isinstance(extension_settings, dict):
     raise SystemExit(f"The 'ExtensionSettings' value in {policy_path} must be a JSON object")
-pywalfox = extension_settings.setdefault('pywalfox@frewacom.org', {})
-if not isinstance(pywalfox, dict):
-    raise SystemExit(f"The Pywalfox ExtensionSettings value in {policy_path} must be a JSON object")
-pywalfox.update({
-    'installation_mode': 'normal_installed',
-    'install_url': 'https://addons.mozilla.org/firefox/downloads/latest/pywalfox/latest.xpi'
-})
+managed_extensions = {
+    'pywalfox@frewacom.org': 'https://addons.mozilla.org/firefox/downloads/latest/pywalfox/latest.xpi',
+    'uBlock0@raymondhill.net': 'https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi',
+    'sponsorBlocker@ajay.app': 'https://addons.mozilla.org/firefox/downloads/latest/sponsorblock/latest.xpi',
+    '{d7742d87-e61d-4b78-b8a1-b469842139fa}': 'https://addons.mozilla.org/firefox/downloads/latest/vimium-ff/latest.xpi',
+}
+for extension_id, install_url in managed_extensions.items():
+    settings = extension_settings.setdefault(extension_id, {})
+    if not isinstance(settings, dict):
+        raise SystemExit(
+            f"The ExtensionSettings value for {extension_id} in {policy_path} must be a JSON object"
+        )
+    settings.update({
+        'installation_mode': 'normal_installed',
+        'install_url': install_url,
+    })
 with open(destination, 'w', encoding='utf-8') as stream:
     json.dump(data, stream, indent=2)
     stream.write('\n')

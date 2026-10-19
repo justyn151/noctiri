@@ -7,6 +7,15 @@ install_packages() {
     esac
 }
 
+install_neovim_editor() {
+    log "Installing Neovim and Wayland clipboard support"
+    case "$DISTRO_ID" in
+        fedora) sudo dnf install -y neovim wl-clipboard ;;
+        void) sudo xbps-install -Sy neovim wl-clipboard ;;
+        *) die "No Neovim package installation implementation for $DISTRO_ID" ;;
+    esac
+}
+
 install_packages_fedora() {
     log "Installing Fedora packages"
     sudo dnf install -y dnf5-plugins
@@ -18,7 +27,7 @@ install_packages_fedora() {
         NetworkManager bluez bluez-tools upower
         pipewire pipewire-alsa pipewire-pulseaudio wireplumber alsa-utils
         polkit gnome-keyring gnome-keyring-pam
-        kitty firefox vim-enhanced ripgrep latexmk flatpak git curl tar xz unzip python3 xdg-utils
+        kitty firefox neovim ripgrep latexmk flatpak git curl tar xz unzip python3 xdg-utils wl-clipboard
         playerctl brightnessctl
         qt6ct plasma-breeze-qt6 breeze-icon-theme
         dolphin ark btop cava fastfetch qimgv mpv
@@ -61,7 +70,7 @@ install_packages_void() {
         NetworkManager bluez rfkill upower
         pipewire wireplumber libspa-bluetooth alsa-pipewire alsa-utils pulseaudio-utils
         polkit gnome-keyring
-        kitty firefox vim ripgrep texlive-latexmk flatpak git curl tar xz unzip python3 xdg-utils
+        kitty firefox neovim ripgrep texlive-latexmk flatpak git curl tar xz unzip python3 xdg-utils wl-clipboard
         playerctl brightnessctl
         qt6ct breeze-qt6 breeze-icons
         dolphin ark btop cava fastfetch qimgv mpv

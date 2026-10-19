@@ -2,10 +2,32 @@
 
 config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/noctiri-shortcuts"
 
-# Toggle the existing process first. If no instance exists, start one with its
-# window visible; -n prevents duplicates during rapid key presses.
-if qs -p "$config_dir" ipc call shortcuts toggle >/dev/null 2>&1; then
-    exit 0
-fi
+# A hidden FloatingWindow can leave Quickshell's IPC endpoint alive even though
+# there is no window to bring back. Starting from a clean process is cheap for
+# this small guide and makes the key binding deterministic after QML reloads.
+qs kill --any-display -p "$config_dir" >/dev/null 2>&1 || true
+
+# A process can outlive the runtime registry across a Niri/Quickshell restart,
+# in which case `qs kill` cannot see it. Match the config path as an exact
+# command-line argument before terminating only that orphan.
+for pid in $(pgrep -u "$(id -u)" -x qs 2>/dev/null); do
+    if tr '\0' '\n' < "/proc/$pid/cmdline" 2>/dev/null | grep -Fxq "$config_dir"; then
+        kill "$pid" 2>/dev/null || true
+    fi
+done
+
+attempts=0
+while pgrep -u "$(id -u)" -x qs >/dev/null 2>&1 && [ "$attempts" -lt 10 ]; do
+    found=false
+    for pid in $(pgrep -u "$(id -u)" -x qs 2>/dev/null); do
+        if tr '\0' '\n' < "/proc/$pid/cmdline" 2>/dev/null | grep -Fxq "$config_dir"; then
+            found=true
+            break
+        fi
+    done
+    [ "$found" = true ] || break
+    sleep 0.05
+    attempts=$((attempts + 1))
+done
 
 exec qs -d -n -p "$config_dir"
