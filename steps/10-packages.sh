@@ -274,6 +274,12 @@ restart_void_pipewire_stack() {
         return 0
     fi
 
+    if ! clean_stale_pipewire_sockets; then
+        warn "Another process still owns an audio socket; PipeWire was not started on top of it."
+        warn "Find the owner with: sudo ss -xlpn | grep -E 'pulse/native|pipewire-'"
+        return 0
+    fi
+
     mkdir -p "$(dirname "$log_path")"
     : > "$log_path"
     nohup pipewire > "$log_path" 2>&1 </dev/null &
@@ -283,6 +289,23 @@ restart_void_pipewire_stack() {
     else
         warn "PipeWire exited during startup; inspect $log_path"
     fi
+}
+
+clean_stale_pipewire_sockets() {
+    local runtime_dir socket
+    runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+    for socket in \
+        "$runtime_dir/pulse/native" \
+        "$runtime_dir/pipewire-0" \
+        "$runtime_dir/pipewire-0-manager"; do
+        [[ -S "$socket" ]] || continue
+        if grep -Fq -- "$socket" /proc/net/unix; then
+            warn "A live process owns $socket"
+            return 1
+        fi
+        unlink "$socket"
+        ok "Removed stale audio socket $socket"
+    done
 }
 
 ensure_user_symlink() {

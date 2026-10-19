@@ -37,6 +37,8 @@ Sanitization/portability changes:
 - Fixed PipeWire repair when an orphaned `pipewire-pulse` or a legacy PulseAudio daemon already
   owns the Pulse socket: the installer now removes the conflicting server package when approved,
   stops the partial user stack, and starts PipeWire once in the correct order.
+- Safely removes stale Pulse/PipeWire Unix socket files after confirming that no live kernel socket
+  owns them, while preserving and reporting sockets that still have a real listener.
 - Preserves the current Niri keybindings, blur/opacity, rounded windows, hot-corner setting,
   screenshot binding, Kitty config, Qt/KDE configuration, portal routing and greetd config.
 - Adds default application associations beyond the single JPEG association in the export.
