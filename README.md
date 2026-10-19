@@ -121,7 +121,7 @@ colorscheme plugin. Noctalia renders `~/.config/nvim/colors/noctalia.lua` from t
 and Neovim loads that palette as its only colorscheme. `EDITOR` and `VISUAL` are also set to `nvim`.
 
 Firefox receives a deliberately small default extension set through its normal-install policy:
-Pywalfox, uBlock Origin, SponsorBlock, and Vimium. Normal-installed extensions can still be disabled
+Pywalfox, uBlock Origin, and SponsorBlock. Normal-installed extensions can still be disabled
 by the user. Restart Firefox after installation so it reads the policy and connects Pywalfox.
 To install or repair only that browser setup, run `./install.sh --firefox-only`.
 

@@ -529,8 +529,10 @@ managed_extensions = {
     'pywalfox@frewacom.org': 'https://addons.mozilla.org/firefox/downloads/latest/pywalfox/latest.xpi',
     'uBlock0@raymondhill.net': 'https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi',
     'sponsorBlocker@ajay.app': 'https://addons.mozilla.org/firefox/downloads/latest/sponsorblock/latest.xpi',
-    '{d7742d87-e61d-4b78-b8a1-b469842139fa}': 'https://addons.mozilla.org/firefox/downloads/latest/vimium-ff/latest.xpi',
 }
+# Stop managing Vimium when upgrading a policy written by an older Noctiri
+# release. Firefox can then remove it like any other normal extension.
+extension_settings.pop('{d7742d87-e61d-4b78-b8a1-b469842139fa}', None)
 for extension_id, install_url in managed_extensions.items():
     settings = extension_settings.setdefault(extension_id, {})
     if not isinstance(settings, dict):
