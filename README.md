@@ -19,7 +19,7 @@ Theme/integration:
 - Inter UI font
 - JetBrainsMono Nerd Font Mono for Kitty
 - qt6ct + Breeze Qt style/icons
-- Noctalia built-in templates: `btop`, `cava`, `kcolorscheme`, `kitty`, `niri`
+- Noctalia templates for `btop`, `cava`, KDE/Qt, Kitty, Niri, and Yazi
 - KDE file picker through `xdg-desktop-portal-kde`
 - Firefox policy forcing the XDG portal file picker
 
@@ -27,7 +27,8 @@ Apps:
 - Firefox
 - Kitty
 - Vim (with the included VimTeX/FZF configuration)
-- Dolphin + Ark
+- Yazi as the `Super+E` file manager, with a Noctalia-generated palette
+- Dolphin + Ark available from the application launcher for graphical fallback
 - fooyin
 - btop
 - cava
@@ -90,15 +91,16 @@ To repair only greetd and Noctalia Greeter without reinstalling or rebuilding th
 ./install.sh --greeter-only
 ```
 
-To repair KDE/Qt and btop color synchronization without reinstalling or rebuilding anything:
+To repair KDE/Qt, btop, and Yazi color synchronization without reinstalling or rebuilding anything:
 
 ```bash
 ./install.sh --theme-only
 ```
 
 This enables Noctalia's separate `qt` template, points qt6ct at the generated Qt palette, creates
-btop's first-run config when necessary, defines the time/date bar entries as `clock` widgets, and
-immediately reloads Noctalia and reapplies templates if it is running.
+btop's first-run config when necessary, installs the dynamic Yazi template, defines the time/date
+bar entries as `clock` widgets, and immediately reloads Noctalia and reapplies templates if it is
+running. Reopen Yazi after changing palettes so it reloads the rendered theme.
 
 To install, configure, and check NetworkManager, Bluetooth, and PipeWire without rebuilding Niri or
 Noctalia:

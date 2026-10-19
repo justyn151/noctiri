@@ -1,0 +1,3 @@
+[theme.templates.user.yazi]
+input_path = "$XDG_CONFIG_HOME/noctalia/templates/yazi-theme.toml"
+output_path = "$XDG_CONFIG_HOME/yazi/theme.toml"

@@ -27,6 +27,12 @@ install_packages_fedora() {
     )
     sudo dnf install -y "${pkgs[@]}"
 
+    if ! have yazi; then
+        log "Installing Yazi from its Fedora COPR"
+        sudo dnf copr enable -y lihaohong/yazi
+        sudo dnf install -y yazi
+    fi
+
     log "Installing Bibata cursor theme"
     if sudo dnf copr list --enabled 2>/dev/null | grep -q 'peterwu/rendezvous'; then
         ok "Bibata COPR already enabled"
@@ -60,6 +66,7 @@ install_packages_void() {
         qt6ct breeze-qt6 breeze-icons
         dolphin ark fooyin btop cava fastfetch qimgv mpv
         zathura zathura-pdf-mupdf qpwgraph
+        yazi ffmpeg 7zip jq poppler fd fzf zoxide resvg ImageMagick
         font-inter
     )
     sudo xbps-install -y "${pkgs[@]}"

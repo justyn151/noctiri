@@ -3,6 +3,8 @@
 This installer was generated from the supplied `setup-export.tar.gz`.
 
 Sanitization/portability changes:
+- Uses Yazi as the `Super+E` file manager while retaining Dolphin as a launcher-only graphical
+  fallback, and renders Yazi's colors from Noctalia's active palette through a user template.
 - Added automatic Fedora/Void detection with distro-specific package, Firefox policy, greeter-user,
   and service-management paths.
 - Added Void XBPS package installation and stable-source builds for Noctalia and Noctalia Greeter.

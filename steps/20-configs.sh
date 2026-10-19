@@ -14,6 +14,7 @@ install_configs() {
     backup_path "$HOME/.config/noctalia/config.toml"
     sed "s|@@HOME@@|$HOME|g" "$ROOT_DIR/configs/noctalia/config.toml.in" > "$HOME/.config/noctalia/config.toml"
     install_noctalia_widget_config
+    install_yazi_integration
 
     # GUI/runtime state overrides declarative config. Back it up and clear it so the
     # installer config is authoritative on first start.
@@ -53,6 +54,7 @@ repair_theme_sync() {
     fi
 
     install_noctalia_widget_config
+    install_yazi_integration
     render_home_template "$ROOT_DIR/configs/qt6ct/qt6ct.conf.in" "$HOME/.config/qt6ct/qt6ct.conf"
     ensure_btop_theme_selected
 
@@ -64,12 +66,21 @@ repair_theme_sync() {
         warn "Noctalia is not running; templates will render after the next login or color change."
     fi
 
-    ok "Enabled Noctalia clocks plus Qt/KDE and btop color synchronization"
+    ok "Enabled Noctalia clocks plus Qt/KDE, btop, and Yazi color synchronization"
 }
 
 install_noctalia_widget_config() {
     install_file "$ROOT_DIR/configs/noctalia/widgets.toml" \
         "$HOME/.config/noctalia/20-noctiri-widgets.toml"
+}
+
+install_yazi_integration() {
+    install_file "$ROOT_DIR/configs/yazi/yazi.toml" \
+        "$HOME/.config/yazi/yazi.toml"
+    install_file "$ROOT_DIR/configs/noctalia/yazi-template.toml" \
+        "$HOME/.config/noctalia/30-yazi-template.toml"
+    install_file "$ROOT_DIR/configs/noctalia/templates/yazi-theme.toml" \
+        "$HOME/.config/noctalia/templates/yazi-theme.toml"
 }
 
 add_noctalia_builtin_template() {
@@ -148,6 +159,7 @@ wait_for_theme_outputs() {
         "$HOME/.config/btop/themes/noctalia.theme"
         "$HOME/.config/qt6ct/colors/noctalia.conf"
         "$HOME/.local/share/color-schemes/noctalia.colors"
+        "$HOME/.config/yazi/theme.toml"
     )
     while (( attempts < 50 )); do
         local missing=false path
@@ -155,7 +167,7 @@ wait_for_theme_outputs() {
             [[ -s "$path" ]] || missing=true
         done
         [[ "$missing" == false ]] && {
-            ok "Rendered btop, Qt, and KDE color files"
+            ok "Rendered btop, Qt, KDE, and Yazi color files"
             return 0
         }
         sleep 0.1
