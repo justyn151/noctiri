@@ -40,8 +40,15 @@ map("n", "<leader>fg", "<cmd>Rg<CR>", { desc = "Search text" })
 
 vim.g.vimtex_view_method = "general"
 vim.g.vimtex_view_general_viewer = "xdg-open"
-vim.g.vimtex_compiler_method = "latexmk"
 vim.g.vimtex_quickfix_mode = 0
+if vim.fn.executable("latexmk") == 1 then
+    vim.g.vimtex_compiler_method = "latexmk"
+else
+    -- Void's lightweight texlive-latexmk package can exist without the full
+    -- TeX Live tree. Keep editing/completion available without warning on
+    -- every TeX buffer; compilation activates automatically once latexmk is.
+    vim.g.vimtex_compiler_enabled = 0
+end
 
 local tex_group = vim.api.nvim_create_augroup("noctiri_tex_completion", { clear = true })
 vim.api.nvim_create_autocmd("FileType", {
