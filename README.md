@@ -57,6 +57,14 @@ Wallpaper downloads are optional. The installer lets you choose any subset of:
 
 You can also choose all or skip wallpapers entirely.
 
+The recommended initial wallpaper is
+[`145439722_p14.jpg`](https://github.com/na-ive/wallpapers/blob/abc91cf882479ff0e1260b0ad4d88e4d08d7b8b0/145439722_p14.jpg)
+from [na-ive/wallpapers](https://github.com/na-ive/wallpapers), retrieved from upstream rather than
+vendored here. That collection states that its images were gathered from the internet and carries
+no license, so the original artist and redistribution terms are unknown; all rights remain with
+the original creator. The installer defaults to collection 3 so it can reference the upstream copy
+without republishing it.
+
 ## Run
 
 Do **not** run the whole installer with sudo. Run it as your normal user:
@@ -79,9 +87,10 @@ installation, configuration replacement, or source compilation, run:
 ./install.sh --wallpapers-only
 ```
 
-When installing from a TTY, the Spicetify stage installs Spotify if it is missing, then defers the
-patch because Spotify cannot create its profile without a graphical session. After logging into
-Niri, launch Spotify once, log in, close Spotify, and finish only that stage with:
+The Spicetify stage installs Spotify if it is missing. When Niri/Noctalia is running, it opens
+Spotify in that graphical session—even if the installer was started over SSH—then continues after
+you log in and close Spotify. If no graphical session is running, log into Niri and finish only
+that stage with:
 
 ```bash
 ./install.sh --spicetify-only
@@ -202,8 +211,10 @@ because Void does not provide the development package required by those builds.
 ## Spotify / Spicetify
 
 Spotify is installed from Flathub. A fresh Spotify profile must be opened and logged into once
-before Spicetify can patch it. In a graphical session, the installer can launch Spotify and wait
-for you. In a TTY, it leaves the stage incomplete instead of trying to launch Spotify.
+before Spicetify can patch it. If a Noctalia/Niri graphical session is running—even when the
+installer itself is invoked through SSH or a TTY—the installer imports that session environment,
+opens Spotify there, and continues automatically after Spotify is closed. With no graphical
+session, it leaves the stage incomplete; it does not fabricate an unsupported prefs file.
 
 `tar` is installed before Spicetify because the upstream installer requires it.
 

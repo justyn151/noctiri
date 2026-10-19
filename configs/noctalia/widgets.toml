@@ -1,3 +1,26 @@
+[widget.-]
+text = "-"
+type = "text"
+
+[widget.active_window]
+capsule_border = "primary"
+capsule_border_width = 0.5
+capsule_opacity = 0.0
+display = "text_only"
+icon_size = 12
+max_length = 200
+min_length = 0
+title_scroll = "always"
+
+[widget.audio_visualizer]
+capsule_border = "primary"
+capsule_opacity = 0.0
+
+[widget.caffeine]
+capsule_border = "primary"
+capsule_border_width = 0.5
+capsule_opacity = 0.0
+
 [widget.clock-time]
 type = "clock"
 format = "{:%H:%M}"
@@ -10,6 +33,9 @@ format = "{:%a, %d %b}"
 show_label = false
 
 [widget.media]
+capsule_border = "primary"
+capsule_border_width = 0.5
+capsule_opacity = 0.0
 hide_when_no_media = true
 rotate_album_art = true
 show_progress = true
@@ -18,5 +44,26 @@ title_scroll = "always"
 [widget.network]
 show_label = false
 
+[widget.session]
+capsule_border = "primary"
+capsule_border_width = 0.5
+capsule_opacity = 0.0
+
+[widget.settings]
+capsule_border = "primary"
+capsule_opacity = 0.0
+
+[widget.tray]
+capsule_border = "primary"
+capsule_border_width = 0.5
+capsule_opacity = 0.0
+
 [widget.volume]
 show_label = false
+
+[widget.wallpaper]
+capsule_border = "primary"
+capsule_opacity = 0.0
+
+[widget.workspaces]
+active_pill_size = 1.7000000000000002

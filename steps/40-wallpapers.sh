@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
+DEFAULT_WALLPAPER_RELATIVE="na-ive/145439722_p14.jpg"
 
 clone_wall_repo() {
     local url="$1" dir="$2"
@@ -20,13 +21,13 @@ configure_wallpapers() {
     printf '\nWallpaper collections are optional.\n'
     printf '  1) sewergweller/walls\n'
     printf '  2) AbegAshford/rice-walls\n'
-    printf '  3) na-ive/wallpapers\n'
+    printf '  3) na-ive/wallpapers (recommended; contains the Noctiri default)\n'
     printf '  4) makccr/wallpapers\n'
     printf '  5) krishna4a6av/Wallpapers\n'
     printf '  a) all five\n'
     printf '  s) skip wallpapers\n\n'
-    read -r -p 'Select any combination (example: 1 3 5), or s to skip: ' choices || true
-    choices="${choices:-s}"
+    read -r -p 'Select any combination (example: 1 3 5), or s to skip [3]: ' choices || true
+    choices="${choices:-3}"
 
     rm -f "$HOME/.config/noctalia/99-wallpaper.toml"
     [[ "$choices" != "s" && "$choices" != "S" ]] || { ok "Skipping wallpaper downloads"; return; }
@@ -52,8 +53,8 @@ configure_wallpapers() {
     (( picked == 1 )) || { warn "No valid wallpaper repositories selected."; return; }
 
     local initial=""
-    if [[ -f "$WALLPAPER_DIR/na-ive/1351102.jpg" ]]; then
-        initial="$WALLPAPER_DIR/na-ive/1351102.jpg"
+    if [[ -f "$WALLPAPER_DIR/$DEFAULT_WALLPAPER_RELATIVE" ]]; then
+        initial="$WALLPAPER_DIR/$DEFAULT_WALLPAPER_RELATIVE"
     else
         initial="$(find "$WALLPAPER_DIR" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) -print | sort | head -n 1 || true)"
     fi

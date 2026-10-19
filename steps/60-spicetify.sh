@@ -13,6 +13,7 @@ install_spicetify() {
     fi
 
     ensure_spotify_flatpak
+    import_graphical_session_environment
 
     local prefs="$HOME/.var/app/com.spotify.Client/config/spotify/prefs"
     if [[ ! -f "$prefs" ]]; then
@@ -22,16 +23,19 @@ install_spicetify() {
             return "$STEP_DEFERRED"
         fi
 
-        printf '\nSpotify must initialize its profile before Spicetify can patch it.\n'
-        printf 'Spotify will be launched now. Log in, leave it open for about a minute, then CLOSE Spotify.\n'
-        printf 'Return to this terminal afterward.\n\n'
+        printf '\nSpotify must initialize its real profile before Spicetify can patch it.\n'
+        printf 'Spotify will open in the running graphical session. Log in, then CLOSE Spotify.\n'
+        printf 'The installer will continue automatically after the app exits.\n\n'
         flatpak run com.spotify.Client >/dev/null 2>&1 &
-        disown || true
-        read -r -p 'Press Enter after Spotify is logged in and closed, or type s then Enter to skip: ' reply || true
-        if [[ "${reply:-}" =~ ^[Ss]$ ]]; then
-            warn "Deferring Spicetify configuration; rerun with --spicetify-only later."
-            return "$STEP_DEFERRED"
-        fi
+        local spotify_pid=$!
+        wait "$spotify_pid" || true
+
+        # A Flatpak invocation can hand off to an already-running instance and
+        # exit before the application does. Never patch Spotify while it is open.
+        while flatpak ps --columns=application 2>/dev/null \
+            | grep -Fxq com.spotify.Client; do
+            sleep 2
+        done
     fi
     if [[ ! -f "$prefs" ]]; then
         warn "Spotify prefs still not found at $prefs; deferring the patch stage."
