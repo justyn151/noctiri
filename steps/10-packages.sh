@@ -47,7 +47,7 @@ install_packages_void() {
     sudo xbps-install -Suy
 
     local pkgs=(
-        niri greetd dbus elogind accountsservice mesa-dri
+        niri greetd dbus elogind seatd accountsservice mesa-dri
         xwayland-satellite
         xdg-desktop-portal xdg-desktop-portal-gnome xdg-desktop-portal-gtk xdg-desktop-portal-kde
         pipewire wireplumber libspa-bluetooth alsa-pipewire pulseaudio-utils polkit gnome-keyring
@@ -67,13 +67,32 @@ install_packages_void() {
 }
 
 configure_void_runtime() {
-    log "Configuring Void system D-Bus, elogind, and PipeWire"
+    log "Configuring Void system D-Bus, seat management, and PipeWire"
     if [[ ! -e /var/service/dbus && ! -L /var/service/dbus ]]; then
         sudo ln -s /etc/sv/dbus /var/service/
         ok "Enabled the dbus runit service"
     fi
 
     repair_duplicate_void_elogind_service
+
+    # Keep elogind for PAM/XDG_RUNTIME_DIR, but let libseat use seatd for DRM
+    # and input access. This avoids elogind seat acquisition stalls seen with
+    # greetd on some Void hybrid-GPU systems. libseat prefers seatd when its
+    # socket is available.
+    if ! id -nG "$USER" | tr ' ' '\n' | grep -Fxq _seatd; then
+        sudo usermod -aG _seatd "$USER"
+        ok "Added $USER to the _seatd group"
+    fi
+    if id "$GREETER_USER" >/dev/null 2>&1 \
+        && ! id -nG "$GREETER_USER" | tr ' ' '\n' | grep -Fxq _seatd; then
+        sudo usermod -aG _seatd "$GREETER_USER"
+        ok "Added $GREETER_USER to the _seatd group"
+    fi
+    if [[ ! -e /var/service/seatd && ! -L /var/service/seatd ]]; then
+        sudo ln -s /etc/sv/seatd /var/service/
+        ok "Enabled the seatd runit service"
+    fi
+    install_void_niri_session
 
     local pipewire_dir="$HOME/.config/pipewire/pipewire.conf.d"
     mkdir -p "$pipewire_dir"
@@ -83,6 +102,14 @@ configure_void_runtime() {
     if [[ ! -e "$pipewire_dir/20-pipewire-pulse.conf" && ! -L "$pipewire_dir/20-pipewire-pulse.conf" ]]; then
         ln -s /usr/share/examples/pipewire/20-pipewire-pulse.conf "$pipewire_dir/20-pipewire-pulse.conf"
     fi
+}
+
+install_void_niri_session() {
+    sudo install -Dm0755 "$ROOT_DIR/configs/niri/noctiri-niri-session" \
+        /usr/local/bin/noctiri-niri-session
+    sudo install -Dm0644 "$ROOT_DIR/configs/niri/noctiri.desktop" \
+        /usr/share/wayland-sessions/noctiri.desktop
+    ok "Installed the Void seatd-backed Noctiri session"
 }
 
 repair_duplicate_void_elogind_service() {
@@ -103,9 +130,10 @@ repair_duplicate_void_elogind_service() {
 
 repair_void_runtime() {
     log "Installing the Void Wayland graphics and seat runtime"
-    sudo xbps-install -y mesa-dri dbus elogind
+    sudo xbps-install -y mesa-dri dbus elogind seatd
     configure_void_runtime
     configure_niri_gpu_override
+    configure_greeter
 }
 
 install_nlohmann_json_void() {

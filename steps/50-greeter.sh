@@ -7,7 +7,13 @@ configure_greeter() {
     fi
     local tmp
     tmp="$(mktemp)"
-    sed "s|@@GREETER_USER@@|$GREETER_USER|g" "$ROOT_DIR/configs/greetd/config.toml.in" > "$tmp"
+    local greeter_session=niri
+    if [[ "$DISTRO_ID" == "void" && -f /usr/share/wayland-sessions/noctiri.desktop ]]; then
+        greeter_session=noctiri
+    fi
+    sed -e "s|@@GREETER_USER@@|$GREETER_USER|g" \
+        -e "s|@@GREETER_SESSION@@|$greeter_session|g" \
+        "$ROOT_DIR/configs/greetd/config.toml.in" > "$tmp"
     sudo install -Dm0644 "$tmp" /etc/greetd/config.toml
     rm -f "$tmp"
 
@@ -18,7 +24,7 @@ configure_greeter() {
     fi
 
     if have noctalia-greeter; then
-        pin_niri_greeter_session
+        pin_greeter_session "$greeter_session"
         enable_passwordless_greeter_sync
     fi
 
@@ -111,18 +117,19 @@ set_protected_greeter_toml_value() {
     rm -rf "$tmp_dir"
 }
 
-pin_niri_greeter_session() {
-    local niri_session sessions
+pin_greeter_session() {
+    local requested_session="$1" selected_session sessions
     sessions="$(noctalia-greeter sessions 2>/dev/null || true)"
-    niri_session="$(printf '%s\n' "$sessions" | awk 'tolower($0) == "niri" { print; exit }')"
-    [[ -n "$niri_session" ]] \
-        || die "Noctalia Greeter cannot find the Niri session. Expected it in /usr/share/wayland-sessions/."
+    selected_session="$(printf '%s\n' "$sessions" \
+        | awk -v target="$requested_session" 'tolower($0) == tolower(target) { print; exit }')"
+    [[ -n "$selected_session" ]] \
+        || die "Noctalia Greeter cannot find the $requested_session session in /usr/share/wayland-sessions/."
 
-    set_protected_greeter_toml_value /var/lib/noctalia-greeter/greeter.toml default "$niri_session"
+    set_protected_greeter_toml_value /var/lib/noctalia-greeter/greeter.toml default "$selected_session"
     # Also repair the remembered value because Greeter 1.5 has an open bug where
     # session.last can override both the CLI and administrator default.
-    set_protected_greeter_toml_value /var/lib/noctalia-greeter/sync.toml last "$niri_session"
-    ok "Pinned Noctalia Greeter's startup session to $niri_session"
+    set_protected_greeter_toml_value /var/lib/noctalia-greeter/sync.toml last "$selected_session"
+    ok "Pinned Noctalia Greeter's startup session to $selected_session"
 }
 
 enable_passwordless_greeter_sync() {

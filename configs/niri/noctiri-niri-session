@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/noctiri"
+mkdir -p "$state_dir"
+
+# Void's elogind backend can stall while libseat takes control of the session.
+# seatd handles DRM/input access while elogind remains responsible for PAM and
+# XDG_RUNTIME_DIR. Keep a persistent log so startup failures survive a reboot.
+export LIBSEAT_BACKEND=seatd
+export RUST_LOG="${RUST_LOG:-niri=debug,smithay::backend::session=debug}"
+exec dbus-run-session -- /usr/bin/niri --session >> "$state_dir/niri-session.log" 2>&1

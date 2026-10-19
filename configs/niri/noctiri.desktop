@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Noctiri
+Comment=Niri session with the Void seatd runtime
+Exec=/usr/local/bin/noctiri-niri-session
+Type=Application
+DesktopNames=niri
