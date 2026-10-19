@@ -5,3 +5,18 @@ format = "{:%H:%M}"
 [widget.clock-date]
 type = "clock"
 format = "{:%a, %d %b}"
+
+[widget.brightness]
+show_label = false
+
+[widget.media]
+hide_when_no_media = true
+rotate_album_art = true
+show_progress = true
+title_scroll = "always"
+
+[widget.network]
+show_label = false
+
+[widget.volume]
+show_label = false

@@ -29,6 +29,9 @@ Sanitization/portability changes:
   `--theme-only` to apply the repair without rebuilding the desktop stack.
 - Fixed the missing bar time and date by declaring the configured `clock-time` and `clock-date`
   instances as current Noctalia `clock` widgets.
+- Promoted the verified live bar settings from the Void laptop into the declarative config: the
+  corrected capsule membership/border, hidden network/brightness/volume labels, and the finalized
+  media widget behavior now survive reinstallations without relying on GUI state overrides.
 - Added complete NetworkManager, BlueZ, and PipeWire setup and health checks on Fedora and Void,
   including Void runit services, user groups, XDG PipeWire autostart, WirePlumber, PulseAudio and
   ALSA integration. Added `--services-only` so existing systems can be repaired without rebuilding.

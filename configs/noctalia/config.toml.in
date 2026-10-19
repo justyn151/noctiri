@@ -19,10 +19,11 @@ thickness = 32
     [[bar.default.capsule_group]]
     accordion = false
     accordion_direction = "end"
+    border_width = 1.0
     enabled = true
     fill = "surface_variant"
     id = "g1"
-    members = [ "network", "bluetooth", "volume", "brightness", "battery" ]
+    members = [ "network", "bluetooth", "brightness" ]
     opacity = 0.30000001192092896
     padding = 16.0
     widget_spacing = 12
