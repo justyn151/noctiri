@@ -228,8 +228,18 @@ install_noctalia_widget_config() {
 }
 
 install_shortcut_window() {
+    local config_dir="$HOME/.config/quickshell/noctiri-shortcuts"
+
+    # A live QML reload can leave the IPC handler running after its native
+    # window has been unmapped. Stop only this small helper before replacing
+    # its files; the next key press starts a clean instance.
+    import_graphical_session_environment
+    if have qs; then
+        qs kill -p "$config_dir" >/dev/null 2>&1 || true
+    fi
+
     install_file "$ROOT_DIR/configs/quickshell/noctiri-shortcuts/shell.qml" \
-        "$HOME/.config/quickshell/noctiri-shortcuts/shell.qml"
+        "$config_dir/shell.qml"
     install_file "$ROOT_DIR/configs/bin/noctiri-shortcuts" \
         "$HOME/.local/bin/noctiri-shortcuts" 0755
 
