@@ -28,13 +28,11 @@ Apps:
 - Vim (with the included VimTeX/FZF configuration)
 - Yazi as the `Super+E` file manager, with a Noctalia-generated palette
 - Dolphin + Ark available from the application launcher for graphical fallback
-- fooyin
 - btop
 - cava
 - fastfetch
 - qimgv
 - mpv
-- Zathura + MuPDF backend
 - qpwgraph
 - Spotify (Flatpak)
 - Vesktop (Flatpak)
@@ -44,8 +42,9 @@ An optional, side-by-side Void preview is also available for the setup shown in 
 Penguins' **I moved to Wayland :D** video: the creator's patched DWL fork, Foot, Somebar,
 Someblocks, and Liberation Mono. It does not replace or edit the Niri + Noctalia flavour.
 
-Default media associations are set to qimgv for common images, mpv for common videos,
-fooyin for common audio types, and Zathura for PDF.
+Default media associations are set to qimgv for common images, mpv for common video and audio
+types, and Firefox for PDF. VimTeX follows the system PDF association,
+so a replacement reader can be selected later without editing Vim.
 
 ## Wallpapers
 

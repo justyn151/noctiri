@@ -566,6 +566,6 @@ set_default_apps() {
     local mime
     for mime in "${images[@]}"; do xdg-mime default qimgv.desktop "$mime" || true; done
     for mime in "${videos[@]}"; do xdg-mime default mpv.desktop "$mime" || true; done
-    for mime in "${audio[@]}"; do xdg-mime default org.fooyin.fooyin.desktop "$mime" || true; done
-    xdg-mime default org.pwmt.zathura.desktop application/pdf || true
+    for mime in "${audio[@]}"; do xdg-mime default mpv.desktop "$mime" || true; done
+    xdg-mime default firefox.desktop application/pdf || true
 }

@@ -88,8 +88,9 @@ silent! colorscheme gruvbox
 nnoremap <Leader>ff :Files<CR>
 nnoremap <Leader>fg :Rg<CR>
 
-" VimTeX
-let g:vimtex_view_method = 'zathura'
+" VimTeX: follow the desktop's PDF association so the viewer can be replaced freely.
+let g:vimtex_view_method = 'general'
+let g:vimtex_view_general_viewer = 'xdg-open'
 let g:vimtex_compiler_method = 'latexmk'
 let g:vimtex_quickfix_mode = 0
 

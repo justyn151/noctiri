@@ -31,6 +31,7 @@ ShellRoot {
         { combo: "Super + Shift + /", action: "Toggle this shortcut window" },
         { combo: "Super + T", action: "Open Kitty" },
         { combo: "Super + D", action: "Open the app launcher" },
+        { combo: "Super + P", action: "Open the wallpaper picker" },
         { combo: "Super + E", action: "Open Yazi in Kitty" },
         { combo: "Super + Shift + S", action: "Take a screenshot" },
         { combo: "Super + Alt + L", action: "Lock the session" },

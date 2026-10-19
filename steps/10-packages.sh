@@ -21,8 +21,8 @@ install_packages_fedora() {
         kitty firefox vim-enhanced ripgrep latexmk flatpak git curl tar xz unzip python3 xdg-utils
         playerctl brightnessctl
         qt6ct plasma-breeze-qt6 breeze-icon-theme
-        dolphin ark fooyin btop cava fastfetch qimgv mpv
-        zathura zathura-pdf-mupdf qpwgraph
+        dolphin ark btop cava fastfetch qimgv mpv
+        qpwgraph
         rsms-inter-fonts
     )
     sudo dnf install -y "${pkgs[@]}"
@@ -64,8 +64,8 @@ install_packages_void() {
         kitty firefox vim ripgrep texlive-latexmk flatpak git curl tar xz unzip python3 xdg-utils
         playerctl brightnessctl
         qt6ct breeze-qt6 breeze-icons
-        dolphin ark fooyin btop cava fastfetch qimgv mpv
-        zathura zathura-pdf-mupdf qpwgraph
+        dolphin ark btop cava fastfetch qimgv mpv
+        qpwgraph
         yazi ffmpeg 7zip jq poppler fd fzf zoxide resvg ImageMagick
         font-inter
     )
