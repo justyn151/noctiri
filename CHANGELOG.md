@@ -34,6 +34,9 @@ Sanitization/portability changes:
   ALSA integration. Added `--services-only` so existing systems can be repaired without rebuilding.
 - Bounded all connectivity/audio health checks to five seconds so a broken PipeWire socket cannot
   hang the installer at `wpctl status`.
+- Fixed PipeWire repair when an orphaned `pipewire-pulse` or a legacy PulseAudio daemon already
+  owns the Pulse socket: the installer now removes the conflicting server package when approved,
+  stops the partial user stack, and starts PipeWire once in the correct order.
 - Preserves the current Niri keybindings, blur/opacity, rounded windows, hot-corner setting,
   screenshot binding, Kitty config, Qt/KDE configuration, portal routing and greetd config.
 - Adds default application associations beyond the single JPEG association in the export.

@@ -217,15 +217,71 @@ configure_void_pipewire() {
     ensure_system_symlink /usr/share/alsa/alsa.conf.d/99-pipewire-default.conf \
         /etc/alsa/conf.d/99-pipewire-default.conf
 
-    if [[ -n "${XDG_RUNTIME_DIR:-}" && -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]] \
-        && ! pgrep -u "$(id -u)" -x pipewire >/dev/null 2>&1; then
-        mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}/noctiri"
-        nohup pipewire > "${XDG_STATE_HOME:-$HOME/.local/state}/noctiri/pipewire.log" 2>&1 </dev/null &
-        sleep 1
-    elif pgrep -u "$(id -u)" -x pipewire >/dev/null 2>&1; then
-        warn "PipeWire is already running; log out and back in once to load the repaired configuration."
+    remove_void_pulseaudio_conflict
+    if [[ -n "${XDG_RUNTIME_DIR:-}" && -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
+        restart_void_pipewire_stack
     else
         warn "PipeWire will start automatically with the next Niri login."
+    fi
+}
+
+remove_void_pulseaudio_conflict() {
+    local uid
+    uid="$(id -u)"
+    if pgrep -u "$uid" -x pulseaudio >/dev/null 2>&1; then
+        warn "A PulseAudio daemon is occupying the socket required by pipewire-pulse."
+        if have pulseaudio; then
+            pulseaudio --kill >/dev/null 2>&1 || true
+        fi
+        pkill -TERM -u "$uid" -x pulseaudio >/dev/null 2>&1 || true
+    fi
+
+    if have xbps-query && xbps-query -e pulseaudio >/dev/null 2>&1; then
+        warn "The PulseAudio server package conflicts with the selected PipeWire audio stack."
+        if ask_yes_no "Remove the conflicting pulseaudio server package?" y; then
+            sudo xbps-remove -y pulseaudio
+        else
+            warn "PulseAudio was kept; pipewire-pulse may continue to fail with 'address already in use'."
+        fi
+    fi
+}
+
+restart_void_pipewire_stack() {
+    local uid process log_path attempts
+    uid="$(id -u)"
+    log_path="${XDG_STATE_HOME:-$HOME/.local/state}/noctiri/pipewire.log"
+
+    # A previous failed launch can leave pipewire-pulse alive without the main
+    # PipeWire daemon. Stop the complete per-user stack before starting it in
+    # dependency order from PipeWire's configured context.exec entries.
+    for process in wireplumber pipewire-pulse pipewire; do
+        pkill -TERM -u "$uid" -x "$process" >/dev/null 2>&1 || true
+    done
+    attempts=0
+    while (( attempts < 30 )); do
+        if ! pgrep -u "$uid" -x wireplumber >/dev/null 2>&1 \
+            && ! pgrep -u "$uid" -x pipewire-pulse >/dev/null 2>&1 \
+            && ! pgrep -u "$uid" -x pipewire >/dev/null 2>&1; then
+            break
+        fi
+        sleep 0.1
+        ((attempts += 1))
+    done
+    if pgrep -u "$uid" -x wireplumber >/dev/null 2>&1 \
+        || pgrep -u "$uid" -x pipewire-pulse >/dev/null 2>&1 \
+        || pgrep -u "$uid" -x pipewire >/dev/null 2>&1; then
+        warn "Could not stop the incomplete PipeWire stack; log out and back in to finish the repair."
+        return 0
+    fi
+
+    mkdir -p "$(dirname "$log_path")"
+    : > "$log_path"
+    nohup pipewire > "$log_path" 2>&1 </dev/null &
+    sleep 2
+    if pgrep -u "$uid" -x pipewire >/dev/null 2>&1; then
+        ok "Restarted a clean PipeWire user stack"
+    else
+        warn "PipeWire exited during startup; inspect $log_path"
     fi
 }
 
