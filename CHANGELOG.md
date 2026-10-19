@@ -6,6 +6,8 @@ Sanitization/portability changes:
 - Added `~/.local/bin` to login/interactive shells and the greetd-launched Niri environment. Added
   Pywalfox as a user-disableable Firefox policy extension, enabled Noctalia's community template,
   and installed Noctalia v5's native messaging host without the obsolete Python daemon.
+- Made theme-only repair tolerate a stale or unreachable Noctalia IPC endpoint so file repairs and
+  native-host setup still complete; templates render on the next login or palette change.
 - Uses Yazi as the `Super+E` file manager while retaining Dolphin as a launcher-only graphical
   fallback, and renders Yazi's colors from Noctalia's active palette through a user template.
 - Added automatic Fedora/Void detection with distro-specific package, Firefox policy, greeter-user,

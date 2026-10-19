@@ -62,9 +62,13 @@ repair_theme_sync() {
     ensure_btop_theme_selected
 
     if pgrep -x noctalia >/dev/null 2>&1; then
-        noctalia msg config-reload >/dev/null
-        noctalia msg templates-apply >/dev/null
-        wait_for_theme_outputs
+        if noctalia msg config-reload >/dev/null 2>&1 \
+            && noctalia msg templates-apply >/dev/null 2>&1; then
+            wait_for_theme_outputs
+        else
+            warn "A Noctalia process exists, but its IPC endpoint is not responding."
+            warn "Templates will render after the next login or color change."
+        fi
     else
         warn "Noctalia is not running; templates will render after the next login or color change."
     fi
