@@ -63,11 +63,24 @@ chmod +x install.sh
 ./install.sh
 ```
 
+Completed stages are recorded under `~/.local/state/noctiri-installer/completed/`. On later full
+runs, each completed stage defaults to **skip** but can be rerun when you want to update or repair
+it. If the state directory does not exist yet, the installer detects an existing Niri, Noctalia,
+and Noctalia Greeter installation and offers to adopt the expensive package/build stage as already
+complete.
+
+To install new wallpaper collections or update existing wallpaper repositories without package
+installation, configuration replacement, or source compilation, run:
+
+```bash
+./install.sh --wallpapers-only
+```
+
 The script detects the distribution from `/etc/os-release` and requests sudo only for system
-packages/configuration. On Void, it performs a full XBPS update first because partial upgrades are
-unsupported, then builds the latest stable Noctalia and Noctalia Greeter releases from source.
-It also installs `nlohmann-json` from its latest stable release because Void does not provide the
-development package required by those builds.
+packages/configuration. When the Void package stage runs, it performs a full XBPS update first
+because partial upgrades are unsupported, then builds the latest stable Noctalia and Noctalia
+Greeter releases from source. It also installs `nlohmann-json` from its latest stable release
+because Void does not provide the development package required by those builds.
 
 ## Important behavior
 
@@ -79,8 +92,9 @@ development package required by those builds.
 - On Fedora, the installer enables greetd and sets `graphical.target`, but deliberately does **not**
   start/restart greetd during installation.
 - On Void, enabling a runit service starts it immediately. The installer therefore configures
-  greetd but leaves activation to you. From a TTY, after resolving any display-manager warning, run
-  `sudo ln -s /etc/sv/greetd /var/service/`.
+  greetd but never activates it later on your behalf. From a TTY, after resolving any
+  display-manager warning, manually run `sudo ln -s /etc/sv/greetd /var/service/` once. Future runs
+  detect the symlink and do not ask you to create it again.
 - If another display manager is configured, the installer warns instead of blindly disabling it.
 
 ## Spotify / Spicetify

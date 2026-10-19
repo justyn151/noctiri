@@ -3,6 +3,7 @@ set -Eeuo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKUP_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}/niri-noctalia-installer-backup"
+INSTALL_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/noctiri-installer/completed"
 RUN_STAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_DIR="$BACKUP_ROOT/$RUN_STAMP"
 DISTRO_ID=""
@@ -50,6 +51,28 @@ render_home_template() {
 }
 
 have() { command -v "$1" >/dev/null 2>&1; }
+
+step_is_complete() {
+    [[ -f "$INSTALL_STATE_DIR/$1" ]]
+}
+
+mark_step_complete() {
+    mkdir -p "$INSTALL_STATE_DIR"
+    touch "$INSTALL_STATE_DIR/$1"
+}
+
+run_stateful_step() {
+    local step_id="$1" label="$2" function_name="$3"
+    if step_is_complete "$step_id"; then
+        if ask_yes_no "$label was completed previously. Skip it?" y; then
+            ok "Skipping $label"
+            return 0
+        fi
+    fi
+
+    "$function_name"
+    mark_step_complete "$step_id"
+}
 
 clone_latest_release() {
     local repo="$1" dest="$2" tag

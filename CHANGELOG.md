@@ -10,6 +10,8 @@ Sanitization/portability changes:
   the header-only dependency from its latest stable release.
 - Added a Void-specific fallback for Noctalia Greeter passwordless sync when the upstream rule
   manager rejects Void's `polkitd`-owned rules directory.
+- Added persistent per-stage completion state with skip prompts, existing-install adoption, and a
+  `--wallpapers-only` mode that avoids package installation and source compilation.
 - Made Firefox policy merging privilege-safe and refuse to overwrite malformed existing JSON.
 - Replaced `/home/mikoo` with the target user's `$HOME` at installation time.
 - Removed disabled Noctalia lock-screen widget placement tied to `eDP-1`.
