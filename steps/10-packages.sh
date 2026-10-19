@@ -73,13 +73,7 @@ configure_void_runtime() {
         ok "Enabled the dbus runit service"
     fi
 
-    # elogind supplies the runtime directory and seat/device access needed by
-    # standalone Wayland compositors. D-Bus activation normally starts it, but
-    # Void recommends enabling the service when activation races cause trouble.
-    if [[ ! -e /var/service/elogind && ! -L /var/service/elogind ]]; then
-        sudo ln -s /etc/sv/elogind /var/service/
-        ok "Enabled the elogind runit service"
-    fi
+    repair_duplicate_void_elogind_service
 
     local pipewire_dir="$HOME/.config/pipewire/pipewire.conf.d"
     mkdir -p "$pipewire_dir"
@@ -88,6 +82,22 @@ configure_void_runtime() {
     fi
     if [[ ! -e "$pipewire_dir/20-pipewire-pulse.conf" && ! -L "$pipewire_dir/20-pipewire-pulse.conf" ]]; then
         ln -s /usr/share/examples/pipewire/20-pipewire-pulse.conf "$pipewire_dir/20-pipewire-pulse.conf"
+    fi
+}
+
+repair_duplicate_void_elogind_service() {
+    local status
+    [[ -L /var/service/elogind ]] || return 0
+    [[ "$(readlink -f /var/service/elogind)" == /etc/sv/elogind ]] || return 0
+
+    status="$(sudo sv status /var/service/elogind 2>&1 || true)"
+    if [[ "$status" == down:* ]] && pgrep -x elogind >/dev/null 2>&1; then
+        # Void normally starts elogind through the enabled system D-Bus. If an
+        # elogind process already exists while its runit service stays down,
+        # runit will endlessly retry a second instance and log "already running".
+        sudo sv down /var/service/elogind || true
+        sudo unlink /var/service/elogind
+        ok "Removed the redundant elogind runit service; D-Bus activation is already running elogind"
     fi
 }
 
