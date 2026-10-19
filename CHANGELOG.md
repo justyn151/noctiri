@@ -12,6 +12,8 @@ Sanitization/portability changes:
   manager rejects Void's `polkitd`-owned rules directory.
 - Added persistent per-stage completion state with skip prompts, existing-install adoption, and a
   `--wallpapers-only` mode that avoids package installation and source compilation.
+- Deferred Spicetify cleanly during TTY installs and added `--spicetify-only` for completing it
+  after Spotify creates its profile in a graphical session.
 - Made Firefox policy merging privilege-safe and refuse to overwrite malformed existing JSON.
 - Replaced `/home/mikoo` with the target user's `$HOME` at installation time.
 - Removed disabled Noctalia lock-screen widget placement tied to `eDP-1`.

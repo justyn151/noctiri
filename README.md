@@ -76,6 +76,14 @@ installation, configuration replacement, or source compilation, run:
 ./install.sh --wallpapers-only
 ```
 
+When installing from a TTY, the Spicetify stage is deferred because Spotify cannot create its
+profile without a graphical session. After logging into Niri, launch Spotify once, log in, close
+Spotify, and finish only that stage with:
+
+```bash
+./install.sh --spicetify-only
+```
+
 The script detects the distribution from `/etc/os-release` and requests sudo only for system
 packages/configuration. When the Void package stage runs, it performs a full XBPS update first
 because partial upgrades are unsupported, then builds the latest stable Noctalia and Noctalia
@@ -100,8 +108,8 @@ because Void does not provide the development package required by those builds.
 ## Spotify / Spicetify
 
 Spotify is installed from Flathub. A fresh Spotify profile must be opened and logged into once
-before Spicetify can patch it. The installer pauses at that stage, launches Spotify, and waits for
-you to return. You may skip the patch stage and rerun the installer later.
+before Spicetify can patch it. In a graphical session, the installer can launch Spotify and wait
+for you. In a TTY, it leaves the stage incomplete instead of trying to launch Spotify.
 
 `tar` is installed before Spicetify because the upstream installer requires it.
 

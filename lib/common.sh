@@ -9,6 +9,7 @@ BACKUP_DIR="$BACKUP_ROOT/$RUN_STAMP"
 DISTRO_ID=""
 DISTRO_NAME=""
 GREETER_USER=""
+STEP_DEFERRED=75
 
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 ok()   { printf '\033[1;32m  ✓\033[0m %s\n' "$*"; }
@@ -62,15 +63,21 @@ mark_step_complete() {
 }
 
 run_stateful_step() {
-    local step_id="$1" label="$2" function_name="$3"
-    if step_is_complete "$step_id"; then
+    local step_id="$1" label="$2" function_name="$3" force="${4:-false}" status
+    if [[ "$force" != "true" ]] && step_is_complete "$step_id"; then
         if ask_yes_no "$label was completed previously. Skip it?" y; then
             ok "Skipping $label"
             return 0
         fi
     fi
 
-    "$function_name"
+    status=0
+    "$function_name" || status=$?
+    if (( status == STEP_DEFERRED )); then
+        warn "$label was deferred and was not marked complete"
+        return 0
+    fi
+    (( status == 0 )) || return "$status"
     mark_step_complete "$step_id"
 }
 

@@ -14,9 +14,11 @@ MODE=full
 case "${1:-}" in
     "") ;;
     --wallpapers-only) MODE=wallpapers ;;
+    --spicetify-only) MODE=spicetify ;;
     -h|--help)
-        printf 'Usage: %s [--wallpapers-only]\n' "$0"
+        printf 'Usage: %s [--wallpapers-only | --spicetify-only]\n' "$0"
         printf '  --wallpapers-only  Install or update wallpaper collections without rerunning setup\n'
+        printf '  --spicetify-only   Finish Spicetify after Spotify has created its graphical profile\n'
         exit 0
         ;;
     *) die "Unknown option: $1 (try --help)" ;;
@@ -30,6 +32,12 @@ if [[ "$MODE" == "wallpapers" ]]; then
     mark_step_complete wallpapers
     printf '\n\033[1;32mWallpaper update complete.\033[0m\n'
     printf 'Choose or refresh the wallpaper in Noctalia if the running session does not notice it automatically.\n'
+    exit 0
+fi
+
+if [[ "$MODE" == "spicetify" ]]; then
+    printf '\nSpicetify-only mode: all other installer stages will be skipped.\n\n'
+    run_stateful_step spicetify "Spicetify setup" install_spicetify true
     exit 0
 fi
 
