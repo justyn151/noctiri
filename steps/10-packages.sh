@@ -200,10 +200,10 @@ configure_void_networkmanager() {
 configure_void_pipewire() {
     local pipewire_dir="$HOME/.config/pipewire/pipewire.conf.d"
     mkdir -p "$pipewire_dir" "$HOME/.config/autostart"
-    ensure_user_symlink /usr/share/examples/wireplumber/10-wireplumber.conf \
-        "$pipewire_dir/10-wireplumber.conf"
-    ensure_user_symlink /usr/share/examples/pipewire/20-pipewire-pulse.conf \
-        "$pipewire_dir/20-pipewire-pulse.conf"
+    configure_void_pipewire_dropin /usr/share/examples/wireplumber/10-wireplumber.conf \
+        10-wireplumber.conf
+    configure_void_pipewire_dropin /usr/share/examples/pipewire/20-pipewire-pulse.conf \
+        20-pipewire-pulse.conf
 
     if [[ -e /usr/share/applications/pipewire.desktop ]]; then
         ensure_user_symlink /usr/share/applications/pipewire.desktop \
@@ -226,12 +226,44 @@ configure_void_pipewire() {
     fi
 }
 
+configure_void_pipewire_dropin() {
+    local source="$1" filename="$2"
+    local system_path="/etc/pipewire/pipewire.conf.d/$filename"
+    local user_path="$HOME/.config/pipewire/pipewire.conf.d/$filename"
+
+    if sudo test -e "$system_path" || sudo test -L "$system_path"; then
+        if [[ -L "$user_path" \
+            && "$(readlink -f "$user_path")" == "$(readlink -f "$source")" ]]; then
+            backup_path "$user_path"
+            unlink "$user_path"
+            ok "Removed duplicate user PipeWire drop-in $filename; the system copy is active"
+        elif [[ -e "$user_path" || -L "$user_path" ]]; then
+            warn "Both system and custom user copies of $filename exist; keeping the custom user file."
+            warn "Duplicate context.exec entries in those files can start audio components twice."
+        fi
+        return 0
+    fi
+    ensure_user_symlink "$source" "$user_path"
+}
+
 discover_void_user_session_bus() {
-    local runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+    local runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}" niri_pid address
     if [[ -z "${XDG_RUNTIME_DIR:-}" && -d "$runtime_dir" && -O "$runtime_dir" ]]; then
         export XDG_RUNTIME_DIR="$runtime_dir"
     fi
-    if [[ -z "${DBUS_SESSION_BUS_ADDRESS:-}" && -S "$runtime_dir/bus" ]]; then
+    # Prefer Niri's environment even if an SSH client supplied a stale or
+    # unrelated bus address. dbus-run-session commonly uses /tmp/dbus-* on Void.
+    niri_pid="$(pgrep -u "$(id -u)" -xo niri 2>/dev/null || true)"
+    if [[ -n "$niri_pid" && -r "/proc/$niri_pid/environ" ]]; then
+        address="$(tr '\0' '\n' < "/proc/$niri_pid/environ" \
+            | sed -n 's/^DBUS_SESSION_BUS_ADDRESS=//p' | head -n 1)"
+        if [[ -n "$address" ]]; then
+            export DBUS_SESSION_BUS_ADDRESS="$address"
+            ok "Connected this shell to Niri's user D-Bus session"
+            return 0
+        fi
+    fi
+    if [[ -S "$runtime_dir/bus" ]]; then
         export DBUS_SESSION_BUS_ADDRESS="unix:path=$runtime_dir/bus"
         ok "Connected this shell to the existing user D-Bus session"
     fi
@@ -279,6 +311,15 @@ restart_void_pipewire_stack() {
         sleep 0.1
         ((attempts += 1))
     done
+    if pgrep -u "$uid" -x wireplumber >/dev/null 2>&1 \
+        || pgrep -u "$uid" -x pipewire-pulse >/dev/null 2>&1 \
+        || pgrep -u "$uid" -x pipewire >/dev/null 2>&1; then
+        warn "The incomplete PipeWire stack did not stop gracefully; terminating its user processes."
+        for process in wireplumber pipewire-pulse pipewire; do
+            pkill -KILL -u "$uid" -x "$process" >/dev/null 2>&1 || true
+        done
+        sleep 0.2
+    fi
     if pgrep -u "$uid" -x wireplumber >/dev/null 2>&1 \
         || pgrep -u "$uid" -x pipewire-pulse >/dev/null 2>&1 \
         || pgrep -u "$uid" -x pipewire >/dev/null 2>&1; then

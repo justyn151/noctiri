@@ -41,6 +41,9 @@ Sanitization/portability changes:
   owns them, while preserving and reporting sockets that still have a real listener.
 - Allows `--services-only` to repair audio over SSH by discovering the existing graphical user's
   runtime directory and D-Bus session socket.
+- Avoids launching WirePlumber and pipewire-pulse twice when equivalent system-wide and per-user
+  PipeWire drop-ins coexist. SSH repair now reads `dbus-run-session`'s temporary address directly
+  from Niri, and a wedged duplicate stack is force-stopped only after a graceful timeout.
 - Preserves the current Niri keybindings, blur/opacity, rounded windows, hot-corner setting,
   screenshot binding, Kitty config, Qt/KDE configuration, portal routing and greetd config.
 - Adds default application associations beyond the single JPEG association in the export.
