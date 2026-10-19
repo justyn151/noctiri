@@ -1,44 +1,25 @@
-# Noctiri desktop installer for Fedora and Void Linux
+# Fedora / Void Linux Niri + Noctalia Setup
 
-A reproducible desktop installer with two deliberately separate flavours:
-
-- **Modern:** the existing Niri + Noctalia scrolling desktop on Fedora 44+ and Void Linux
-  (glibc or musl).
-- **Tatami:** a traditional Mango master-stack desktop for Void Linux, with Waybar, awww,
-  SwayNotificationCenter and paired day/night themes.
-
-The Modern flavour and its configuration remain unchanged. A normal Void installation asks which
-flavour to install; Fedora continues to select Modern automatically.
+A reproducible Niri + Noctalia installer for Fedora 44+ and Void Linux (glibc or musl),
+built from a working Fedora configuration.
 
 ## What it installs
 
-Shared desktop foundation:
+Core desktop:
+- Niri
+- Noctalia
 - greetd + Noctalia Greeter
-- PipeWire + WirePlumber
-- XDG portals
-- Polkit and GNOME Keyring PAM integration
-
-Modern desktop:
-- Niri + Noctalia
 - XWayland Satellite
-- Noctalia's integrated bar, launcher, notifications and wallpaper support
-
-Tatami desktop (Void only):
-- Mango with a traditional master-stack layout; grid, monocle and deck are optional layouts
-- Waybar with compact Japanese-number tags, a constrained media title and icon-only system status;
-  it uses Mango's ext-workspace protocol, which Void's Waybar supports
-- awww wallpaper daemon
-- Fuzzel launcher and SwayNotificationCenter
-- swaylock + swayidle, cliphist, and grim + slurp + swappy
-- Yazi in a Kitty named scratchpad
+- PipeWire + WirePlumber
+- XDG portals (GNOME + GTK + KDE)
+- Polkit and GNOME Keyring PAM integration
 
 Theme/integration:
 - Bibata Modern Ice cursor
 - Inter UI font
-- JetBrainsMono Nerd Font Mono for Modern; IosevkaTerm Nerd Font Mono for Tatami
+- JetBrainsMono Nerd Font Mono for Kitty
 - qt6ct + Breeze Qt style/icons
-- Modern uses Noctalia templates for `btop`, `cava`, Qt/KDE, Kitty and Niri
-- Tatami ships matching Mango, Waybar, Kitty, Fuzzel, qt6ct and btop day/night palettes
+- Noctalia built-in templates: `btop`, `cava`, `kcolorscheme`, `kitty`, `niri`
 - KDE file picker through `xdg-desktop-portal-kde`
 - Firefox policy forcing the XDG portal file picker
 
@@ -82,23 +63,6 @@ chmod +x install.sh
 ./install.sh
 ```
 
-On Void, select either Modern or Tatami at the prompt. Non-interactive equivalents are:
-
-```bash
-./install.sh --flavour niri
-./install.sh --flavour mango --theme night
-./install.sh --flavour mango --theme day
-```
-
-To add Tatami to an existing Void desktop without rebuilding or replacing Niri/Noctalia, run:
-
-```bash
-./install.sh --mango-only
-```
-
-That mode installs/repairs Tatami and the shared runtime, then pins **Noctiri Tatami** in the
-greeter. It does not alter `~/.config/niri`, `~/.config/noctalia`, or the saved Modern bar setup.
-
 Completed stages are recorded under `~/.local/state/noctiri-installer/completed/`. On later full
 runs, each completed stage defaults to **skip** but can be rerun when you want to update or repair
 it. If the state directory does not exist yet, the installer detects an existing Niri, Noctalia,
@@ -112,12 +76,9 @@ installation, configuration replacement, or source compilation, run:
 ./install.sh --wallpapers-only
 ```
 
-Use `./install.sh --wallpapers-only --flavour mango` to save the selected collection's initial
-image for Tatami instead of Noctalia.
-
 When installing from a TTY, the Spicetify stage is deferred because Spotify cannot create its
-profile without a graphical session. After logging into the selected desktop, launch Spotify once,
-log in, close Spotify, and finish only that stage with:
+profile without a graphical session. After logging into Niri, launch Spotify once, log in, close
+Spotify, and finish only that stage with:
 
 ```bash
 ./install.sh --spicetify-only
@@ -155,60 +116,14 @@ disconnect the machine.
 The script detects the distribution from `/etc/os-release` and requests sudo only for system
 packages/configuration. When the Void package stage runs, it performs a full XBPS update first
 because partial upgrades are unsupported, then builds the latest stable Noctalia and Noctalia
-Greeter releases from source for Modern. Tatami uses Void's `mangowc`, `Waybar`, `awww`, `yazi`,
-and `SwayNotificationCenter` packages and builds only Noctalia Greeter when it is absent. The
-Modern build also installs `nlohmann-json` from its latest stable release because Void does not
-provide the development package required by Noctalia.
-
-## Tatami controls and appearance
-
-Tatami starts in the dark **Night** theme by default. Its Waybar follows the Omarchy-style flat
-layout: battery and system load on the left, numbered workspaces in the center, and tray,
-Bluetooth, network, audio, and clock on the right. Clicking the network or Bluetooth icon opens a
-terminal UI instead of a desktop settings window.
-
-Core bindings:
-
-- `Super+Return`: Kitty
-- `Super+Shift+Return` or `Super+Y`: toggle the Yazi scratchpad
-- `Super+Space` or `Super+D`: Fuzzel application launcher
-- `Super+B`: Firefox
-- `Super+E`: Dolphin file manager
-- `Super+W`: NetworkManager's Wi-Fi TUI; `Super+Shift+B`: Bluetui
-- `Super+T`: btop; `Super+F1`: open the complete on-machine keybinding sheet
-- `Super+1` through `Super+9`: change tag; add `Shift` to move the focused window
-- `Super+Tab`: cycle tile, grid, monocle and deck layouts
-- `Super+Shift+Space`: toggle floating
-- `Super+Shift+T`: toggle the complete day/night palette
-- `Print`: save a full screenshot; `Shift+Print`: select an area and edit it in Swappy
-
-The theme toggle updates Mango, Waybar, Kitty, Fuzzel, qt6ct and btop together. Already-running Qt
-or btop processes may need to be reopened to adopt their new palette. It can also be run directly:
-
-```bash
-noctiri-theme day
-noctiri-theme night
-noctiri-theme toggle
-```
-
-The installer equivalent is `./install.sh --theme-only --flavour mango --theme day` (or `night`).
-
-Set and persist an awww wallpaper with:
-
-```bash
-noctiri-wallpaper /absolute/path/to/image
-```
-
-Tatami automatically restores awww's last wallpaper at login. If awww has no history yet, it uses
-the first image found under `~/Pictures/Wallpapers`.
+Greeter releases from source. It also installs `nlohmann-json` from its latest stable release
+because Void does not provide the development package required by those builds.
 
 ## Important behavior
 
 - Existing config files that the installer replaces are copied to
   `~/.local/state/niri-noctalia-installer-backup/<timestamp>/` first.
 - The installer is designed to be safe to rerun.
-- Modern and Tatami have separate completion-state identifiers for their package, font and config
-  stages, so adding Tatami does not invalidate or rebuild an existing Modern installation.
 - Noctalia GUI state (`~/.local/state/noctalia/settings.toml`) is backed up and removed,
   because GUI state overrides declarative config files.
 - On Fedora, the installer enables greetd and sets `graphical.target`, but deliberately does **not**
@@ -240,8 +155,8 @@ stable upstream release using the upstream-documented Void dependencies. The ins
 - installs the greeter,
 - runs the greeter system setup helper,
 - installs the known-good greetd config,
-- pins the selected Noctiri flavour as the startup session so another discovered or remembered
-  desktop is not selected by default,
+- pins Niri as the startup session so another discovered or remembered desktop is not selected by
+  default,
 - runs greetd on VT7 on Void, leaving tty1 available as a recovery console,
 - enables the constrained passwordless appearance-sync rule for the current user,
 - enables greetd for the next boot on Fedora; Void activation is left as an explicit TTY step so the
@@ -254,11 +169,10 @@ application-default behavior is shared; only package installation, Firefox's sys
 greetd account, and service management differ.
 
 - Fedora uses DNF, the Fedora Noctalia package, Terra's Noctalia Greeter package, and systemd.
-- Void uses XBPS. Modern builds Noctalia and Noctalia Greeter from their latest stable release tags;
-  Tatami installs Mango and its desktop components from Void's repositories. Both use Void's
-  `_greeter` account, enable the required system D-Bus service, configure PipeWire with WirePlumber,
-  PulseAudio and ALSA compatibility, configure NetworkManager and BlueZ, and follow runit service
-  conventions. Because Void's
+- Void uses XBPS, builds Noctalia and Noctalia Greeter from their latest stable release tags, uses
+  Void's `_greeter` account, enables the required system D-Bus service, configures PipeWire with
+  WirePlumber, PulseAudio and ALSA compatibility, configures NetworkManager and BlueZ, and follows
+  runit service conventions. Because Void's
   Polkit rules directory is owned by `polkitd`, the installer uses Noctalia Greeter's constrained
   manual rule after the upstream command validates the installed helper and policy.
 - Both Void glibc and musl are accepted. Noctalia's Meson configuration automatically skips
@@ -285,6 +199,3 @@ another machine to use that monitor mode or scale.
 - Spicetify: https://spicetify.app/docs/getting-started
 - Vesktop Flatpak: https://github.com/flathub/dev.vencord.Vesktop
 - Bibata: https://github.com/ful1e5/Bibata_Cursor
-- Mango: https://github.com/mangowm/mango
-- Waybar ext-workspace module: https://github.com/Alexays/Waybar
-- awww: https://codeberg.org/LGFae/awww

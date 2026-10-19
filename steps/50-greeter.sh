@@ -7,11 +7,8 @@ configure_greeter() {
     fi
     local tmp
     tmp="$(mktemp)"
-    local greeter_session=niri greeter_session_name=niri
-    if [[ "$FLAVOUR" == "mango" ]]; then
-        greeter_session=noctiri-tatami
-        greeter_session_name="Noctiri Tatami"
-    elif [[ "$DISTRO_ID" == "void" && -f /usr/share/wayland-sessions/noctiri.desktop ]]; then
+    local greeter_session=niri
+    if [[ "$DISTRO_ID" == "void" && -f /usr/share/wayland-sessions/noctiri.desktop ]]; then
         greeter_session=noctiri
     fi
     sed -e "s|@@GREETER_USER@@|$GREETER_USER|g" \
@@ -27,7 +24,7 @@ configure_greeter() {
     fi
 
     if have noctalia-greeter; then
-        pin_greeter_session "$greeter_session_name"
+        pin_greeter_session "$greeter_session"
         enable_passwordless_greeter_sync
     fi
 

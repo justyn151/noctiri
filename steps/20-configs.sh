@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 install_configs() {
-    if [[ "$FLAVOUR" == "mango" ]]; then
-        install_mango_configs
-        return
-    fi
-
     log "Installing Niri, Noctalia, Kitty, Qt and portal configuration"
 
     render_home_template "$ROOT_DIR/configs/niri/config.kdl.in" "$HOME/.config/niri/config.kdl"

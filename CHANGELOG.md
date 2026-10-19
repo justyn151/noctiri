@@ -49,27 +49,8 @@ Sanitization/portability changes:
   from Niri, and a wedged duplicate stack is force-stopped only after a graceful timeout.
 - Added a Void runit backlight service that persistently records display-panel brightness under
   `/var/lib/noctiri/brightness`, restores it during boot, and saves once more during shutdown.
-- Added the Void-only **Noctiri Tatami** flavour: Mango master-stack tiling, a compact Waybar using
-  Mango's supported ext-workspace and dwl-ipc protocols,
-  IosevkaTerm Nerd Font, Fuzzel, SwayNotificationCenter, Yazi, swaylock/swayidle, cliphist,
-  grim/slurp/swappy, and persistent awww wallpapers. The installer now offers a flavour selector,
-  paired day/night palettes, and `--mango-only` for adding Tatami without rebuilding or changing
-  the existing Niri/Noctalia configuration.
-- Extended Tatami's day/night switch across Mango, Waybar, Kitty, Fuzzel, qt6ct and btop, and added
-  a conservative hybrid Intel/nouveau GPU override for the Mango session.
 - Reduced the Void display-backlight persistence poll from one second to ten seconds while still
   saving once more on shutdown.
-- Leaves Mango's disable-while-typing input option at its enabled default so Tatami also validates
-  against older Mango builds still available from some Void repository mirrors.
-- Resolves hybrid-GPU PCI symlinks to `/dev/dri/cardN` before exporting `WLR_DRM_DEVICES`; the
-  variable treats the colons in a raw PCI by-path as device-list separators.
-- Avoids Waybar's `dwl/window` module with Mango 0.17, where the missing dwl status protocol makes
-  Waybar 0.15 segfault, while retaining working ext-workspace tags and constrained MPRIS metadata.
-- Falls back to the saved or first installed wallpaper when `awww restore` succeeds without
-  restoring an image and leaves the output on a plain color.
-- Starts the Void PipeWire core from Tatami before Waybar, allowing the system-wide PipeWire
-  drop-ins to launch WirePlumber and pipewire-pulse without duplicate processes or a disabled
-  Waybar volume module.
 - Preserves the current Niri keybindings, blur/opacity, rounded windows, hot-corner setting,
   screenshot binding, Kitty config, Qt/KDE configuration, portal routing and greetd config.
 - Adds default application associations beyond the single JPEG association in the export.

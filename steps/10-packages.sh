@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 install_packages() {
-    if [[ "$FLAVOUR" == "mango" ]]; then
-        [[ "$DISTRO_ID" == "void" ]] || die "Mango package installation is currently available on Void only"
-        install_packages_mango_void
-        return
-    fi
     case "$DISTRO_ID" in
         fedora) install_packages_fedora ;;
         void) install_packages_void ;;
@@ -101,14 +96,7 @@ configure_void_runtime() {
         sudo ln -s /etc/sv/seatd /var/service/
         ok "Enabled the seatd runit service"
     fi
-    install_selected_void_session
-}
-
-install_selected_void_session() {
-    case "$FLAVOUR" in
-        mango) install_void_mango_session ;;
-        *) install_void_niri_session ;;
-    esac
+    install_void_niri_session
 }
 
 configure_connectivity_audio() {
@@ -211,7 +199,7 @@ configure_void_networkmanager() {
                 ok "Disabled the conflicting $service service"
             done
         else
-            warn "NetworkManager was not enabled; the desktop Wi-Fi widget will remain unavailable."
+            warn "NetworkManager was not enabled; Noctalia's Wi-Fi widget will remain unavailable."
             return 0
         fi
     fi
@@ -243,7 +231,7 @@ configure_void_pipewire() {
     if [[ -n "${XDG_RUNTIME_DIR:-}" && -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
         restart_void_pipewire_stack
     else
-        warn "PipeWire will start automatically with the next graphical login."
+        warn "PipeWire will start automatically with the next Niri login."
     fi
 }
 
@@ -268,26 +256,19 @@ configure_void_pipewire_dropin() {
 }
 
 discover_void_user_session_bus() {
-    local runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-    local session_pid="" session_name="" candidate address
+    local runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}" niri_pid address
     if [[ -z "${XDG_RUNTIME_DIR:-}" && -d "$runtime_dir" && -O "$runtime_dir" ]]; then
         export XDG_RUNTIME_DIR="$runtime_dir"
     fi
-    # Prefer the running compositor's environment even if an SSH client supplied
-    # a stale bus address. dbus-run-session commonly uses /tmp/dbus-* on Void.
-    for candidate in niri mango; do
-        session_pid="$(pgrep -u "$(id -u)" -xo "$candidate" 2>/dev/null || true)"
-        if [[ -n "$session_pid" ]]; then
-            session_name="$candidate"
-            break
-        fi
-    done
-    if [[ -n "$session_pid" && -r "/proc/$session_pid/environ" ]]; then
-        address="$(tr '\0' '\n' < "/proc/$session_pid/environ" \
+    # Prefer Niri's environment even if an SSH client supplied a stale or
+    # unrelated bus address. dbus-run-session commonly uses /tmp/dbus-* on Void.
+    niri_pid="$(pgrep -u "$(id -u)" -xo niri 2>/dev/null || true)"
+    if [[ -n "$niri_pid" && -r "/proc/$niri_pid/environ" ]]; then
+        address="$(tr '\0' '\n' < "/proc/$niri_pid/environ" \
             | sed -n 's/^DBUS_SESSION_BUS_ADDRESS=//p' | head -n 1)"
         if [[ -n "$address" ]]; then
             export DBUS_SESSION_BUS_ADDRESS="$address"
-            ok "Connected this shell to $session_name's user D-Bus session"
+            ok "Connected this shell to Niri's user D-Bus session"
             return 0
         fi
     fi
@@ -481,11 +462,7 @@ repair_void_runtime() {
     sudo xbps-install -y mesa-dri dbus elogind seatd
     configure_void_runtime
     repair_connectivity_audio
-    if [[ "$FLAVOUR" == "mango" ]]; then
-        configure_mango_gpu_override
-    else
-        configure_niri_gpu_override
-    fi
+    configure_niri_gpu_override
     configure_greeter
 }
 
