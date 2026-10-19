@@ -20,8 +20,9 @@ case "${1:-}" in
     --theme-only) MODE=theme ;;
     --services-only) MODE=services ;;
     --dwl-only) MODE=dwl ;;
+    --font-only) MODE=font ;;
     -h|--help)
-        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --dwl-only]\n' "$0"
+        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --dwl-only | --font-only]\n' "$0"
         printf '  --wallpapers-only  Install or update wallpaper collections without rerunning setup\n'
         printf '  --spicetify-only   Finish Spicetify after Spotify has created its graphical profile\n'
         printf '  --greeter-only     Repair greetd/Noctalia Greeter configuration without rebuilding\n'
@@ -29,6 +30,7 @@ case "${1:-}" in
         printf '  --theme-only       Repair Noctalia app colors and bar clocks without rebuilding\n'
         printf '  --services-only    Repair Wi-Fi, Bluetooth, PipeWire, and brightness persistence\n'
         printf '  --dwl-only         Install the optional Void DWL + Foot + Somebar preview\n'
+        printf '  --font-only        Install and apply Fantasque Sans Mono across the desktop\n'
         exit 0
         ;;
     *) die "Unknown option: $1 (try --help)" ;;
@@ -70,11 +72,20 @@ fi
 
 if [[ "$MODE" == "theme" ]]; then
     printf '\nTheme-only mode: packages, builds, greeter, wallpapers, and apps will be skipped.\n\n'
+    install_fantasque_system_font
     repair_theme_sync
     pywalfox_status=0
     configure_pywalfox || pywalfox_status=$?
     (( pywalfox_status == 0 || pywalfox_status == STEP_DEFERRED )) || exit "$pywalfox_status"
     printf '\nColors, bar clocks, and Firefox theming repaired. Restart open applications to reload their palettes.\n'
+    exit 0
+fi
+
+if [[ "$MODE" == "font" ]]; then
+    printf '\nFont-only mode: installing and applying Fantasque Sans Mono without rebuilding the desktop.\n\n'
+    install_fantasque_system_font
+    printf '\n\033[1;32mFantasque Sans Mono configuration complete.\033[0m\n'
+    printf 'Reopen applications to refresh their fonts; log out once to refresh the complete session.\n'
     exit 0
 fi
 
@@ -113,7 +124,7 @@ else
 fi
 
 run_stateful_step "services-$DISTRO_ID" "Wi-Fi, Bluetooth, PipeWire, and brightness persistence setup" repair_connectivity_audio
-run_stateful_step nerd-font "JetBrainsMono Nerd Font" install_nerd_font
+run_stateful_step fantasque-system-font-v1 "Fantasque Sans Mono system font" install_fantasque_system_font
 run_stateful_step configs "Desktop configuration" install_configs
 run_stateful_step firefox-policy-v2 "Firefox portal and Pywalfox extension policy" merge_firefox_policy
 run_stateful_step pywalfox "Noctalia Pywalfox native host" configure_pywalfox

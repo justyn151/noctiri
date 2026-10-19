@@ -16,8 +16,7 @@ Core desktop:
 
 Theme/integration:
 - Bibata Modern Ice cursor
-- Inter UI font
-- JetBrainsMono Nerd Font Mono for Kitty
+- Fantasque Sans Mono Nerd Font 3.5.1 for the desktop UI and terminals
 - qt6ct + Breeze Qt style/icons
 - Noctalia templates for `btop`, `cava`, KDE/Qt, Kitty, Niri, Yazi, and Pywalfox
 - KDE file picker through `xdg-desktop-portal-kde`
@@ -111,6 +110,20 @@ Yazi after changing palettes so it reloads the rendered theme.
 The installer also adds `~/.local/bin` to interactive/login shell startup and to the graphical Niri
 session. Log out and back in once after applying this to an existing installation so every desktop
 application inherits the updated `PATH`.
+
+To install or repair only the desktop font configuration:
+
+```bash
+./install.sh --font-only
+```
+
+This pins the Fantasque Sans Mono Nerd Font 3.5.1 archive and verifies its checksum, then selects
+`FantasqueSansM Nerd Font` for Fontconfig's system UI, sans, and serif aliases and
+`FantasqueSansM Nerd Font Mono` for monospace. GTK 3/4, GNOME interface settings, Qt6ct,
+KDE applications, Kitty, and Noctalia receive explicit settings as well. The separate DWL preview's
+Foot and Somebar styling is left unchanged. Existing applications may cache fonts, so reopen them;
+one logout refreshes the entire Niri session. Web pages and documents that deliberately specify a
+typeface are not overridden.
 
 To install, configure, and check NetworkManager, Bluetooth, and PipeWire without rebuilding Niri or
 Noctalia:

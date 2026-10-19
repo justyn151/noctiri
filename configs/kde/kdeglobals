@@ -133,6 +133,11 @@ ForegroundVisited=162,186,223
 [General]
 ColorScheme=Noctalia
 Name=noctalia
+font=FantasqueSansM Nerd Font,10,-1,5,400,0,0,0,0,0
+fixed=FantasqueSansM Nerd Font Mono,10,-1,5,400,0,0,0,0,0
+menuFont=FantasqueSansM Nerd Font,10,-1,5,400,0,0,0,0,0
+smallestReadableFont=FantasqueSansM Nerd Font,8,-1,5,400,0,0,0,0,0
+toolBarFont=FantasqueSansM Nerd Font,10,-1,5,400,0,0,0,0,0
 
 [KDE]
 contrast=4

@@ -55,7 +55,7 @@ scale = 0.80000000447034836
 button_borders = false
 card_borders = false
 corner_radius_scale = 0.85000001266598701
-font_family = "Inter"
+font_family = "FantasqueSansM Nerd Font"
 popup_borders = false
 
     [shell.greeter_sync]

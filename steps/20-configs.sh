@@ -43,6 +43,112 @@ install_configs() {
     fi
 }
 
+install_fantasque_system_font() {
+    install_fantasque_nerd_font
+    configure_system_fonts
+}
+
+configure_system_fonts() {
+    log "Making Fantasque Sans Mono the Niri desktop font"
+
+    install_file "$ROOT_DIR/configs/fonts/fonts.conf" \
+        "$HOME/.config/fontconfig/fonts.conf"
+    install_file "$ROOT_DIR/configs/fonts/gtk-settings.ini" \
+        "$HOME/.config/gtk-3.0/settings.ini"
+    install_file "$ROOT_DIR/configs/fonts/gtk-settings.ini" \
+        "$HOME/.config/gtk-4.0/settings.ini"
+    render_home_template "$ROOT_DIR/configs/qt6ct/qt6ct.conf.in" \
+        "$HOME/.config/qt6ct/qt6ct.conf"
+    install_file "$ROOT_DIR/configs/kitty/kitty.conf" \
+        "$HOME/.config/kitty/kitty.conf"
+
+    set_kde_font_preferences
+    set_noctalia_font_preference
+    fc-cache -f
+
+    if have gsettings; then
+        gsettings set org.gnome.desktop.interface font-name \
+            'FantasqueSansM Nerd Font 10' >/dev/null 2>&1 || true
+        gsettings set org.gnome.desktop.interface document-font-name \
+            'FantasqueSansM Nerd Font 10' >/dev/null 2>&1 || true
+        gsettings set org.gnome.desktop.interface monospace-font-name \
+            'FantasqueSansM Nerd Font Mono 10' >/dev/null 2>&1 || true
+    fi
+
+    if pgrep -x noctalia >/dev/null 2>&1; then
+        noctalia msg config-reload >/dev/null 2>&1 \
+            || warn "Noctalia will load Fantasque Sans Mono after the next login."
+    fi
+
+    ok "Configured Fontconfig, GTK, Qt/KDE, Kitty, and Noctalia for Fantasque Sans Mono"
+}
+
+set_kde_font_preferences() {
+    local config_path="$HOME/.config/kdeglobals" tmp
+    mkdir -p "$(dirname "$config_path")"
+    [[ -f "$config_path" ]] || printf '[General]\n' > "$config_path"
+    backup_path "$config_path"
+    tmp="$(mktemp)"
+    python3 - "$config_path" "$tmp" <<'PY'
+import re
+import sys
+
+source, destination = sys.argv[1:]
+text = open(source, encoding="utf-8").read()
+values = {
+    "font": "FantasqueSansM Nerd Font,10,-1,5,400,0,0,0,0,0",
+    "fixed": "FantasqueSansM Nerd Font Mono,10,-1,5,400,0,0,0,0,0",
+    "menuFont": "FantasqueSansM Nerd Font,10,-1,5,400,0,0,0,0,0",
+    "smallestReadableFont": "FantasqueSansM Nerd Font,8,-1,5,400,0,0,0,0,0",
+    "toolBarFont": "FantasqueSansM Nerd Font,10,-1,5,400,0,0,0,0,0",
+}
+section = re.search(r"(?ms)^\[General\]\n(?P<body>.*?)(?=^\[|\Z)", text)
+if section is None:
+    text += ("\n" if text and not text.endswith("\n") else "") + "[General]\n"
+    text += "".join(f"{key}={value}\n" for key, value in values.items())
+else:
+    body = section.group("body")
+    for key, value in values.items():
+        pattern = re.compile(rf"(?m)^{re.escape(key)}=.*$")
+        if pattern.search(body):
+            body = pattern.sub(f"{key}={value}", body, count=1)
+        else:
+            body += f"{key}={value}\n"
+    text = text[:section.start("body")] + body + text[section.end("body"):]
+with open(destination, "w", encoding="utf-8") as stream:
+    stream.write(text)
+PY
+    install -m 0644 "$tmp" "$config_path"
+    rm -f "$tmp"
+}
+
+set_noctalia_font_preference() {
+    local config_path="$HOME/.config/noctalia/config.toml" tmp
+    [[ -f "$config_path" ]] || return 0
+    backup_path "$config_path"
+    tmp="$(mktemp)"
+    python3 - "$config_path" "$tmp" <<'PY'
+import re
+import sys
+
+source, destination = sys.argv[1:]
+text = open(source, encoding="utf-8").read()
+section = re.search(r"(?ms)^\[shell\]\n(?P<body>.*?)(?=^\[|\Z)", text)
+if section is None:
+    text += '\n[shell]\nfont_family = "FantasqueSansM Nerd Font"\n'
+else:
+    body = section.group("body")
+    pattern = re.compile(r"(?m)^font_family\s*=.*$")
+    value = 'font_family = "FantasqueSansM Nerd Font"'
+    body = pattern.sub(value, body, count=1) if pattern.search(body) else body + value + "\n"
+    text = text[:section.start("body")] + body + text[section.end("body"):]
+with open(destination, "w", encoding="utf-8") as stream:
+    stream.write(text)
+PY
+    install -m 0644 "$tmp" "$config_path"
+    rm -f "$tmp"
+}
+
 repair_theme_sync() {
     log "Repairing Noctalia application colors and bar widgets"
 
