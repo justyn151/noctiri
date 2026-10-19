@@ -1,0 +1,21 @@
+#!/bin/sh
+set -eu
+
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/noctiri"
+mkdir -p "$state_dir"
+
+export LIBSEAT_BACKEND=seatd
+export XDG_CURRENT_DESKTOP=mango
+export XDG_SESSION_DESKTOP=mango
+export XDG_SESSION_TYPE=wayland
+export XDG_DATA_DIRS="$HOME/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+
+hardware_env="$HOME/.config/mango/noctiri-hardware.env"
+if [ -r "$hardware_env" ]; then
+    # Generated locally by the installer and owned by the login user.
+    # shellcheck disable=SC1090
+    . "$hardware_env"
+fi
+
+exec dbus-run-session -- /usr/bin/mango -c "$HOME/.config/mango/config.conf" \
+    >> "$state_dir/mango-session.log" 2>&1

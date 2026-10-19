@@ -1,0 +1,67 @@
+@import url("../waybar/colors.css");
+
+* {
+  font-family: "IosevkaTerm Nerd Font", "Iosevka Nerd Font", sans-serif;
+  color: @text;
+}
+
+.control-center {
+  background: @bar_bg;
+  border: 1px solid @border;
+  border-radius: 7px;
+  padding: 7px;
+}
+
+.notification-row {
+  outline: none;
+}
+
+.notification {
+  background: @surface;
+  border: 1px solid @border;
+  border-radius: 6px;
+  margin: 5px;
+  padding: 0;
+}
+
+.notification.critical {
+  border-color: @urgent;
+}
+
+.notification-content {
+  padding: 9px;
+}
+
+.summary {
+  color: @accent;
+  font-weight: 700;
+}
+
+.body,
+.time {
+  color: @muted;
+}
+
+.control-center .notification {
+  box-shadow: none;
+}
+
+.widget-title,
+.widget-dnd {
+  background: @surface_alt;
+  border-radius: 5px;
+  margin: 5px;
+  padding: 7px 9px;
+}
+
+button {
+  color: @text;
+  background: @surface_alt;
+  border: 1px solid @border;
+  border-radius: 4px;
+}
+
+button:hover {
+  color: @surface;
+  background: @accent;
+}

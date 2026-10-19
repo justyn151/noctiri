@@ -16,7 +16,7 @@ install_spicetify() {
     if [[ ! -f "$prefs" ]]; then
         if [[ -z "${WAYLAND_DISPLAY:-}" && -z "${DISPLAY:-}" ]]; then
             warn "No graphical session is available, so Spotify cannot create its prefs file yet."
-            warn "After logging into Niri, open Spotify once, log in, close it, then run: ./install.sh --spicetify-only"
+            warn "After a graphical login, open Spotify once, log in, close it, then run: ./install.sh --spicetify-only"
             return "$STEP_DEFERRED"
         fi
 

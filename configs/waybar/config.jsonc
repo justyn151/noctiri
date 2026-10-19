@@ -1,0 +1,161 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 28,
+  "spacing": 0,
+  "margin-top": 5,
+  "margin-left": 8,
+  "margin-right": 8,
+  "modules-left": [
+    "custom/launcher",
+    "ext/workspaces",
+    "dwl/window",
+    "mpris"
+  ],
+  "modules-center": ["clock"],
+  "modules-right": [
+    "cpu",
+    "temperature",
+    "network",
+    "bluetooth",
+    "wireplumber",
+    "backlight",
+    "battery",
+    "tray",
+    "custom/notification"
+  ],
+  "custom/launcher": {
+    "format": " 󰣇 ",
+    "tooltip": false,
+    "on-click": "fuzzel --config ~/.config/fuzzel/fuzzel.ini"
+  },
+  "ext/workspaces": {
+    "format": "{icon}",
+    "format-icons": {
+      "1": "一",
+      "2": "二",
+      "3": "三",
+      "4": "四",
+      "5": "五",
+      "6": "六",
+      "7": "七",
+      "8": "八",
+      "9": "九",
+      "active": "◆",
+      "default": "·"
+    },
+    "ignore-hidden": true,
+    "sort-by-id": true,
+    "on-click": "activate",
+    "on-click-right": "deactivate"
+  },
+  "dwl/window": {
+    "format": "{layout}  {title}",
+    "max-length": 42
+  },
+  "mpris": {
+    "format": "{player_icon} {dynamic}",
+    "format-paused": "{status_icon} {dynamic}",
+    "player-icons": {
+      "default": "󰎈",
+      "spotify": ""
+    },
+    "status-icons": {
+      "paused": "󰏤"
+    },
+    "dynamic-order": ["title", "artist"],
+    "dynamic-len": 34,
+    "ignored-players": ["firefox"]
+  },
+  "clock": {
+    "format": "{:%a %d · %H:%M}",
+    "format-alt": "{:%B %Y}",
+    "tooltip-format": "<tt><small>{calendar}</small></tt>",
+    "calendar": {
+      "mode": "month",
+      "weeks-pos": "right",
+      "on-scroll": 1
+    }
+  },
+  "cpu": {
+    "format": "",
+    "tooltip-format": "CPU {usage}% · {avg_frequency} GHz",
+    "interval": 3
+  },
+  "temperature": {
+    "format": "",
+    "critical-threshold": 85,
+    "tooltip-format": "{temperatureC}°C"
+  },
+  "network": {
+    "format-wifi": "󰤨",
+    "format-ethernet": "󰈀",
+    "format-linked": "󰈀",
+    "format-disconnected": "󰤭",
+    "tooltip-format-wifi": "{essid} · {signalStrength}%\n{ipaddr}",
+    "tooltip-format-ethernet": "{ifname}\n{ipaddr}",
+    "tooltip-format-disconnected": "Network disconnected",
+    "on-click": "kitty --class noctiri-network --config ~/.config/mango/kitty.conf nmtui"
+  },
+  "bluetooth": {
+    "format": "󰂯",
+    "format-disabled": "󰂲",
+    "format-off": "󰂲",
+    "format-connected": "󰂱",
+    "tooltip-format": "Bluetooth: {status}",
+    "tooltip-format-connected": "{device_enumerate}",
+    "tooltip-format-enumerate-connected": "{device_alias}",
+    "on-click": "kitty --class noctiri-bluetooth --config ~/.config/mango/kitty.conf bluetoothctl"
+  },
+  "wireplumber": {
+    "format": "{icon}",
+    "format-muted": "󰝟",
+    "format-icons": ["󰕿", "󰖀", "󰕾"],
+    "tooltip-format": "Volume {volume}%",
+    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+    "on-click-right": "qpwgraph"
+  },
+  "backlight": {
+    "format": "{icon}",
+    "format-icons": ["󰃞", "󰃟", "󰃠"],
+    "tooltip-format": "Brightness {percent}%",
+    "on-scroll-up": "brightnessctl set 5%+",
+    "on-scroll-down": "brightnessctl set 5%-"
+  },
+  "battery": {
+    "format": "{icon}",
+    "format-charging": "󰂄",
+    "format-plugged": "󰚥",
+    "format-alt": "{capacity}%",
+    "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+    "states": {
+      "warning": 25,
+      "critical": 12
+    },
+    "tooltip-format": "{capacity}% · {timeTo}"
+  },
+  "tray": {
+    "icon-size": 15,
+    "spacing": 8
+  },
+  "custom/notification": {
+    "tooltip": false,
+    "format": "{icon}",
+    "format-icons": {
+      "notification": "󱅫",
+      "none": "󰂚",
+      "dnd-notification": "󰂛",
+      "dnd-none": "󰂛",
+      "inhibited-notification": "󰂛",
+      "inhibited-none": "󰂛",
+      "dnd-inhibited-notification": "󰂛",
+      "dnd-inhibited-none": "󰂛"
+    },
+    "return-type": "json",
+    "exec-if": "which swaync-client",
+    "exec": "swaync-client -swb",
+    "on-click": "swaync-client -t -sw",
+    "on-click-right": "swaync-client -d -sw",
+    "escape": true
+  }
+}

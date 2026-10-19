@@ -11,6 +11,12 @@ finalize_setup() {
         niri validate >/dev/null 2>&1 && ok "Niri config validates" || warn "Run 'niri validate' after logging into the new session to verify the Niri config."
     fi
 
+    if [[ "$FLAVOUR" == "mango" ]] && have mango; then
+        mango -c "$HOME/.config/mango/config.conf" -p >/dev/null 2>&1 \
+            && ok "Mango config validates" \
+            || warn "Mango rejected the installed config; run: mango -c ~/.config/mango/config.conf -p"
+    fi
+
     # If a Noctalia process is already running, refresh its generated app themes.
     if pgrep -x noctalia >/dev/null 2>&1; then
         noctalia msg templates-apply >/dev/null 2>&1 || true
@@ -29,7 +35,13 @@ finalize_setup() {
     if [[ "$DISTRO_ID" == "void" && ! -e /var/service/greetd ]]; then
         printf '  - Void: from a TTY, enable greetd with: sudo ln -s /etc/sv/greetd /var/service/\n'
     fi
-    printf '  - A logout/reboot is recommended so Niri, portals, Qt variables and greetd start cleanly.\n'
-    printf '  - After first Noctalia login, use Settings -> Security -> Noctalia Greeter -> Sync Now once.\n'
-    printf '  - Noctalia Auto-Sync Greeter is already enabled by the supplied config.\n'
+    if [[ "$FLAVOUR" == "mango" ]]; then
+        printf '  - Log out and select Noctiri Tatami in the greeter; Niri remains installed and unchanged.\n'
+        printf '  - Toggle Tatami day/night mode with Super+Shift+T or: noctiri-theme toggle\n'
+        printf '  - Set a wallpaper with: noctiri-wallpaper /path/to/image\n'
+    else
+        printf '  - A logout/reboot is recommended so Niri, portals, Qt variables and greetd start cleanly.\n'
+        printf '  - After first Noctalia login, use Settings -> Security -> Noctalia Greeter -> Sync Now once.\n'
+        printf '  - Noctalia Auto-Sync Greeter is already enabled by the supplied config.\n'
+    fi
 }

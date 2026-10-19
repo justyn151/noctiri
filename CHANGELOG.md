@@ -47,8 +47,18 @@ Sanitization/portability changes:
 - Avoids launching WirePlumber and pipewire-pulse twice when equivalent system-wide and per-user
   PipeWire drop-ins coexist. SSH repair now reads `dbus-run-session`'s temporary address directly
   from Niri, and a wedged duplicate stack is force-stopped only after a graceful timeout.
-- Added a Void runit backlight service that persistently records Noctalia/keyboard brightness under
+- Added a Void runit backlight service that persistently records display-panel brightness under
   `/var/lib/noctiri/brightness`, restores it during boot, and saves once more during shutdown.
+- Added the Void-only **Noctiri Tatami** flavour: Mango master-stack tiling, a compact Waybar using
+  Mango's supported ext-workspace and dwl-ipc protocols,
+  IosevkaTerm Nerd Font, Fuzzel, SwayNotificationCenter, Yazi, swaylock/swayidle, cliphist,
+  grim/slurp/swappy, and persistent awww wallpapers. The installer now offers a flavour selector,
+  paired day/night palettes, and `--mango-only` for adding Tatami without rebuilding or changing
+  the existing Niri/Noctalia configuration.
+- Extended Tatami's day/night switch across Mango, Waybar, Kitty, Fuzzel, qt6ct and btop, and added
+  a conservative hybrid Intel/nouveau GPU override for the Mango session.
+- Reduced the Void display-backlight persistence poll from one second to ten seconds while still
+  saving once more on shutdown.
 - Preserves the current Niri keybindings, blur/opacity, rounded windows, hot-corner setting,
   screenshot binding, Kitty config, Qt/KDE configuration, portal routing and greetd config.
 - Adds default application associations beyond the single JPEG association in the export.

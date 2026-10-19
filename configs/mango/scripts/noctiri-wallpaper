@@ -1,0 +1,31 @@
+#!/bin/sh
+set -eu
+
+[ "$#" -eq 1 ] || {
+    printf 'Usage: noctiri-wallpaper /path/to/image\n' >&2
+    exit 2
+}
+wallpaper="$1"
+[ -f "$wallpaper" ] || {
+    printf 'Wallpaper does not exist: %s\n' "$wallpaper" >&2
+    exit 1
+}
+wallpaper="$(readlink -f -- "$wallpaper")"
+
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/noctiri"
+mkdir -p "$state_dir"
+if ! awww query >/dev/null 2>&1; then
+    awww-daemon >> "$state_dir/awww.log" 2>&1 &
+    attempts=0
+    while ! awww query >/dev/null 2>&1 && [ "$attempts" -lt 30 ]; do
+        sleep 0.1
+        attempts=$((attempts + 1))
+    done
+fi
+
+if awww img "$wallpaper" --transition-type grow --transition-duration 0.8 \
+    || awww img "$wallpaper"; then
+    mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/noctiri"
+    printf '%s\n' "$wallpaper" > \
+        "${XDG_CONFIG_HOME:-$HOME/.config}/noctiri/tatami-wallpaper"
+fi

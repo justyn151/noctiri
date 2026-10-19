@@ -1,0 +1,128 @@
+@import url("colors.css");
+
+* {
+  border: none;
+  border-radius: 0;
+  min-height: 0;
+  font-family: "IosevkaTerm Nerd Font", "Iosevka Nerd Font", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+window#waybar {
+  color: @text;
+  background: transparent;
+}
+
+.modules-left,
+.modules-center,
+.modules-right {
+  border: 1px solid @border;
+  border-radius: 5px;
+  background: @bar_bg;
+  box-shadow: 0 2px 7px alpha(#000000, 0.18);
+}
+
+#custom-launcher,
+#workspaces,
+#window,
+#mpris,
+#clock,
+#cpu,
+#temperature,
+#network,
+#bluetooth,
+#wireplumber,
+#backlight,
+#battery,
+#tray,
+#custom-notification {
+  padding: 0 8px;
+}
+
+#custom-launcher {
+  color: @surface;
+  background: @accent;
+  border-radius: 4px 0 0 4px;
+  padding: 0 7px;
+}
+
+#workspaces {
+  padding: 0 3px;
+}
+
+#workspaces button {
+  min-width: 22px;
+  padding: 0 3px;
+  color: @muted;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+}
+
+#workspaces button.focused,
+#workspaces button.active {
+  color: @accent;
+  border-bottom-color: @accent;
+}
+
+#workspaces button.urgent {
+  color: @urgent;
+  border-bottom-color: @urgent;
+}
+
+#window {
+  min-width: 70px;
+  color: @accent2;
+  border-left: 1px solid @border;
+}
+
+#mpris {
+  min-width: 80px;
+  color: @accent2;
+  border-left: 1px solid @border;
+}
+
+#clock {
+  color: @surface;
+  background: @accent;
+  border-radius: 4px;
+  padding: 0 11px;
+}
+
+#cpu,
+#temperature,
+#network,
+#bluetooth,
+#wireplumber,
+#backlight,
+#battery,
+#tray,
+#custom-notification {
+  border-left: 1px solid @border;
+}
+
+#cpu { color: @accent2; border-left: none; }
+#temperature { color: @warning; }
+#network { color: @accent; }
+#bluetooth { color: @accent2; }
+#wireplumber { color: @accent; }
+#backlight { color: @warning; }
+#battery { color: @accent2; }
+#custom-notification { color: @accent; }
+
+#battery.warning { color: @warning; }
+#battery.critical,
+#temperature.critical { color: @urgent; }
+#network.disconnected,
+#wireplumber.muted { color: @muted; }
+
+tooltip {
+  color: @text;
+  background: @surface;
+  border: 1px solid @border;
+  border-radius: 5px;
+}
+
+tooltip label {
+  padding: 5px;
+}

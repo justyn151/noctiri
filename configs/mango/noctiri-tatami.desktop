@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Noctiri Tatami
+Comment=Traditional Mango tiling with the Tatami desktop
+Exec=/usr/local/bin/noctiri-mango-session
+Type=Application
+DesktopNames=mango

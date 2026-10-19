@@ -28,7 +28,9 @@ configure_wallpapers() {
     read -r -p 'Select any combination (example: 1 3 5), or s to skip: ' choices || true
     choices="${choices:-s}"
 
-    rm -f "$HOME/.config/noctalia/99-wallpaper.toml"
+    if [[ "$FLAVOUR" != "mango" ]]; then
+        rm -f "$HOME/.config/noctalia/99-wallpaper.toml"
+    fi
     [[ "$choices" != "s" && "$choices" != "S" ]] || { ok "Skipping wallpaper downloads"; return; }
 
     local nums=()
@@ -58,7 +60,15 @@ configure_wallpapers() {
         initial="$(find "$WALLPAPER_DIR" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) -print | sort | head -n 1 || true)"
     fi
 
-    if [[ -n "$initial" ]] && ask_yes_no "Use an installed wallpaper as the initial Noctalia background?" y; then
+    if [[ "$FLAVOUR" == "mango" ]]; then
+        if [[ -n "$initial" ]] && ask_yes_no "Use an installed wallpaper as the initial Tatami background?" y; then
+            mkdir -p "$HOME/.config/noctiri"
+            printf '%s\n' "$initial" > "$HOME/.config/noctiri/tatami-wallpaper"
+            ok "Initial Tatami wallpaper: $initial"
+        else
+            ok "Wallpapers installed; set one later with: noctiri-wallpaper /path/to/image"
+        fi
+    elif [[ -n "$initial" ]] && ask_yes_no "Use an installed wallpaper as the initial Noctalia background?" y; then
         cat > "$HOME/.config/noctalia/99-wallpaper.toml" <<EOF2
 [theme]
 source = "wallpaper"
