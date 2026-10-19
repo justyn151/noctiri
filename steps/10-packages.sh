@@ -260,26 +260,36 @@ ensure_system_symlink() {
 }
 
 verify_connectivity_audio() {
-    if have nmcli && nmcli general status >/dev/null 2>&1; then
+    if have nmcli && run_service_probe nmcli general status >/dev/null 2>&1; then
         ok "NetworkManager is responding"
     else
         warn "NetworkManager is not responding yet"
     fi
-    if have bluetoothctl && bluetoothctl list >/dev/null 2>&1; then
+    if have bluetoothctl && run_service_probe bluetoothctl list >/dev/null 2>&1; then
         ok "BlueZ is responding"
     else
         warn "BlueZ is not responding yet (the adapter may also be disabled or absent)"
     fi
-    if have wpctl && wpctl status >/dev/null 2>&1; then
+    if have wpctl && run_service_probe wpctl status >/dev/null 2>&1; then
         ok "PipeWire and WirePlumber are responding"
     else
-        warn "PipeWire/WirePlumber is not responding yet; log out and back in, then run: wpctl status"
+        warn "PipeWire/WirePlumber did not respond within 5 seconds."
+        warn "After logging out and back in, check: timeout 5 wpctl status"
+        warn "Void startup log: ${XDG_STATE_HOME:-$HOME/.local/state}/noctiri/pipewire.log"
     fi
-    if have pactl && pactl info >/dev/null 2>&1; then
+    if have pactl && run_service_probe pactl info >/dev/null 2>&1; then
         ok "PipeWire's PulseAudio compatibility server is responding"
     else
-        warn "PipeWire's PulseAudio compatibility server is not responding yet"
+        warn "PipeWire's PulseAudio compatibility server did not respond within 5 seconds"
     fi
+}
+
+run_service_probe() {
+    have timeout || {
+        warn "The timeout command is unavailable; skipping a potentially blocking service probe."
+        return 1
+    }
+    timeout --signal=TERM --kill-after=1 5 "$@"
 }
 
 install_void_niri_session() {

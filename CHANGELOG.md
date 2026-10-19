@@ -32,6 +32,8 @@ Sanitization/portability changes:
 - Added complete NetworkManager, BlueZ, and PipeWire setup and health checks on Fedora and Void,
   including Void runit services, user groups, XDG PipeWire autostart, WirePlumber, PulseAudio and
   ALSA integration. Added `--services-only` so existing systems can be repaired without rebuilding.
+- Bounded all connectivity/audio health checks to five seconds so a broken PipeWire socket cannot
+  hang the installer at `wpctl status`.
 - Preserves the current Niri keybindings, blur/opacity, rounded windows, hot-corner setting,
   screenshot binding, Kitty config, Qt/KDE configuration, portal routing and greetd config.
 - Adds default application associations beyond the single JPEG association in the export.
