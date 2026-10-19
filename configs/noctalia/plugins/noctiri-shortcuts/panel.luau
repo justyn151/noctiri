@@ -25,7 +25,7 @@ local function section(title, rows)
       fontWeight = "bold",
       color = "on_surface",
     }),
-    ui.separator({ color = "outline_variant", spacing = 2 }),
+    ui.separator({ color = "outline/0.45", spacing = 2 }),
   }
 
   for _, row in ipairs(rows) do
@@ -37,7 +37,7 @@ local function section(title, rows)
     padding = 14,
     fill = "surface_variant/0.45",
     radius = 14,
-    border = "outline_variant/0.55",
+    border = "outline/0.35",
     borderWidth = 1,
   }, children)
 end
