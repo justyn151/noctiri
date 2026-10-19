@@ -361,6 +361,12 @@ window-rule {
     open-floating true
 }
 
+// The shortcut reference is a regular Quickshell toplevel so Niri can move it.
+window-rule {
+    match app-id="noctiri-shortcuts"
+    open-floating true
+}
+
 // Example: block out two password managers from screen capture.
 // (This example rule is commented out with a "/-" in front.)
 /-window-rule {

@@ -12,7 +12,7 @@ install_packages_fedora() {
     sudo dnf install -y dnf5-plugins
 
     local pkgs=(
-        niri noctalia greetd greetd-selinux
+        niri noctalia quickshell greetd greetd-selinux
         xwayland-satellite
         xdg-desktop-portal xdg-desktop-portal-gnome xdg-desktop-portal-gtk xdg-desktop-portal-kde
         NetworkManager bluez bluez-tools upower
@@ -55,7 +55,7 @@ install_packages_void() {
     sudo xbps-install -Suy
 
     local pkgs=(
-        niri greetd dbus elogind seatd accountsservice mesa-dri
+        niri quickshell greetd dbus elogind seatd accountsservice mesa-dri
         xwayland-satellite
         xdg-desktop-portal xdg-desktop-portal-gnome xdg-desktop-portal-gtk xdg-desktop-portal-kde
         NetworkManager bluez rfkill upower
