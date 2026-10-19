@@ -218,10 +218,22 @@ configure_void_pipewire() {
         /etc/alsa/conf.d/99-pipewire-default.conf
 
     remove_void_pulseaudio_conflict
+    discover_void_user_session_bus
     if [[ -n "${XDG_RUNTIME_DIR:-}" && -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
         restart_void_pipewire_stack
     else
         warn "PipeWire will start automatically with the next Niri login."
+    fi
+}
+
+discover_void_user_session_bus() {
+    local runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+    if [[ -z "${XDG_RUNTIME_DIR:-}" && -d "$runtime_dir" && -O "$runtime_dir" ]]; then
+        export XDG_RUNTIME_DIR="$runtime_dir"
+    fi
+    if [[ -z "${DBUS_SESSION_BUS_ADDRESS:-}" && -S "$runtime_dir/bus" ]]; then
+        export DBUS_SESSION_BUS_ADDRESS="unix:path=$runtime_dir/bus"
+        ok "Connected this shell to the existing user D-Bus session"
     fi
 }
 

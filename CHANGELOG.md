@@ -39,6 +39,8 @@ Sanitization/portability changes:
   stops the partial user stack, and starts PipeWire once in the correct order.
 - Safely removes stale Pulse/PipeWire Unix socket files after confirming that no live kernel socket
   owns them, while preserving and reporting sockets that still have a real listener.
+- Allows `--services-only` to repair audio over SSH by discovering the existing graphical user's
+  runtime directory and D-Bus session socket.
 - Preserves the current Niri keybindings, blur/opacity, rounded windows, hot-corner setting,
   screenshot binding, Kitty config, Qt/KDE configuration, portal routing and greetd config.
 - Adds default application associations beyond the single JPEG association in the export.
