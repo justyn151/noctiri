@@ -162,14 +162,22 @@ provide the development package required by Noctalia.
 
 ## Tatami controls and appearance
 
+Tatami starts in the dark **Night** theme by default. Its Waybar follows the Omarchy-style flat
+layout: battery and system load on the left, numbered workspaces in the center, and tray,
+Bluetooth, network, audio, and clock on the right. Clicking the network or Bluetooth icon opens a
+terminal UI instead of a desktop settings window.
+
 Core bindings:
 
 - `Super+Return`: Kitty
-- `Super+Shift+Return`: toggle the Yazi scratchpad
-- `Super+Space`: Fuzzel
+- `Super+Shift+Return` or `Super+Y`: toggle the Yazi scratchpad
+- `Super+Space` or `Super+D`: Fuzzel application launcher
 - `Super+B`: Firefox
-- `Super+1` through `Super+5`: change tag; add `Shift` to move the focused window
-- `Super+T`: cycle tile, grid, monocle and deck layouts
+- `Super+E`: Dolphin file manager
+- `Super+W`: NetworkManager's Wi-Fi TUI; `Super+Shift+B`: Bluetui
+- `Super+T`: btop; `Super+F1`: open the complete on-machine keybinding sheet
+- `Super+1` through `Super+9`: change tag; add `Shift` to move the focused window
+- `Super+Tab`: cycle tile, grid, monocle and deck layouts
 - `Super+Shift+Space`: toggle floating
 - `Super+Shift+T`: toggle the complete day/night palette
 - `Print`: save a full screenshot; `Shift+Print`: select an area and edit it in Swappy

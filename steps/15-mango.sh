@@ -9,7 +9,7 @@ install_packages_mango_void() {
         grim slurp swappy yazi swaylock swayidle wl-clipboard cliphist
         greetd dbus elogind seatd accountsservice mesa-dri xorg-server-xwayland
         xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk xdg-desktop-portal-kde
-        NetworkManager bluez rfkill upower
+        NetworkManager bluez bluetui rfkill upower
         pipewire wireplumber libspa-bluetooth alsa-pipewire alsa-utils pulseaudio-utils
         polkit polkit-gnome gnome-keyring
         kitty firefox vim ripgrep texlive-latexmk flatpak git curl tar xz unzip python3 xdg-utils
@@ -96,6 +96,8 @@ install_mango_configs() {
         "$HOME/.local/bin/noctiri-theme" 0755
     install_file "$ROOT_DIR/configs/mango/scripts/noctiri-wallpaper" \
         "$HOME/.local/bin/noctiri-wallpaper" 0755
+    install_file "$ROOT_DIR/configs/mango/scripts/noctiri-keybinds" \
+        "$HOME/.local/bin/noctiri-keybinds" 0755
 
     mkdir -p "$HOME/Pictures/Screenshots" "$HOME/Pictures/Wallpapers"
     configure_mango_gpu_override

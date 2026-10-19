@@ -1,156 +1,125 @@
 {
+  "reload_style_on_change": true,
   "layer": "top",
   "position": "top",
-  "height": 28,
+  "height": 38,
   "spacing": 0,
-  "margin-top": 5,
-  "margin-left": 8,
-  "margin-right": 8,
   "modules-left": [
     "custom/launcher",
-    "ext/workspaces",
-    "mpris"
-  ],
-  "modules-center": ["clock"],
-  "modules-right": [
-    "cpu",
-    "temperature",
-    "network",
-    "bluetooth",
-    "wireplumber",
-    "backlight",
     "battery",
+    "cpu",
+    "memory",
+    "temperature"
+  ],
+  "modules-center": ["ext/workspaces"],
+  "modules-right": [
     "tray",
-    "custom/notification"
+    "bluetooth",
+    "network",
+    "wireplumber",
+    "clock"
   ],
   "custom/launcher": {
-    "format": " 󰣇 ",
-    "tooltip": false,
+    "format": "󰍜",
+    "tooltip-format": "Application launcher\n\nSuper + Space or Super + D",
     "on-click": "fuzzel --config ~/.config/fuzzel/fuzzel.ini"
   },
   "ext/workspaces": {
     "format": "{icon}",
     "format-icons": {
-      "1": "一",
-      "2": "二",
-      "3": "三",
-      "4": "四",
-      "5": "五",
-      "6": "六",
-      "7": "七",
-      "8": "八",
-      "9": "九",
-      "active": "◆",
-      "default": "·"
+      "1": "1",
+      "2": "2",
+      "3": "3",
+      "4": "4",
+      "5": "5",
+      "6": "6",
+      "7": "7",
+      "8": "8",
+      "9": "9",
+      "active": "󱓻",
+      "default": ""
     },
-    "ignore-hidden": true,
+    "ignore-hidden": false,
     "sort-by-id": true,
     "on-click": "activate",
     "on-click-right": "deactivate"
   },
-  "mpris": {
-    "format": "{player_icon} {dynamic}",
-    "format-paused": "{status_icon} {dynamic}",
-    "player-icons": {
-      "default": "󰎈",
-      "spotify": ""
+  "battery": {
+    "format": "{icon} {capacity}%",
+    "format-discharging": "{icon} {capacity}%",
+    "format-charging": "{icon} {capacity}%",
+    "format-plugged": " {capacity}%",
+    "format-full": " {capacity}%",
+    "format-icons": {
+      "charging": ["󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂅"],
+      "default": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
     },
-    "status-icons": {
-      "paused": "󰏤"
-    },
-    "dynamic-order": ["title", "artist"],
-    "dynamic-len": 34,
-    "ignored-players": ["firefox"]
-  },
-  "clock": {
-    "format": "{:%a %d · %H:%M}",
-    "format-alt": "{:%B %Y}",
-    "tooltip-format": "<tt><small>{calendar}</small></tt>",
-    "calendar": {
-      "mode": "month",
-      "weeks-pos": "right",
-      "on-scroll": 1
+    "tooltip-format-discharging": "{power:>1.0f} W down · {timeTo}",
+    "tooltip-format-charging": "{power:>1.0f} W up · {timeTo}",
+    "interval": 5,
+    "states": {
+      "warning": 20,
+      "critical": 10
     }
   },
   "cpu": {
-    "format": "",
-    "tooltip-format": "CPU {usage}% · {avg_frequency} GHz",
-    "interval": 3
+    "format": "󰍛 {usage}%",
+    "interval": 2,
+    "tooltip": false,
+    "on-click": "kitty --title System --class noctiri-btop --config ~/.config/mango/kitty.conf btop"
+  },
+  "memory": {
+    "format": "󰓅 {used:0.1f}G",
+    "interval": 2,
+    "tooltip": false,
+    "on-click": "kitty --title System --class noctiri-btop --config ~/.config/mango/kitty.conf btop"
   },
   "temperature": {
-    "format": "",
+    "format": " {temperatureC}°C",
     "critical-threshold": 85,
-    "tooltip-format": "{temperatureC}°C"
+    "tooltip": false,
+    "on-click": "kitty --title System --class noctiri-btop --config ~/.config/mango/kitty.conf btop"
   },
-  "network": {
-    "format-wifi": "󰤨",
-    "format-ethernet": "󰈀",
-    "format-linked": "󰈀",
-    "format-disconnected": "󰤭",
-    "tooltip-format-wifi": "{essid} · {signalStrength}%\n{ipaddr}",
-    "tooltip-format-ethernet": "{ifname}\n{ipaddr}",
-    "tooltip-format-disconnected": "Network disconnected",
-    "on-click": "kitty --class noctiri-network --config ~/.config/mango/kitty.conf nmtui"
+  "tray": {
+    "icon-size": 19,
+    "spacing": 12,
+    "reverse-direction": true
   },
   "bluetooth": {
-    "format": "󰂯",
+    "format": "",
     "format-disabled": "󰂲",
     "format-off": "󰂲",
-    "format-connected": "󰂱",
-    "tooltip-format": "Bluetooth: {status}",
+    "format-connected": "",
+    "tooltip-format": "Bluetooth · {status}",
     "tooltip-format-connected": "{device_enumerate}",
     "tooltip-format-enumerate-connected": "{device_alias}",
-    "on-click": "kitty --class noctiri-bluetooth --config ~/.config/mango/kitty.conf bluetoothctl"
+    "on-click": "kitty --title Bluetooth --class noctiri-bluetooth --config ~/.config/mango/kitty.conf bluetui"
+  },
+  "network": {
+    "format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
+    "format": "{icon}",
+    "format-wifi": "{icon}",
+    "format-ethernet": "󰀂",
+    "format-linked": "󰀂",
+    "format-disconnected": "󰖪",
+    "tooltip-format-wifi": "{essid} · {signalStrength}%\nDown {bandwidthDownBytes} · Up {bandwidthUpBytes}",
+    "tooltip-format-ethernet": "{ifname}\nDown {bandwidthDownBytes} · Up {bandwidthUpBytes}",
+    "tooltip-format-disconnected": "Disconnected",
+    "interval": 3,
+    "on-click": "kitty --title Wi-Fi --class noctiri-network --config ~/.config/mango/kitty.conf nmtui"
   },
   "wireplumber": {
     "format": "{icon}",
     "format-muted": "󰝟",
-    "format-icons": ["󰕿", "󰖀", "󰕾"],
-    "tooltip-format": "Volume {volume}%",
+    "format-icons": ["", "", ""],
+    "tooltip-format": "Playing at {volume}%",
+    "scroll-step": 5,
     "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
     "on-click-right": "qpwgraph"
   },
-  "backlight": {
-    "format": "{icon}",
-    "format-icons": ["󰃞", "󰃟", "󰃠"],
-    "tooltip-format": "Brightness {percent}%",
-    "on-scroll-up": "brightnessctl set 5%+",
-    "on-scroll-down": "brightnessctl set 5%-"
-  },
-  "battery": {
-    "format": "{icon}",
-    "format-charging": "󰂄",
-    "format-plugged": "󰚥",
-    "format-alt": "{capacity}%",
-    "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
-    "states": {
-      "warning": 25,
-      "critical": 12
-    },
-    "tooltip-format": "{capacity}% · {timeTo}"
-  },
-  "tray": {
-    "icon-size": 15,
-    "spacing": 8
-  },
-  "custom/notification": {
-    "tooltip": false,
-    "format": "{icon}",
-    "format-icons": {
-      "notification": "󱅫",
-      "none": "󰂚",
-      "dnd-notification": "󰂛",
-      "dnd-none": "󰂛",
-      "inhibited-notification": "󰂛",
-      "inhibited-none": "󰂛",
-      "dnd-inhibited-notification": "󰂛",
-      "dnd-inhibited-none": "󰂛"
-    },
-    "return-type": "json",
-    "exec-if": "which swaync-client",
-    "exec": "swaync-client -swb",
-    "on-click": "swaync-client -t -sw",
-    "on-click-right": "swaync-client -d -sw",
-    "escape": true
+  "clock": {
+    "format": "{:%H:%M}",
+    "format-alt": "{:%d %B W%V %Y}",
+    "tooltip": false
   }
 }
