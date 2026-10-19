@@ -26,7 +26,7 @@ case "${1:-}" in
         printf '  --greeter-only     Repair greetd/Noctalia Greeter configuration without rebuilding\n'
         printf '  --void-runtime-only  Repair Void graphics and seat services without rebuilding\n'
         printf '  --theme-only       Repair Noctalia app colors and bar clocks without rebuilding\n'
-        printf '  --services-only    Repair Wi-Fi, Bluetooth, and PipeWire without rebuilding\n'
+        printf '  --services-only    Repair Wi-Fi, Bluetooth, PipeWire, and brightness persistence\n'
         exit 0
         ;;
     *) die "Unknown option: $1 (try --help)" ;;
@@ -76,7 +76,7 @@ fi
 if [[ "$MODE" == "services" ]]; then
     printf '\nServices-only mode: the desktop stack and personal configuration will not be rebuilt.\n\n'
     repair_connectivity_audio
-    printf '\nWi-Fi, Bluetooth, and audio setup repaired. Log out and back in once if group membership or PipeWire changed.\n'
+    printf '\nWi-Fi, Bluetooth, audio, and brightness persistence repaired. Log out and back in once if group membership or PipeWire changed.\n'
     exit 0
 fi
 
@@ -97,7 +97,7 @@ else
     run_stateful_step "$package_step" "System packages and desktop builds" install_packages
 fi
 
-run_stateful_step "services-$DISTRO_ID" "Wi-Fi, Bluetooth, and PipeWire setup" repair_connectivity_audio
+run_stateful_step "services-$DISTRO_ID" "Wi-Fi, Bluetooth, PipeWire, and brightness persistence setup" repair_connectivity_audio
 run_stateful_step nerd-font "JetBrainsMono Nerd Font" install_nerd_font
 run_stateful_step configs "Desktop configuration" install_configs
 run_stateful_step firefox-policy "Firefox portal policy" merge_firefox_policy

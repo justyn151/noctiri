@@ -1,0 +1,72 @@
+#!/bin/sh
+
+state_dir=/var/lib/noctiri/brightness
+mkdir -p "$state_dir"
+
+save_device() {
+    device="$1"
+    name="${device##*/}"
+    [ -r "$device/brightness" ] || return 0
+    value="$(cat "$device/brightness" 2>/dev/null)" || return 0
+    case "$value" in
+        ''|*[!0-9]*) return 0 ;;
+    esac
+    current="$(cat "$state_dir/$name" 2>/dev/null || true)"
+    [ "$current" = "$value" ] && return 0
+    printf '%s\n' "$value" > "$state_dir/$name.tmp"
+    mv "$state_dir/$name.tmp" "$state_dir/$name"
+}
+
+save_all() {
+    for device in /sys/class/backlight/*; do
+        [ -d "$device" ] || continue
+        save_device "$device"
+    done
+}
+
+restore_all() {
+    for device in /sys/class/backlight/*; do
+        [ -d "$device" ] || continue
+        name="${device##*/}"
+        state="$state_dir/$name"
+        [ -r "$state" ] || continue
+        value="$(cat "$state" 2>/dev/null)" || continue
+        maximum="$(cat "$device/max_brightness" 2>/dev/null)" || continue
+        case "$value" in
+            ''|*[!0-9]*) continue ;;
+        esac
+        case "$maximum" in
+            ''|*[!0-9]*|0) continue ;;
+        esac
+        [ "$value" -ge 1 ] 2>/dev/null || value=1
+        [ "$value" -le "$maximum" ] 2>/dev/null || value="$maximum"
+        printf '%s\n' "$value" > "$device/brightness" 2>/dev/null || true
+    done
+}
+
+trap 'save_all; exit 0' TERM INT HUP
+
+# Backlight devices normally exist before runit enters stage 2, but allow a
+# short window for unusually slow drivers before restoring the saved value.
+attempts=0
+while [ "$attempts" -lt 50 ]; do
+    found=false
+    for device in /sys/class/backlight/*; do
+        if [ -d "$device" ]; then
+            found=true
+            break
+        fi
+    done
+    [ "$found" = true ] && break
+    sleep 0.1
+    attempts=$((attempts + 1))
+done
+
+restore_all
+save_all
+
+while :; do
+    sleep 1 &
+    wait $!
+    save_all
+done

@@ -108,15 +108,16 @@ configure_connectivity_audio() {
 }
 
 repair_connectivity_audio() {
-    log "Installing and repairing Wi-Fi, Bluetooth, and PipeWire"
+    log "Installing and repairing Wi-Fi, Bluetooth, PipeWire, and brightness persistence"
     case "$DISTRO_ID" in
         fedora)
             sudo dnf install -y NetworkManager bluez bluez-tools upower \
-                pipewire pipewire-alsa pipewire-pulseaudio wireplumber alsa-utils
+                pipewire pipewire-alsa pipewire-pulseaudio wireplumber alsa-utils brightnessctl
             ;;
         void)
             sudo xbps-install -Sy NetworkManager bluez rfkill upower \
-                pipewire wireplumber libspa-bluetooth alsa-pipewire alsa-utils pulseaudio-utils
+                pipewire wireplumber libspa-bluetooth alsa-pipewire alsa-utils pulseaudio-utils \
+                brightnessctl
             ;;
     esac
     configure_connectivity_audio
@@ -149,7 +150,15 @@ configure_void_connectivity_audio() {
     add_user_to_group_if_present video
 
     configure_void_pipewire
+    configure_void_brightness_persistence
     verify_connectivity_audio
+}
+
+configure_void_brightness_persistence() {
+    sudo install -Dm0755 "$ROOT_DIR/configs/void/noctiri-brightness-run" \
+        /etc/sv/noctiri-brightness/run
+    enable_void_service noctiri-brightness
+    ok "Enabled persistent backlight restore for Void"
 }
 
 enable_void_service() {

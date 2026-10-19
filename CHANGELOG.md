@@ -47,6 +47,8 @@ Sanitization/portability changes:
 - Avoids launching WirePlumber and pipewire-pulse twice when equivalent system-wide and per-user
   PipeWire drop-ins coexist. SSH repair now reads `dbus-run-session`'s temporary address directly
   from Niri, and a wedged duplicate stack is force-stopped only after a graceful timeout.
+- Added a Void runit backlight service that persistently records Noctalia/keyboard brightness under
+  `/var/lib/noctiri/brightness`, restores it during boot, and saves once more during shutdown.
 - Preserves the current Niri keybindings, blur/opacity, rounded windows, hot-corner setting,
   screenshot binding, Kitty config, Qt/KDE configuration, portal routing and greetd config.
 - Adds default application associations beyond the single JPEG association in the export.

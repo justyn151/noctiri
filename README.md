@@ -109,8 +109,9 @@ Noctalia:
 
 On Void, this enables D-Bus, NetworkManager, and Bluetooth runit services; adds the login user to
 the required groups; enables WirePlumber, PipeWire's PulseAudio interface, XDG autostart, and ALSA
-integration; and checks all three stacks. If another network manager is active, the installer asks
-before switching because doing so can briefly disconnect the machine.
+integration; enables persistent screen-brightness save/restore; and checks all three stacks. If
+another network manager is active, the installer asks before switching because doing so can briefly
+disconnect the machine.
 
 The script detects the distribution from `/etc/os-release` and requests sudo only for system
 packages/configuration. When the Void package stage runs, it performs a full XBPS update first
