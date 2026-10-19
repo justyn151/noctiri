@@ -47,7 +47,7 @@ install_packages_void() {
     sudo xbps-install -Suy
 
     local pkgs=(
-        niri greetd dbus elogind accountsservice
+        niri greetd dbus elogind accountsservice mesa-dri
         xwayland-satellite
         xdg-desktop-portal xdg-desktop-portal-gnome xdg-desktop-portal-gtk xdg-desktop-portal-kde
         pipewire wireplumber libspa-bluetooth alsa-pipewire pulseaudio-utils polkit gnome-keyring
@@ -67,10 +67,18 @@ install_packages_void() {
 }
 
 configure_void_runtime() {
-    log "Configuring Void system D-Bus and PipeWire"
+    log "Configuring Void system D-Bus, elogind, and PipeWire"
     if [[ ! -e /var/service/dbus && ! -L /var/service/dbus ]]; then
         sudo ln -s /etc/sv/dbus /var/service/
         ok "Enabled the dbus runit service"
+    fi
+
+    # elogind supplies the runtime directory and seat/device access needed by
+    # standalone Wayland compositors. D-Bus activation normally starts it, but
+    # Void recommends enabling the service when activation races cause trouble.
+    if [[ ! -e /var/service/elogind && ! -L /var/service/elogind ]]; then
+        sudo ln -s /etc/sv/elogind /var/service/
+        ok "Enabled the elogind runit service"
     fi
 
     local pipewire_dir="$HOME/.config/pipewire/pipewire.conf.d"
@@ -81,6 +89,12 @@ configure_void_runtime() {
     if [[ ! -e "$pipewire_dir/20-pipewire-pulse.conf" && ! -L "$pipewire_dir/20-pipewire-pulse.conf" ]]; then
         ln -s /usr/share/examples/pipewire/20-pipewire-pulse.conf "$pipewire_dir/20-pipewire-pulse.conf"
     fi
+}
+
+repair_void_runtime() {
+    log "Installing the Void Wayland graphics and seat runtime"
+    sudo xbps-install -y mesa-dri dbus elogind
+    configure_void_runtime
 }
 
 install_nlohmann_json_void() {
