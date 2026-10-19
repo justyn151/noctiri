@@ -17,12 +17,14 @@ case "${1:-}" in
     --spicetify-only) MODE=spicetify ;;
     --greeter-only) MODE=greeter ;;
     --void-runtime-only) MODE=void-runtime ;;
+    --theme-only) MODE=theme ;;
     -h|--help)
-        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only]\n' "$0"
+        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only]\n' "$0"
         printf '  --wallpapers-only  Install or update wallpaper collections without rerunning setup\n'
         printf '  --spicetify-only   Finish Spicetify after Spotify has created its graphical profile\n'
         printf '  --greeter-only     Repair greetd/Noctalia Greeter configuration without rebuilding\n'
         printf '  --void-runtime-only  Repair Void graphics and seat services without rebuilding\n'
+        printf '  --theme-only       Repair Noctalia app color sync without rebuilding\n'
         exit 0
         ;;
     *) die "Unknown option: $1 (try --help)" ;;
@@ -59,6 +61,13 @@ if [[ "$MODE" == "void-runtime" ]]; then
     printf '\nVoid runtime repair mode: Niri and Noctalia will not be rebuilt.\n\n'
     repair_void_runtime
     printf '\nVoid graphics and seat runtime repaired. From this TTY, apply it with: sudo sv restart greetd\n'
+    exit 0
+fi
+
+if [[ "$MODE" == "theme" ]]; then
+    printf '\nTheme-only mode: packages, builds, greeter, wallpapers, and apps will be skipped.\n\n'
+    repair_theme_sync
+    printf '\nTheme synchronization repaired. Restart any open KDE/Qt applications to reload their palette.\n'
     exit 0
 fi
 

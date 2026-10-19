@@ -90,6 +90,15 @@ To repair only greetd and Noctalia Greeter without reinstalling or rebuilding th
 ./install.sh --greeter-only
 ```
 
+To repair KDE/Qt and btop color synchronization without reinstalling or rebuilding anything:
+
+```bash
+./install.sh --theme-only
+```
+
+This enables Noctalia's separate `qt` template, points qt6ct at the generated Qt palette, creates
+btop's first-run config when necessary, and immediately reapplies templates if Noctalia is running.
+
 The script detects the distribution from `/etc/os-release` and requests sudo only for system
 packages/configuration. When the Void package stage runs, it performs a full XBPS update first
 because partial upgrades are unsupported, then builds the latest stable Noctalia and Noctalia

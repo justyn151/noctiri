@@ -24,6 +24,7 @@ install_configs() {
     install_file "$ROOT_DIR/configs/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
     install_file "$ROOT_DIR/configs/vim/vimrc" "$HOME/.vimrc"
     render_home_template "$ROOT_DIR/configs/qt6ct/qt6ct.conf.in" "$HOME/.config/qt6ct/qt6ct.conf"
+    ensure_btop_theme_selected
     install_file "$ROOT_DIR/configs/kde/kdeglobals" "$HOME/.config/kdeglobals"
     install_file "$ROOT_DIR/configs/portals/niri-portals.conf" "$HOME/.config/xdg-desktop-portal/niri-portals.conf"
     if [[ "$DISTRO_ID" == "fedora" ]]; then
@@ -37,6 +38,124 @@ install_configs() {
     if have systemctl; then
         systemctl --user daemon-reload >/dev/null 2>&1 || true
     fi
+}
+
+repair_theme_sync() {
+    log "Repairing Noctalia application color synchronization"
+
+    local config_path="$HOME/.config/noctalia/config.toml"
+    if [[ ! -f "$config_path" ]]; then
+        mkdir -p "$(dirname "$config_path")"
+        sed "s|@@HOME@@|$HOME|g" "$ROOT_DIR/configs/noctalia/config.toml.in" > "$config_path"
+    else
+        add_noctalia_builtin_template "$config_path" qt
+    fi
+
+    render_home_template "$ROOT_DIR/configs/qt6ct/qt6ct.conf.in" "$HOME/.config/qt6ct/qt6ct.conf"
+    ensure_btop_theme_selected
+
+    if pgrep -x noctalia >/dev/null 2>&1; then
+        noctalia msg config-reload >/dev/null
+        noctalia msg templates-apply >/dev/null
+        wait_for_theme_outputs
+    else
+        warn "Noctalia is not running; templates will render after the next login or color change."
+    fi
+
+    ok "Enabled Noctalia Qt/KDE and btop color synchronization"
+}
+
+add_noctalia_builtin_template() {
+    local config_path="$1" template_id="$2" tmp
+    if python3 - "$config_path" "$template_id" <<'PY'
+import re
+import sys
+
+path, wanted = sys.argv[1:]
+text = open(path, encoding="utf-8").read()
+pattern = re.compile(r'(?ms)^(\s*builtin_ids\s*=\s*)\[(.*?)\]')
+match = pattern.search(text)
+if match is None:
+    raise SystemExit(2)
+items = re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', match.group(2))
+raise SystemExit(0 if wanted in items else 1)
+PY
+    then
+        return 0
+    else
+        local status=$?
+        (( status == 1 )) || die "Could not find theme.templates.builtin_ids in $config_path"
+    fi
+
+    backup_path "$config_path"
+    tmp="$(mktemp)"
+    python3 - "$config_path" "$tmp" "$template_id" <<'PY'
+import re
+import sys
+
+source, destination, wanted = sys.argv[1:]
+text = open(source, encoding="utf-8").read()
+pattern = re.compile(r'(?ms)^(\s*builtin_ids\s*=\s*)\[(.*?)\]')
+match = pattern.search(text)
+if match is None:
+    raise SystemExit(f"Could not find theme.templates.builtin_ids in {source}")
+items = re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', match.group(2))
+if wanted not in items:
+    items.append(wanted)
+replacement = match.group(1) + "[ " + ", ".join(f'\"{item}\"' for item in items) + " ]"
+text = text[:match.start()] + replacement + text[match.end():]
+with open(destination, "w", encoding="utf-8") as stream:
+    stream.write(text)
+PY
+    install -m 0644 "$tmp" "$config_path"
+    rm -f "$tmp"
+}
+
+ensure_btop_theme_selected() {
+    local config_path="$HOME/.config/btop/btop.conf" tmp
+    mkdir -p "$(dirname "$config_path")"
+    if [[ ! -f "$config_path" ]]; then
+        printf 'color_theme = "noctalia"\n' > "$config_path"
+        return 0
+    fi
+    if grep -qE '^color_theme[[:space:]]*=[[:space:]]*"noctalia"' "$config_path"; then
+        return 0
+    fi
+
+    backup_path "$config_path"
+    tmp="$(mktemp)"
+    if grep -qE '^color_theme[[:space:]]*=' "$config_path"; then
+        sed -E 's/^color_theme[[:space:]]*=.*/color_theme = "noctalia"/' "$config_path" > "$tmp"
+    else
+        cp "$config_path" "$tmp"
+        [[ ! -s "$tmp" || -z "$(tail -c1 "$tmp")" ]] || printf '\n' >> "$tmp"
+        printf 'color_theme = "noctalia"\n' >> "$tmp"
+    fi
+    install -m 0644 "$tmp" "$config_path"
+    rm -f "$tmp"
+}
+
+wait_for_theme_outputs() {
+    local attempts=0
+    local expected=(
+        "$HOME/.config/btop/themes/noctalia.theme"
+        "$HOME/.config/qt6ct/colors/noctalia.conf"
+        "$HOME/.local/share/color-schemes/noctalia.colors"
+    )
+    while (( attempts < 50 )); do
+        local missing=false path
+        for path in "${expected[@]}"; do
+            [[ -s "$path" ]] || missing=true
+        done
+        [[ "$missing" == false ]] && {
+            ok "Rendered btop, Qt, and KDE color files"
+            return 0
+        }
+        sleep 0.1
+        ((attempts += 1))
+    done
+    warn "Noctalia accepted the refresh, but one or more theme files were not rendered yet."
+    warn "Run 'noctalia msg templates-apply' once Noctalia has fully started."
 }
 
 configure_niri_gpu_override() {
