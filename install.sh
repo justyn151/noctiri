@@ -24,7 +24,7 @@ case "${1:-}" in
         printf '  --spicetify-only   Finish Spicetify after Spotify has created its graphical profile\n'
         printf '  --greeter-only     Repair greetd/Noctalia Greeter configuration without rebuilding\n'
         printf '  --void-runtime-only  Repair Void graphics and seat services without rebuilding\n'
-        printf '  --theme-only       Repair Noctalia app color sync without rebuilding\n'
+        printf '  --theme-only       Repair Noctalia app colors and bar clocks without rebuilding\n'
         exit 0
         ;;
     *) die "Unknown option: $1 (try --help)" ;;
@@ -67,7 +67,7 @@ fi
 if [[ "$MODE" == "theme" ]]; then
     printf '\nTheme-only mode: packages, builds, greeter, wallpapers, and apps will be skipped.\n\n'
     repair_theme_sync
-    printf '\nTheme synchronization repaired. Restart any open KDE/Qt applications to reload their palette.\n'
+    printf '\nColors and bar clocks repaired. Restart any open KDE/Qt applications to reload their palette.\n'
     exit 0
 fi
 

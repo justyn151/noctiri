@@ -13,6 +13,7 @@ install_configs() {
     mkdir -p "$HOME/.config/noctalia"
     backup_path "$HOME/.config/noctalia/config.toml"
     sed "s|@@HOME@@|$HOME|g" "$ROOT_DIR/configs/noctalia/config.toml.in" > "$HOME/.config/noctalia/config.toml"
+    install_noctalia_widget_config
 
     # GUI/runtime state overrides declarative config. Back it up and clear it so the
     # installer config is authoritative on first start.
@@ -41,7 +42,7 @@ install_configs() {
 }
 
 repair_theme_sync() {
-    log "Repairing Noctalia application color synchronization"
+    log "Repairing Noctalia application colors and bar widgets"
 
     local config_path="$HOME/.config/noctalia/config.toml"
     if [[ ! -f "$config_path" ]]; then
@@ -51,6 +52,7 @@ repair_theme_sync() {
         add_noctalia_builtin_template "$config_path" qt
     fi
 
+    install_noctalia_widget_config
     render_home_template "$ROOT_DIR/configs/qt6ct/qt6ct.conf.in" "$HOME/.config/qt6ct/qt6ct.conf"
     ensure_btop_theme_selected
 
@@ -62,7 +64,12 @@ repair_theme_sync() {
         warn "Noctalia is not running; templates will render after the next login or color change."
     fi
 
-    ok "Enabled Noctalia Qt/KDE and btop color synchronization"
+    ok "Enabled Noctalia clocks plus Qt/KDE and btop color synchronization"
+}
+
+install_noctalia_widget_config() {
+    install_file "$ROOT_DIR/configs/noctalia/widgets.toml" \
+        "$HOME/.config/noctalia/20-noctiri-widgets.toml"
 }
 
 add_noctalia_builtin_template() {

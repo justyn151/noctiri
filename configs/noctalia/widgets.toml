@@ -1,0 +1,7 @@
+[widget.clock-time]
+type = "clock"
+format = "{:%H:%M}"
+
+[widget.clock-date]
+type = "clock"
+format = "{:%a, %d %b}"

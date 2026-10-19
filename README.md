@@ -97,7 +97,8 @@ To repair KDE/Qt and btop color synchronization without reinstalling or rebuildi
 ```
 
 This enables Noctalia's separate `qt` template, points qt6ct at the generated Qt palette, creates
-btop's first-run config when necessary, and immediately reapplies templates if Noctalia is running.
+btop's first-run config when necessary, defines the time/date bar entries as `clock` widgets, and
+immediately reloads Noctalia and reapplies templates if it is running.
 
 The script detects the distribution from `/etc/os-release` and requests sudo only for system
 packages/configuration. When the Void package stage runs, it performs a full XBPS update first

@@ -27,6 +27,8 @@ Sanitization/portability changes:
 - Fixed application color synchronization by enabling Noctalia's separate Qt template, pointing
   qt6ct at its generated palette, and seeding btop's config before its template hook runs. Added
   `--theme-only` to apply the repair without rebuilding the desktop stack.
+- Fixed the missing bar time and date by declaring the configured `clock-time` and `clock-date`
+  instances as current Noctalia `clock` widgets.
 - Preserves the current Niri keybindings, blur/opacity, rounded windows, hot-corner setting,
   screenshot binding, Kitty config, Qt/KDE configuration, portal routing and greetd config.
 - Adds default application associations beyond the single JPEG association in the export.
