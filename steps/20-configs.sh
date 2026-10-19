@@ -529,6 +529,7 @@ managed_extensions = {
     'pywalfox@frewacom.org': 'https://addons.mozilla.org/firefox/downloads/latest/pywalfox/latest.xpi',
     'uBlock0@raymondhill.net': 'https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi',
     'sponsorBlocker@ajay.app': 'https://addons.mozilla.org/firefox/downloads/latest/sponsorblock/latest.xpi',
+    '{84601290-bec9-494a-b11c-1baa897a9683}': 'https://addons.mozilla.org/firefox/downloads/latest/ctrl-number-to-switch-tabs/latest.xpi',
 }
 # Stop managing Vimium when upgrading a policy written by an older Noctiri
 # release. Firefox can then remove it like any other normal extension.

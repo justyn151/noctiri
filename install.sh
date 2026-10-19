@@ -139,7 +139,7 @@ run_stateful_step "services-$DISTRO_ID" "Wi-Fi, Bluetooth, PipeWire, and brightn
 run_stateful_step fantasque-system-font-v1 "Fantasque Sans Mono system font" install_fantasque_system_font
 run_stateful_step neovim-editor-v1 "Neovim editor and Wayland clipboard" install_neovim_editor
 run_stateful_step configs-v2 "Desktop configuration" install_configs
-run_stateful_step firefox-policy-v3 "Firefox portal and extension policy" merge_firefox_policy
+run_stateful_step firefox-policy-v4 "Firefox portal and extension policy" merge_firefox_policy
 run_stateful_step pywalfox "Noctalia Pywalfox native host" configure_pywalfox
 run_stateful_step default-apps-v2 "Default application associations" set_default_apps
 run_stateful_step flatpaks "Flatpak applications" install_flatpaks

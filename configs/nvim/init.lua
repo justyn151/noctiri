@@ -37,9 +37,6 @@ map("v", "<", "<gv", { desc = "Indent left" })
 map("v", ">", ">gv", { desc = "Indent right" })
 map("n", "<leader>ff", "<cmd>Files<CR>", { desc = "Find files" })
 map("n", "<leader>fg", "<cmd>Rg<CR>", { desc = "Search text" })
-for tab = 1, 9 do
-    map("n", "<C-" .. tab .. ">", tab .. "gt", { desc = "Go to tab " .. tab })
-end
 
 vim.g.vimtex_view_method = "general"
 vim.g.vimtex_view_general_viewer = "xdg-open"
