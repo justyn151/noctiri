@@ -1,0 +1,19 @@
+#!/bin/sh
+
+plugin_id="noctiri/shortcuts"
+panel_id="${plugin_id}:panel"
+
+if noctalia msg panel-toggle "$panel_id" >/dev/null 2>&1; then
+    exit 0
+fi
+
+# Local plugins must be enabled once. This path mainly covers a fresh install
+# performed from a TTY, before Noctalia was available to the installer.
+if noctalia msg plugins enable "$plugin_id" >/dev/null 2>&1; then
+    sleep 0.25
+    noctalia msg panel-toggle "$panel_id" >/dev/null 2>&1 && exit 0
+fi
+
+notify-send "Noctiri shortcuts" \
+    "The Noctalia shortcut panel could not be opened. Try logging out and back in once."
+exit 1

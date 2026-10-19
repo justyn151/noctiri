@@ -392,9 +392,9 @@ binds {
     // Most actions that you can bind here can also be invoked programmatically with
     // `niri msg action do-something`.
 
-    // Mod-Shift-/, which is usually the same as Mod-?,
-    // shows a list of important hotkeys.
-    Mod+Shift+Slash { show-hotkey-overlay; }
+    // Noctiri ships a theme-aware Noctalia panel containing the bindings that
+    // are actually enabled below, rather than Niri's generic hotkey overlay.
+    Mod+Shift+Slash hotkey-overlay-title=null { spawn "noctiri-shortcuts"; }
 
     // Apps / Noctalia.
     Mod+T hotkey-overlay-title="Terminal" { spawn "kitty"; }

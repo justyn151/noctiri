@@ -15,6 +15,7 @@ install_configs() {
     backup_path "$HOME/.config/noctalia/config.toml"
     sed "s|@@HOME@@|$HOME|g" "$ROOT_DIR/configs/noctalia/config.toml.in" > "$HOME/.config/noctalia/config.toml"
     install_noctalia_widget_config
+    install_noctalia_shortcuts
     install_yazi_integration
 
     # GUI/runtime state overrides declarative config. Back it up and clear it so the
@@ -236,6 +237,24 @@ add_shell_startup_line() {
 install_noctalia_widget_config() {
     install_file "$ROOT_DIR/configs/noctalia/widgets.toml" \
         "$HOME/.config/noctalia/20-noctiri-widgets.toml"
+}
+
+install_noctalia_shortcuts() {
+    local plugin_dir="${XDG_DATA_HOME:-$HOME/.local/share}/noctalia/plugins/noctiri-shortcuts"
+
+    install_file "$ROOT_DIR/configs/noctalia/plugins/noctiri-shortcuts/plugin.toml" \
+        "$plugin_dir/plugin.toml"
+    install_file "$ROOT_DIR/configs/noctalia/plugins/noctiri-shortcuts/panel.luau" \
+        "$plugin_dir/panel.luau"
+    install_file "$ROOT_DIR/configs/bin/noctiri-shortcuts" \
+        "$HOME/.local/bin/noctiri-shortcuts" 0755
+
+    # A running shell can load the plugin immediately. On a fresh TTY install,
+    # the launcher enables it lazily the first time the shortcut is pressed.
+    if pgrep -x noctalia >/dev/null 2>&1; then
+        noctalia msg config-reload >/dev/null 2>&1 || true
+        noctalia msg plugins enable noctiri/shortcuts >/dev/null 2>&1 || true
+    fi
 }
 
 install_yazi_integration() {
