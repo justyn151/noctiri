@@ -100,6 +100,18 @@ This enables Noctalia's separate `qt` template, points qt6ct at the generated Qt
 btop's first-run config when necessary, defines the time/date bar entries as `clock` widgets, and
 immediately reloads Noctalia and reapplies templates if it is running.
 
+To install, configure, and check NetworkManager, Bluetooth, and PipeWire without rebuilding Niri or
+Noctalia:
+
+```bash
+./install.sh --services-only
+```
+
+On Void, this enables D-Bus, NetworkManager, and Bluetooth runit services; adds the login user to
+the required groups; enables WirePlumber, PipeWire's PulseAudio interface, XDG autostart, and ALSA
+integration; and checks all three stacks. If another network manager is active, the installer asks
+before switching because doing so can briefly disconnect the machine.
+
 The script detects the distribution from `/etc/os-release` and requests sudo only for system
 packages/configuration. When the Void package stage runs, it performs a full XBPS update first
 because partial upgrades are unsupported, then builds the latest stable Noctalia and Noctalia
@@ -158,7 +170,8 @@ greetd account, and service management differ.
 - Fedora uses DNF, the Fedora Noctalia package, Terra's Noctalia Greeter package, and systemd.
 - Void uses XBPS, builds Noctalia and Noctalia Greeter from their latest stable release tags, uses
   Void's `_greeter` account, enables the required system D-Bus service, configures PipeWire with
-  WirePlumber and PulseAudio compatibility, and follows runit service conventions. Because Void's
+  WirePlumber, PulseAudio and ALSA compatibility, configures NetworkManager and BlueZ, and follows
+  runit service conventions. Because Void's
   Polkit rules directory is owned by `polkitd`, the installer uses Noctalia Greeter's constrained
   manual rule after the upstream command validates the installed helper and policy.
 - Both Void glibc and musl are accepted. Noctalia's Meson configuration automatically skips

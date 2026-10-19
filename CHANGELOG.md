@@ -29,6 +29,9 @@ Sanitization/portability changes:
   `--theme-only` to apply the repair without rebuilding the desktop stack.
 - Fixed the missing bar time and date by declaring the configured `clock-time` and `clock-date`
   instances as current Noctalia `clock` widgets.
+- Added complete NetworkManager, BlueZ, and PipeWire setup and health checks on Fedora and Void,
+  including Void runit services, user groups, XDG PipeWire autostart, WirePlumber, PulseAudio and
+  ALSA integration. Added `--services-only` so existing systems can be repaired without rebuilding.
 - Preserves the current Niri keybindings, blur/opacity, rounded windows, hot-corner setting,
   screenshot binding, Kitty config, Qt/KDE configuration, portal routing and greetd config.
 - Adds default application associations beyond the single JPEG association in the export.

@@ -18,13 +18,15 @@ case "${1:-}" in
     --greeter-only) MODE=greeter ;;
     --void-runtime-only) MODE=void-runtime ;;
     --theme-only) MODE=theme ;;
+    --services-only) MODE=services ;;
     -h|--help)
-        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only]\n' "$0"
+        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only]\n' "$0"
         printf '  --wallpapers-only  Install or update wallpaper collections without rerunning setup\n'
         printf '  --spicetify-only   Finish Spicetify after Spotify has created its graphical profile\n'
         printf '  --greeter-only     Repair greetd/Noctalia Greeter configuration without rebuilding\n'
         printf '  --void-runtime-only  Repair Void graphics and seat services without rebuilding\n'
         printf '  --theme-only       Repair Noctalia app colors and bar clocks without rebuilding\n'
+        printf '  --services-only    Repair Wi-Fi, Bluetooth, and PipeWire without rebuilding\n'
         exit 0
         ;;
     *) die "Unknown option: $1 (try --help)" ;;
@@ -71,6 +73,13 @@ if [[ "$MODE" == "theme" ]]; then
     exit 0
 fi
 
+if [[ "$MODE" == "services" ]]; then
+    printf '\nServices-only mode: the desktop stack and personal configuration will not be rebuilt.\n\n'
+    repair_connectivity_audio
+    printf '\nWi-Fi, Bluetooth, and audio setup repaired. Log out and back in once if group membership or PipeWire changed.\n'
+    exit 0
+fi
+
 printf '\nThis installer will configure a Niri + Noctalia desktop on %s and install the selected app stack.\n' "$DISTRO_NAME"
 printf 'It DOES NOT start/restart greetd during the run, so it will not intentionally kill your current GUI session.\n\n'
 if [[ "$DISTRO_ID" == "void" ]]; then
@@ -88,6 +97,7 @@ else
     run_stateful_step "$package_step" "System packages and desktop builds" install_packages
 fi
 
+run_stateful_step "services-$DISTRO_ID" "Wi-Fi, Bluetooth, and PipeWire setup" repair_connectivity_audio
 run_stateful_step nerd-font "JetBrainsMono Nerd Font" install_nerd_font
 run_stateful_step configs "Desktop configuration" install_configs
 run_stateful_step firefox-policy "Firefox portal policy" merge_firefox_policy
