@@ -37,6 +37,8 @@ capsule_border = "primary"
 capsule_border_width = 0.5
 capsule_opacity = 0.0
 hide_when_no_media = true
+max_length = 125
+min_length = 0
 rotate_album_art = true
 show_progress = true
 title_scroll = "always"
@@ -67,3 +69,4 @@ capsule_opacity = 0.0
 
 [widget.workspaces]
 active_pill_size = 1.7000000000000002
+capsule_opacity = 0.0

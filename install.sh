@@ -38,7 +38,7 @@ case "${1:-}" in
         printf '  --dwl-only         Install the optional Void DWL + Foot + Somebar preview\n'
         printf '  --font-only        Install and apply Fantasque Sans Mono across the desktop\n'
         printf '  --documents-only   Install Sioyek, CoC/TexLab, and compact Tectonic LaTeX support\n'
-        printf '  --music-only       Install rmpc and a per-user PipeWire-backed MPD service\n'
+        printf '  --music-only       Install rmpc, PipeWire-backed MPD, and MPRIS bar integration\n'
         exit 0
         ;;
     *) die "Unknown option: $1 (try --help)" ;;
@@ -108,7 +108,7 @@ if [[ "$MODE" == "documents" ]]; then
 fi
 
 if [[ "$MODE" == "music" ]]; then
-    printf '\nMusic-only mode: installing rmpc and its local MPD playback backend.\n\n'
+    printf '\nMusic-only mode: installing rmpc, its local MPD backend, and MPRIS bar integration.\n\n'
     install_user_path
     install_rmpc_stack
     printf '\n\033[1;32mMusic setup complete.\033[0m\n'

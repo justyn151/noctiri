@@ -113,13 +113,43 @@ install_rmpc_release_binary() {
     rm -rf "$tmp"
 }
 
+install_mpd_mpris_release_binary() {
+    local arch tag version asset tmp binary expected actual
+    case "$(uname -m)" in
+        x86_64) arch=amd64 ;;
+        aarch64) arch=arm64 ;;
+        *) die "No prebuilt mpd-mpris release is available for $(uname -m)" ;;
+    esac
+
+    tag="$({ git ls-remote --refs --tags https://github.com/natsukagami/mpd-mpris.git 2>/dev/null || true; } \
+        | awk '$2 ~ /^refs\/tags\/v[0-9]+\.[0-9]+\.[0-9]+$/ {sub("refs/tags/", "", $2); print $2}' \
+        | sort -V | tail -n 1)"
+    [[ -n "$tag" ]] || die "Could not determine the latest mpd-mpris release"
+    version="${tag#v}"
+    asset="mpd-mpris_${version}_linux_${arch}.tar.gz"
+    tmp="$(mktemp -d)"
+    curl -fL --retry 3 -o "$tmp/$asset" \
+        "https://github.com/natsukagami/mpd-mpris/releases/download/$tag/$asset"
+    curl -fL --retry 3 -o "$tmp/checksums.txt" \
+        "https://github.com/natsukagami/mpd-mpris/releases/download/$tag/checksums.txt"
+    expected="$(awk -v file="$asset" '{name=$2; sub(/^\*/, "", name); if (name == file) print $1}' "$tmp/checksums.txt")"
+    actual="$(sha256sum "$tmp/$asset" | awk '{print $1}')"
+    [[ -n "$expected" && "$actual" == "$expected" ]] \
+        || die "Checksum verification failed for $asset"
+    tar -xzf "$tmp/$asset" -C "$tmp"
+    binary="$(find "$tmp" -type f -name mpd-mpris -perm -u+x -print -quit)"
+    [[ -n "$binary" ]] || die "The mpd-mpris release archive did not contain its executable"
+    install_file "$binary" "$HOME/.local/bin/mpd-mpris" 0755
+    rm -rf "$tmp"
+}
+
 mpd_is_ready() {
     pgrep -u "$(id -u)" -x mpd >/dev/null 2>&1 \
         && timeout 1 bash -c 'exec 3<>/dev/tcp/127.0.0.1/6600' >/dev/null 2>&1
 }
 
 install_rmpc_stack() {
-    log "Installing rmpc and its per-user MPD backend"
+    log "Installing rmpc, its per-user MPD backend, and MPRIS bar integration"
     export PATH="$HOME/.local/bin:$PATH"
     case "$DISTRO_ID" in
         fedora)
@@ -131,6 +161,7 @@ install_rmpc_stack() {
             ;;
         *) die "No rmpc installation implementation for $DISTRO_ID" ;;
     esac
+    have mpd-mpris || install_mpd_mpris_release_binary
 
     render_home_template "$ROOT_DIR/configs/mpd/mpd.conf.in" \
         "$HOME/.config/mpd/mpd.conf"
@@ -138,6 +169,10 @@ install_rmpc_stack() {
         "$HOME/.local/bin/noctiri-mpd" 0755
     install_file "$ROOT_DIR/configs/autostart/noctiri-mpd.desktop" \
         "$HOME/.config/autostart/noctiri-mpd.desktop"
+    install_file "$ROOT_DIR/configs/bin/noctiri-mpd-mpris" \
+        "$HOME/.local/bin/noctiri-mpd-mpris" 0755
+    install_file "$ROOT_DIR/configs/autostart/noctiri-mpd-mpris.desktop" \
+        "$HOME/.config/autostart/noctiri-mpd-mpris.desktop"
     install_file "$ROOT_DIR/configs/applications/noctiri-rmpc.desktop" \
         "$HOME/.local/share/applications/noctiri-rmpc.desktop"
     install_file "$ROOT_DIR/configs/icons/noctiri-rmpc.svg" \
@@ -172,10 +207,23 @@ install_rmpc_stack() {
     have rmpc || die "rmpc was installed but is not on PATH"
     sleep 0.25
     mpd_is_ready || die "MPD did not become ready on 127.0.0.1:6600; inspect $HOME/.local/state/mpd/mpd.log"
+    import_graphical_session_environment
+    if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
+        "$HOME/.local/bin/noctiri-mpd-mpris" >/dev/null 2>&1 &
+        local mpris_attempt
+        for mpris_attempt in {1..50}; do
+            if timeout 1 playerctl -l 2>/dev/null | grep -Eq '^mpd([.]|$)'; then
+                break
+            fi
+            sleep 0.1
+        done
+        timeout 1 playerctl -l 2>/dev/null | grep -Eq '^mpd([.]|$)' \
+            || warn "MPD is running, but its MPRIS identity will appear after the next graphical login."
+    fi
     if have update-desktop-database; then
         update-desktop-database "$HOME/.local/share/applications" || true
     fi
-    ok "Installed rmpc with a PipeWire-backed user MPD session"
+    ok "Installed rmpc with PipeWire-backed MPD and Noctalia media-player integration"
 }
 
 install_zsh_shell() {

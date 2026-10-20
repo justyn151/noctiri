@@ -1,0 +1,26 @@
+#!/usr/bin/env sh
+
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/mpd"
+runtime_dir="${XDG_RUNTIME_DIR:-/tmp}"
+lock_dir="$runtime_dir/noctiri-mpd-mpris-$(id -u).lock"
+mkdir -p "$state_dir"
+
+if ! mkdir "$lock_dir" 2>/dev/null; then
+    exit 0
+fi
+
+cleanup() {
+    rmdir "$lock_dir" 2>/dev/null || true
+}
+trap cleanup EXIT
+trap 'exit 0' HUP INT TERM
+
+# mpd-mpris exits when MPD disconnects. Keep the bridge supervised so a brief
+# MPD restart or suspend/resume cycle does not permanently remove it from the bar.
+while :; do
+    while ! pgrep -u "$(id -u)" -x mpd >/dev/null 2>&1; do
+        sleep 1
+    done
+    mpd-mpris -no-instance >> "$state_dir/mpris.log" 2>&1 || true
+    sleep 2
+done

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Noctiri MPD MPRIS Bridge
+Comment=Expose rmpc/MPD playback to desktop media controls
+Exec=noctiri-mpd-mpris
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

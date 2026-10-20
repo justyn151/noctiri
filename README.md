@@ -162,10 +162,12 @@ Log out once after the first installation so terminals and SSH sessions use Zsh 
 
 rmpc is installed as the terminal music player together with a per-user MPD daemon. MPD scans
 `~/Music`, sends audio directly to PipeWire, and starts through the graphical session's XDG
-autostart support. A dedicated `rmpc Music Player` entry—with its own icon—opens it in Kitty from
-the application launcher. The installer preserves an existing `~/.config/rmpc/config.ron`; on a
-new setup, run `rmpc` in Kitty and use its default Vim-style controls. To install or repair only
-this stack:
+autostart support. The installer also supervises
+[`mpd-mpris`](https://github.com/natsukagami/mpd-mpris), allowing Noctalia's media widget,
+`playerctl`, and media keys to see and control rmpc/MPD playback. A dedicated `rmpc Music Player`
+entry—with its own icon—opens it in Kitty from the application launcher. The installer preserves
+an existing `~/.config/rmpc/config.ron`; on a new setup, run `rmpc` in Kitty and use its default
+Vim-style controls. To install or repair only this stack:
 
 ```bash
 ./install.sh --music-only
