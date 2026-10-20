@@ -304,6 +304,9 @@ layout {
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
 spawn-at-startup "noctalia"
+// Pre-warm Kitty invisibly. Visible windows then reuse its process/GPU cache
+// instead of paying the full startup cost on every shortcut press.
+spawn-at-startup "kitty" "--single-instance" "--start-as=hidden"
 
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
 // spawn-sh-at-startup "qs -c ~/source/qs/MyAwesomeShell"
@@ -410,11 +413,11 @@ binds {
     Mod+Shift+Slash hotkey-overlay-title=null { spawn "noctiri-shortcuts"; }
 
     // Apps / Noctalia.
-    Mod+T hotkey-overlay-title="Terminal" { spawn "kitty"; }
+    Mod+T hotkey-overlay-title="Terminal" { spawn "kitty" "--single-instance"; }
     Mod+D hotkey-overlay-title="Launcher" { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
     Mod+P hotkey-overlay-title="Wallpaper Picker" { spawn "noctalia" "msg" "panel-toggle" "wallpaper"; }
     Mod+Shift+S hotkey-overlay-title="Screenshot" { screenshot; }
-    Mod+E hotkey-overlay-title="File Manager: Yazi" { spawn "kitty" "--class" "noctiri-yazi" "--title" "Yazi" "yazi"; }
+    Mod+E hotkey-overlay-title="File Manager: Yazi" { spawn "kitty" "--single-instance" "--class" "noctiri-yazi" "--title" "Yazi" "yazi"; }
     Super+Alt+L hotkey-overlay-title="Lock Screen" { spawn "noctalia" "msg" "session" "lock"; }
 
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.

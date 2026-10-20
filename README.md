@@ -130,7 +130,9 @@ Zsh is the default interactive shell, with Oh My Zsh installed from its official
 The managed `.zshrc` enables the standard `robbyrussell` theme, Git integration, selectable
 completion menus, history/completion suggestions, and syntax highlighting while retaining Noctiri's
 `~/.local/bin`, `EDITOR`, and `VISUAL` environment. Kitty uses a beam cursor with a short cursor trail
-for smooth movement. To install or repair only the shell:
+for smooth movement. Niri pre-warms a hidden single-instance Kitty process at login, so terminal and
+Yazi windows reuse its GPU cache instead of repeating the full cold start. To install or repair only
+the shell:
 
 ```bash
 ./install.sh --zsh-only
