@@ -54,12 +54,17 @@ render_home_template() {
 have() { command -v "$1" >/dev/null 2>&1; }
 
 import_graphical_session_environment() {
-    local process_id name value
+    local process_id process_name name value
 
     # SSH and TTY shells do not inherit the environment of the running desktop.
-    # Noctalia is a reliable child of the Niri session and carries the variables
-    # needed to launch graphical applications into that session.
-    process_id="$(pgrep -u "$(id -u)" -xo noctalia 2>/dev/null || true)"
+    # Prefer Noctalia when its executable name is visible, then fall back to the
+    # compositor itself; both carry the variables needed by graphical repairs.
+    process_id=""
+    for process_name in noctalia niri; do
+        process_id="$(pgrep -u "$(id -u)" -xo "$process_name" 2>/dev/null || true)"
+        [[ -n "$process_id" && -r "/proc/$process_id/environ" ]] && break
+        process_id=""
+    done
     [[ -n "$process_id" && -r "/proc/$process_id/environ" ]] || return 0
 
     for name in XDG_RUNTIME_DIR DBUS_SESSION_BUS_ADDRESS WAYLAND_DISPLAY NIRI_SOCKET; do

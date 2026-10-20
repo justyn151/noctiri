@@ -5,6 +5,8 @@ This installer was generated from the supplied `setup-export.tar.gz`.
 Sanitization/portability changes:
 - Added a verified `mpd-mpris` release binary and a self-restarting graphical-session bridge so
   rmpc/MPD playback appears in Noctalia's media widget and desktop media controls.
+- Made SSH/TTY graphical repairs fall back to Niri's environment when the running Noctalia shell
+  does not expose a process named `noctalia`, preserving the correct session D-Bus address.
 - Promoted the live bar's 125-pixel media-title limit and transparent workspace capsule into the
   declarative widget configuration without copying machine-specific runtime state.
 - Installed `xdg-user-dirs` and added a resumable setup stage that creates or refreshes the standard
