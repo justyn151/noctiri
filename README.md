@@ -83,6 +83,18 @@ it. If the state directory does not exist yet, the installer detects an existing
 and Noctalia Greeter installation and offers to adopt the expensive package/build stage as already
 complete.
 
+After installation, run a read-only health check with:
+
+```bash
+noctiri-doctor
+```
+
+It checks Niri and Noctalia configuration, runit/systemd services, NetworkManager, BlueZ,
+PipeWire/WirePlumber, MPD/MPRIS media integration, portals, fonts, and the standard XDG home
+folders. `noctiri-doctor --repair` may be used to restart safe per-user components and refresh
+templates/directories; system-level changes remain explicit installer repair steps. From the
+repository, `./install.sh --doctor` runs the same read-only checks without installing the command.
+
 To install new wallpaper collections or update existing wallpaper repositories without package
 installation, configuration replacement, or source compilation, run:
 

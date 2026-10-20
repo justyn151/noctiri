@@ -25,8 +25,9 @@ case "${1:-}" in
     --font-only) MODE=font ;;
     --documents-only) MODE=documents ;;
     --music-only) MODE=music ;;
+    --doctor) MODE=doctor ;;
     -h|--help)
-        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --firefox-only | --zsh-only | --dwl-only | --font-only | --documents-only | --music-only]\n' "$0"
+        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --firefox-only | --zsh-only | --dwl-only | --font-only | --documents-only | --music-only | --doctor]\n' "$0"
         printf '  --wallpapers-only  Install or update wallpaper collections without rerunning setup\n'
         printf '  --spicetify-only   Install Spotify if needed, then finish Spicetify setup\n'
         printf '  --greeter-only     Repair greetd/Noctalia Greeter configuration without rebuilding\n'
@@ -39,12 +40,17 @@ case "${1:-}" in
         printf '  --font-only        Install and apply Fantasque Sans Mono across the desktop\n'
         printf '  --documents-only   Install Sioyek, CoC/TexLab, and compact Tectonic LaTeX support\n'
         printf '  --music-only       Install rmpc, PipeWire-backed MPD, and MPRIS bar integration\n'
+        printf '  --doctor           Run read-only Noctiri desktop health checks\n'
         exit 0
         ;;
     *) die "Unknown option: $1 (try --help)" ;;
 esac
 
 checks
+
+if [[ "$MODE" == "doctor" ]]; then
+    exec bash "$ROOT_DIR/configs/bin/noctiri-doctor"
+fi
 
 if [[ "$MODE" == "wallpapers" ]]; then
     printf '\nWallpaper-only mode: package installation, source builds, configs, greeter, and apps will be skipped.\n\n'
@@ -172,6 +178,7 @@ else
 fi
 
 run_stateful_step user-directories-v1 "Standard XDG home folders" configure_user_directories
+run_stateful_step noctiri-doctor-v1 "Noctiri diagnostic command" install_noctiri_doctor
 run_stateful_step "services-core-v3-$DISTRO_ID" "Bluetooth, supervised PipeWire, and brightness persistence setup" repair_connectivity_audio
 if [[ "$DISTRO_ID" == "void" ]] && ! step_is_complete greeter-panel-blur-v3; then
     run_stateful_step greeter-panel-blur-v3 \

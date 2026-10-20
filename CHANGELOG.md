@@ -3,6 +3,9 @@
 This installer was generated from the supplied `setup-export.tar.gz`.
 
 Sanitization/portability changes:
+- Added `noctiri-doctor` with read-only checks for session configuration, system services,
+  connectivity, audio, MPD/MPRIS, portals, fonts, and XDG folders. Its optional `--repair` mode
+  only performs safe user-session recovery and leaves system-level changes explicit.
 - Added a verified `mpd-mpris` release binary and a self-restarting graphical-session bridge so
   rmpc/MPD playback appears in Noctalia's media widget and desktop media controls.
 - Made SSH/TTY graphical repairs fall back to Niri's environment when the running Noctalia shell

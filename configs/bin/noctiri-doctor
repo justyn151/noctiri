@@ -1,0 +1,351 @@
+#!/usr/bin/env bash
+set -u
+
+PASS_COUNT=0
+WARN_COUNT=0
+FAIL_COUNT=0
+NEED_SERVICES=false
+NEED_MUSIC=false
+NEED_THEME=false
+REPAIR=false
+
+case "${1:-}" in
+    "") ;;
+    --repair) REPAIR=true ;;
+    -h|--help)
+        printf 'Usage: noctiri-doctor [--repair]\n'
+        printf '  no argument  Run read-only desktop health checks\n'
+        printf '  --repair     Restart safe user-session components, then check again\n'
+        exit 0
+        ;;
+    *)
+        printf 'Unknown option: %s (try --help)\n' "$1" >&2
+        exit 2
+        ;;
+esac
+
+if [[ -t 1 ]]; then
+    GREEN=$'\033[1;32m'
+    YELLOW=$'\033[1;33m'
+    RED=$'\033[1;31m'
+    BLUE=$'\033[1;34m'
+    RESET=$'\033[0m'
+else
+    GREEN="" YELLOW="" RED="" BLUE="" RESET=""
+fi
+
+pass() {
+    ((PASS_COUNT += 1))
+    printf '%sPASS%s  %s\n' "$GREEN" "$RESET" "$*"
+}
+
+warn() {
+    ((WARN_COUNT += 1))
+    printf '%sWARN%s  %s\n' "$YELLOW" "$RESET" "$*"
+}
+
+fail() {
+    ((FAIL_COUNT += 1))
+    printf '%sFAIL%s  %s\n' "$RED" "$RESET" "$*"
+}
+
+section() {
+    printf '\n%s%s%s\n' "$BLUE" "$*" "$RESET"
+}
+
+have() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+probe() {
+    have timeout || return 1
+    timeout --signal=TERM --kill-after=1 5 "$@" >/dev/null 2>&1
+}
+
+import_graphical_environment() {
+    local process_name process_id name value
+    process_id=""
+    for process_name in noctalia niri; do
+        process_id="$(pgrep -u "$(id -u)" -xo "$process_name" 2>/dev/null || true)"
+        [[ -n "$process_id" && -r "/proc/$process_id/environ" ]] && break
+        process_id=""
+    done
+    [[ -n "$process_id" ]] || return 1
+
+    for name in XDG_RUNTIME_DIR DBUS_SESSION_BUS_ADDRESS WAYLAND_DISPLAY NIRI_SOCKET; do
+        value="$(tr '\0' '\n' < "/proc/$process_id/environ" \
+            | sed -n "s/^${name}=//p" | head -n 1)"
+        [[ -n "$value" ]] || continue
+        export "$name=$value"
+    done
+}
+
+runit_service_check() {
+    local service="$1" required="${2:-true}" status
+    if [[ ! -e "/var/service/$service" && ! -L "/var/service/$service" ]]; then
+        if [[ "$required" == true ]]; then
+            fail "runit service $service is not enabled"
+            NEED_SERVICES=true
+        else
+            warn "runit service $service is not enabled"
+        fi
+        return
+    fi
+    status="$(sv status "/var/service/$service" 2>/dev/null || true)"
+    if [[ "$status" == run:* ]]; then
+        pass "runit service $service is running"
+    elif [[ "$required" == true ]]; then
+        fail "runit service $service is enabled but not running"
+        NEED_SERVICES=true
+    else
+        warn "runit service $service is enabled but not running"
+    fi
+}
+
+repair_user_session() {
+    section "Safe user-session repair"
+
+    if have xdg-user-dirs-update; then
+        xdg-user-dirs-update >/dev/null 2>&1 \
+            && pass "Refreshed standard XDG home folders" \
+            || warn "Could not refresh XDG home folders"
+    fi
+
+    if have nmcli; then
+        nmcli networking on >/dev/null 2>&1 || true
+        nmcli radio wifi on >/dev/null 2>&1 || true
+    fi
+    if have bluetoothctl; then
+        probe bluetoothctl power on || true
+    fi
+
+    if ! probe wpctl status && [[ -x "$HOME/.local/bin/noctiri-audio-session" ]]; then
+        nohup "$HOME/.local/bin/noctiri-audio-session" >/dev/null 2>&1 </dev/null &
+        pass "Requested a supervised PipeWire recovery"
+    fi
+
+    if ! pgrep -u "$(id -u)" -x mpd >/dev/null 2>&1 \
+        && [[ -x "$HOME/.local/bin/noctiri-mpd" ]]; then
+        nohup "$HOME/.local/bin/noctiri-mpd" >/dev/null 2>&1 </dev/null &
+        pass "Started the per-user MPD daemon"
+    fi
+
+    import_graphical_environment || true
+    if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]] \
+        && ! pgrep -u "$(id -u)" -x mpd-mpris >/dev/null 2>&1 \
+        && [[ -x "$HOME/.local/bin/noctiri-mpd-mpris" ]]; then
+        nohup "$HOME/.local/bin/noctiri-mpd-mpris" >/dev/null 2>&1 </dev/null &
+        pass "Started the MPD MPRIS bridge"
+    fi
+
+    if have noctalia && pgrep -u "$(id -u)" -af noctalia >/dev/null 2>&1; then
+        noctalia msg templates-apply >/dev/null 2>&1 || true
+    fi
+
+    sleep 3
+    printf '\nRechecking after repair...\n'
+    exec "$0"
+}
+
+if [[ "$REPAIR" == true ]]; then
+    repair_user_session
+fi
+
+printf '%sNoctiri Doctor%s\n' "$BLUE" "$RESET"
+printf 'Read-only health check for %s on %s\n' "$USER" "$(hostname)"
+
+import_graphical_environment || true
+
+section "Session and configuration"
+if pgrep -u "$(id -u)" -x niri >/dev/null 2>&1; then
+    pass "Niri is running"
+else
+    warn "Niri is not running; graphical-session checks are limited"
+fi
+
+if have niri && [[ -r "$HOME/.config/niri/config.kdl" ]] \
+    && niri validate -c "$HOME/.config/niri/config.kdl" >/dev/null 2>&1; then
+    pass "Niri configuration validates"
+else
+    fail "Niri configuration validation failed"
+fi
+
+if have noctalia && noctalia config validate >/dev/null 2>&1; then
+    pass "Noctalia configuration validates"
+else
+    fail "Noctalia configuration validation failed"
+    NEED_THEME=true
+fi
+
+if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
+    pass "Graphical D-Bus session is discoverable"
+else
+    warn "No graphical D-Bus session was found"
+fi
+
+section "System services"
+if [[ -r /etc/os-release ]]; then
+    # shellcheck disable=SC1091
+    source /etc/os-release
+else
+    ID=unknown
+fi
+
+case "${ID:-unknown}" in
+    void)
+        for service in dbus seatd NetworkManager bluetoothd noctiri-brightness; do
+            runit_service_check "$service" true
+        done
+        runit_service_check greetd false
+        ;;
+    fedora)
+        for service in NetworkManager bluetooth; do
+            if systemctl is-active --quiet "$service.service"; then
+                pass "systemd service $service is running"
+            else
+                fail "systemd service $service is not running"
+                NEED_SERVICES=true
+            fi
+        done
+        if systemctl is-active --quiet greetd.service; then
+            pass "systemd service greetd is running"
+        else
+            warn "systemd service greetd is not running"
+        fi
+        ;;
+    *) warn "Unsupported distribution; system-service checks were skipped" ;;
+esac
+
+section "Connectivity and audio"
+if have nmcli && probe nmcli general status; then
+    pass "NetworkManager responds"
+else
+    fail "NetworkManager does not respond"
+    NEED_SERVICES=true
+fi
+
+if have bluetoothctl && probe bluetoothctl list; then
+    pass "BlueZ responds"
+else
+    warn "BlueZ does not expose an adapter"
+    NEED_SERVICES=true
+fi
+
+if have pw-cli && probe pw-cli info 0; then
+    pass "PipeWire core responds"
+else
+    fail "PipeWire core does not respond"
+    NEED_SERVICES=true
+fi
+
+if have wpctl && probe wpctl status; then
+    pass "WirePlumber responds"
+else
+    fail "WirePlumber does not respond"
+    NEED_SERVICES=true
+fi
+
+if have pactl && probe pactl info; then
+    pass "PipeWire Pulse compatibility responds"
+else
+    fail "PipeWire Pulse compatibility does not respond"
+    NEED_SERVICES=true
+fi
+
+wireplumber_count="$(pgrep -u "$(id -u)" -x wireplumber 2>/dev/null | wc -l | tr -d ' ')"
+if [[ "$wireplumber_count" == 1 ]]; then
+    pass "Exactly one WirePlumber instance is running"
+elif [[ "$wireplumber_count" == 0 ]]; then
+    fail "WirePlumber is not running"
+    NEED_SERVICES=true
+else
+    fail "$wireplumber_count WirePlumber instances are running; expected one"
+    NEED_SERVICES=true
+fi
+
+section "Music and desktop media controls"
+if pgrep -u "$(id -u)" -x mpd >/dev/null 2>&1; then
+    pass "MPD is running"
+else
+    warn "MPD is not running"
+    NEED_MUSIC=true
+fi
+
+if pgrep -u "$(id -u)" -x mpd-mpris >/dev/null 2>&1; then
+    pass "MPD MPRIS bridge is running"
+else
+    warn "MPD MPRIS bridge is not running"
+    NEED_MUSIC=true
+fi
+
+if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]] && have playerctl \
+    && probe playerctl -l \
+    && playerctl -l 2>/dev/null | grep -Eq '^mpd([.]|$)'; then
+    pass "MPD is visible to Noctalia and playerctl"
+else
+    warn "MPD is not currently visible over MPRIS"
+    NEED_MUSIC=true
+fi
+
+section "Portals, fonts, and home folders"
+if pgrep -u "$(id -u)" -x xdg-desktop-portal >/dev/null 2>&1; then
+    pass "XDG desktop portal is running"
+else
+    warn "XDG desktop portal is not running"
+fi
+
+if pgrep -u "$(id -u)" -f 'xdg-desktop-portal-(gnome|gtk|kde)' >/dev/null 2>&1; then
+    pass "At least one XDG portal backend is running"
+else
+    warn "No XDG portal backend is running"
+fi
+
+if have fc-match && fc-match 'FantasqueSansM Nerd Font' 2>/dev/null | grep -qi Fantasque; then
+    pass "Fantasque Sans Mono is available"
+else
+    fail "Fantasque Sans Mono is missing"
+    NEED_THEME=true
+fi
+
+if have fc-match && fc-match 'Noto Sans CJK SC' 2>/dev/null | grep -Eqi 'Noto.*CJK|Source Han'; then
+    pass "CJK fallback fonts are available"
+else
+    warn "CJK fallback fonts could not be confirmed"
+    NEED_THEME=true
+fi
+
+if have xdg-user-dir; then
+    missing_directories=0
+    for directory_type in DESKTOP DOCUMENTS DOWNLOAD MUSIC PICTURES PUBLICSHARE TEMPLATES VIDEOS; do
+        directory_path="$(xdg-user-dir "$directory_type" 2>/dev/null || true)"
+        if [[ -n "$directory_path" && -d "$directory_path" ]]; then
+            continue
+        fi
+        ((missing_directories += 1))
+    done
+    if (( missing_directories == 0 )); then
+        pass "All standard XDG home folders exist"
+    else
+        warn "$missing_directories standard XDG home folder(s) are missing"
+    fi
+else
+    warn "xdg-user-dir is unavailable"
+fi
+
+section "Summary"
+printf '%s passed, %s warning(s), %s failure(s)\n' "$PASS_COUNT" "$WARN_COUNT" "$FAIL_COUNT"
+
+if [[ "$NEED_SERVICES" == true ]]; then
+    printf '  Suggested full repair: ./install.sh --services-only\n'
+fi
+if [[ "$NEED_MUSIC" == true ]]; then
+    printf '  Suggested music repair: ./install.sh --music-only\n'
+fi
+if [[ "$NEED_THEME" == true ]]; then
+    printf '  Suggested theme/font repair: ./install.sh --theme-only\n'
+fi
+if (( WARN_COUNT > 0 || FAIL_COUNT > 0 )); then
+    printf '  Safe user-session repair: noctiri-doctor --repair\n'
+fi
+
+(( FAIL_COUNT == 0 ))

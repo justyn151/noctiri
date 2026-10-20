@@ -14,10 +14,16 @@ configure_user_directories() {
     ok "Created or refreshed the standard Desktop, Documents, Downloads, Music, Pictures, Public, Templates, and Videos folders"
 }
 
+install_noctiri_doctor() {
+    install_file "$ROOT_DIR/configs/bin/noctiri-doctor" \
+        "$HOME/.local/bin/noctiri-doctor" 0755
+}
+
 install_configs() {
     log "Installing Niri, Noctalia, Kitty, Qt and portal configuration"
 
     install_user_path
+    install_noctiri_doctor
     render_home_template "$ROOT_DIR/configs/niri/config.kdl.in" "$HOME/.config/niri/config.kdl"
     # Niri's config already includes this generated Noctalia theme fragment. Keep an empty
     # placeholder valid until Noctalia's template renderer writes the real one.
