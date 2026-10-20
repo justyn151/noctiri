@@ -39,15 +39,23 @@ map("v", ">", ">gv", { desc = "Indent right" })
 map("n", "<leader>ff", "<cmd>Files<CR>", { desc = "Find files" })
 map("n", "<leader>fg", "<cmd>Rg<CR>", { desc = "Search text" })
 
-vim.g.vimtex_view_method = "general"
-vim.g.vimtex_view_general_viewer = "xdg-open"
+if vim.fn.executable("sioyek") == 1 then
+    vim.g.vimtex_view_method = "sioyek"
+else
+    vim.g.vimtex_view_method = "general"
+    vim.g.vimtex_view_general_viewer = "xdg-open"
+end
 vim.g.vimtex_quickfix_mode = 0
-if vim.fn.executable("latexmk") == 1 then
+if vim.fn.executable("tectonic") == 1 then
+    vim.g.vimtex_compiler_method = "tectonic"
+    vim.g.vimtex_compiler_tectonic = {
+        options = { "--synctex", "--keep-logs", "--keep-intermediates" },
+    }
+elseif vim.fn.executable("latexmk") == 1 then
     vim.g.vimtex_compiler_method = "latexmk"
 else
-    -- Void's lightweight texlive-latexmk package can exist without the full
-    -- TeX Live tree. Keep editing/completion available without warning on
-    -- every TeX buffer; compilation activates automatically once latexmk is.
+    -- Keep editing and completion available on machines where the optional
+    -- document stack has not been installed yet.
     vim.g.vimtex_compiler_enabled = 0
 end
 
@@ -77,6 +85,29 @@ vim.api.nvim_create_autocmd("FileType", {
     end,
 })
 
+if vim.fn.executable("tectonic") == 1 then
+    vim.api.nvim_create_autocmd("BufWritePost", {
+        group = tex_group,
+        pattern = "*.tex",
+        callback = function()
+            if vim.fn.exists(":VimtexCompileSS") == 2 then
+                vim.cmd("silent VimtexCompileSS")
+            end
+        end,
+        desc = "Compile the TeX project with Tectonic after saving",
+    })
+    vim.api.nvim_create_autocmd("User", {
+        group = tex_group,
+        pattern = "VimtexEventCompileSuccess",
+        callback = function()
+            if vim.fn.executable("sioyek") == 1 then
+                vim.cmd("silent VimtexView")
+            end
+        end,
+        desc = "Refresh the compiled PDF in Sioyek",
+    })
+end
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 local uv = vim.uv or vim.loop
 if not uv.fs_stat(lazypath) then
@@ -98,7 +129,9 @@ if lazy_ok then
         { "junegunn/fzf", build = "./install --bin" },
         { "junegunn/fzf.vim", dependencies = { "junegunn/fzf" }, lazy = false },
         { "octol/vim-cpp-enhanced-highlight", ft = { "c", "cpp" } },
-        { "lervag/vimtex", ft = { "tex", "plaintex" } },
+        -- VimTeX must be available before FileType events so inverse search and
+        -- its project detection are reliable.
+        { "lervag/vimtex", lazy = false },
     }, {
         change_detection = { notify = false },
         install = { colorscheme = { "noctalia" } },

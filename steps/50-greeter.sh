@@ -26,6 +26,7 @@ configure_greeter() {
     if have noctalia-greeter; then
         pin_greeter_session "$greeter_session"
         configure_greeter_password_style
+        configure_greeter_logo
         enable_passwordless_greeter_sync
     fi
 
@@ -49,14 +50,14 @@ configure_greeter() {
 }
 
 set_toml_table_value() {
-    local input_file="$1" output_file="$2" table="$3" key="$4" value="$5"
-    python3 - "$input_file" "$output_file" "$table" "$key" "$value" <<'PY'
+    local input_file="$1" output_file="$2" table="$3" key="$4" value="$5" value_type="${6:-string}"
+    python3 - "$input_file" "$output_file" "$table" "$key" "$value" "$value_type" <<'PY'
 import json
 import pathlib
 import re
 import sys
 
-input_path, output_path, table, key, value = sys.argv[1:]
+input_path, output_path, table, key, value, value_type = sys.argv[1:]
 text = pathlib.Path(input_path).read_text(encoding="utf-8")
 lines = text.splitlines()
 header_pattern = re.compile(r"^\s*\[([^]]+)]\s*(?:#.*)?$")
@@ -74,7 +75,15 @@ for index, line in enumerate(lines):
     if match.group(1).strip() == table:
         section_start = index
 
-assignment = f"{key} = {json.dumps(value)}"
+if value_type == "boolean":
+    if value not in ("true", "false"):
+        raise SystemExit(f"Invalid TOML boolean: {value}")
+    serialized = value
+elif value_type == "string":
+    serialized = json.dumps(value)
+else:
+    raise SystemExit(f"Unsupported TOML value type: {value_type}")
+assignment = f"{key} = {serialized}"
 if section_start is None:
     if lines and lines[-1].strip():
         lines.append("")
@@ -93,7 +102,7 @@ PY
 }
 
 set_protected_greeter_toml_value() {
-    local path="$1" table="$2" key="$3" value="$4" greeter_group tmp_dir input_file output_file backup_file
+    local path="$1" table="$2" key="$3" value="$4" value_type="${5:-string}" greeter_group tmp_dir input_file output_file backup_file
     greeter_group="$(id -gn "$GREETER_USER")"
     tmp_dir="$(mktemp -d)"
     input_file="$tmp_dir/input.toml"
@@ -113,7 +122,7 @@ set_protected_greeter_toml_value() {
         : > "$input_file"
     fi
 
-    set_toml_table_value "$input_file" "$output_file" "$table" "$key" "$value"
+    set_toml_table_value "$input_file" "$output_file" "$table" "$key" "$value" "$value_type"
     sudo install -o "$GREETER_USER" -g "$greeter_group" -m 0640 "$output_file" "$path"
     rm -rf "$tmp_dir"
 }
@@ -137,6 +146,12 @@ configure_greeter_password_style() {
     set_protected_greeter_toml_value \
         /var/lib/noctalia-greeter/greeter.toml appearance password_style default
     ok "Enabled Noctalia Greeter's animated circular password feedback"
+}
+
+configure_greeter_logo() {
+    set_protected_greeter_toml_value \
+        /var/lib/noctalia-greeter/greeter.toml appearance hide_logo true boolean
+    ok "Hidden the Noctalia logo on the greeter"
 }
 
 enable_passwordless_greeter_sync() {

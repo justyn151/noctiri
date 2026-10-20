@@ -28,6 +28,61 @@ install_neovim_editor() {
     esac
 }
 
+install_tectonic_release_binary() {
+    local arch tag version asset tmp
+    case "$(uname -m)" in
+        x86_64) arch=x86_64-unknown-linux-gnu ;;
+        aarch64) arch=aarch64-unknown-linux-gnu ;;
+        *) die "No prebuilt Tectonic release is available for $(uname -m)" ;;
+    esac
+
+    tag="$({ git ls-remote --refs --tags https://github.com/tectonic-typesetting/tectonic.git 2>/dev/null || true; } \
+        | awk '$2 ~ /^refs\/tags\/tectonic@[0-9]+\.[0-9]+\.[0-9]+$/ {sub("refs/tags/", "", $2); print $2}' \
+        | sort -V | tail -n 1)"
+    [[ -n "$tag" ]] || die "Could not determine the latest Tectonic release"
+    version="${tag#tectonic@}"
+    asset="tectonic-${version}-${arch}.tar.gz"
+    tmp="$(mktemp -d)"
+    curl -fL --retry 3 -o "$tmp/$asset" \
+        "https://github.com/tectonic-typesetting/tectonic/releases/download/$tag/$asset"
+    tar -xzf "$tmp/$asset" -C "$tmp"
+    install_file "$tmp/tectonic" "$HOME/.local/bin/tectonic" 0755
+    rm -rf "$tmp"
+}
+
+install_document_stack() {
+    log "Installing Sioyek and the compact Tectonic LaTeX engine"
+    case "$DISTRO_ID" in
+        fedora)
+            # Fedora does not currently ship either application in its base
+            # repositories. Tectonic's upstream release is one self-contained
+            # executable; Sioyek's documented Flatpak is the maintainable GUI.
+            if ! have tectonic; then
+                install_tectonic_release_binary
+            fi
+            sudo dnf install -y flatpak
+            ensure_system_flathub
+            sudo flatpak install --system -y flathub com.github.ahrm.sioyek
+            flatpak override --user --filesystem=home com.github.ahrm.sioyek
+            install_file "$ROOT_DIR/configs/bin/sioyek-flatpak" \
+                "$HOME/.local/bin/sioyek" 0755
+            ;;
+        void)
+            # Tectonic is about 18 MiB on Void and downloads only the TeX
+            # resources a document uses; texlive-core is several gigabytes.
+            sudo xbps-install -Sy tectonic sioyek
+            ;;
+        *) die "No document stack implementation for $DISTRO_ID" ;;
+    esac
+
+    have tectonic || die "Tectonic was installed but is not on PATH"
+    if have sioyek || flatpak info com.github.ahrm.sioyek >/dev/null 2>&1; then
+        ok "Installed Sioyek with on-demand LaTeX support from Tectonic"
+    else
+        die "Sioyek installation could not be verified"
+    fi
+}
+
 install_zsh_shell() {
     log "Installing Zsh and Oh My Zsh"
     case "$DISTRO_ID" in
@@ -89,7 +144,7 @@ install_packages_fedora() {
         NetworkManager bluez bluez-tools upower
         pipewire pipewire-alsa pipewire-pulseaudio wireplumber alsa-utils
         polkit gnome-keyring gnome-keyring-pam
-        kitty firefox neovim zsh ripgrep latexmk flatpak git curl tar xz unzip python3 xdg-utils wl-clipboard
+        kitty firefox neovim zsh ripgrep flatpak git curl tar xz unzip python3 xdg-utils wl-clipboard
         playerctl brightnessctl
         qt6ct plasma-breeze-qt6 breeze-icon-theme
         dolphin ark btop cava fastfetch qimgv mpv
@@ -132,7 +187,7 @@ install_packages_void() {
         NetworkManager bluez rfkill upower
         pipewire wireplumber libspa-bluetooth alsa-pipewire alsa-utils pulseaudio-utils
         polkit gnome-keyring
-        kitty firefox neovim zsh ripgrep texlive-latexmk flatpak git curl tar xz unzip python3 xdg-utils wl-clipboard
+        kitty firefox neovim zsh ripgrep flatpak git curl tar xz unzip python3 xdg-utils wl-clipboard
         playerctl brightnessctl
         qt6ct breeze-qt6 breeze-icons
         dolphin ark btop cava fastfetch qimgv mpv

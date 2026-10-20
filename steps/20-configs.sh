@@ -588,5 +588,17 @@ set_default_apps() {
     for mime in "${images[@]}"; do xdg-mime default qimgv.desktop "$mime" || true; done
     for mime in "${videos[@]}"; do xdg-mime default mpv.desktop "$mime" || true; done
     for mime in "${audio[@]}"; do xdg-mime default mpv.desktop "$mime" || true; done
-    xdg-mime default firefox.desktop application/pdf || true
+    set_pdf_default
+}
+
+set_pdf_default() {
+    local desktop_id=sioyek.desktop
+    if flatpak info com.github.ahrm.sioyek >/dev/null 2>&1; then
+        desktop_id=com.github.ahrm.sioyek.desktop
+    elif ! have sioyek; then
+        warn "Sioyek is not installed; leaving the current PDF association unchanged"
+        return 0
+    fi
+    xdg-mime default "$desktop_id" application/pdf || true
+    ok "Set Sioyek as the default PDF viewer"
 }

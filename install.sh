@@ -23,8 +23,9 @@ case "${1:-}" in
     --zsh-only) MODE=zsh ;;
     --dwl-only) MODE=dwl ;;
     --font-only) MODE=font ;;
+    --documents-only) MODE=documents ;;
     -h|--help)
-        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --firefox-only | --zsh-only | --dwl-only | --font-only]\n' "$0"
+        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --firefox-only | --zsh-only | --dwl-only | --font-only | --documents-only]\n' "$0"
         printf '  --wallpapers-only  Install or update wallpaper collections without rerunning setup\n'
         printf '  --spicetify-only   Install Spotify if needed, then finish Spicetify setup\n'
         printf '  --greeter-only     Repair greetd/Noctalia Greeter configuration without rebuilding\n'
@@ -35,6 +36,7 @@ case "${1:-}" in
         printf '  --zsh-only         Install Zsh, suggestions/highlighting, and smooth Kitty cursor settings\n'
         printf '  --dwl-only         Install the optional Void DWL + Foot + Somebar preview\n'
         printf '  --font-only        Install and apply Fantasque Sans Mono across the desktop\n'
+        printf '  --documents-only   Install Sioyek and the compact Tectonic LaTeX toolchain\n'
         exit 0
         ;;
     *) die "Unknown option: $1 (try --help)" ;;
@@ -90,6 +92,16 @@ if [[ "$MODE" == "font" ]]; then
     install_fantasque_system_font
     printf '\n\033[1;32mFantasque Sans Mono configuration complete.\033[0m\n'
     printf 'Reopen applications to refresh their fonts; log out once to refresh the complete session.\n'
+    exit 0
+fi
+
+if [[ "$MODE" == "documents" ]]; then
+    printf '\nDocuments-only mode: installing Sioyek and compact on-demand LaTeX support.\n\n'
+    install_document_stack
+    install_neovim_integration
+    set_pdf_default
+    printf '\n\033[1;32mDocument setup complete.\033[0m\n'
+    printf 'In a TeX buffer, save to compile and open the refreshed PDF in Sioyek.\n'
     exit 0
 fi
 
@@ -155,6 +167,7 @@ if [[ "$DISTRO_ID" == "void" ]] && ! step_is_complete greeter-panel-blur-v3; the
 fi
 run_stateful_step fantasque-system-font-v1 "Fantasque Sans Mono system font" install_fantasque_system_font
 run_stateful_step neovim-editor-v2 "Neovim editor, beam cursor, and Vim removal" install_neovim_editor
+run_stateful_step document-stack-v1 "Sioyek and compact on-demand LaTeX support" install_document_stack
 run_stateful_step zsh-ohmyzsh-v2 "Zsh, Oh My Zsh, suggestions, and highlighting" install_zsh_shell
 run_stateful_step configs-v3 "Desktop configuration" install_configs
 run_stateful_step firefox-policy-v4 "Firefox portal and extension policy" merge_firefox_policy

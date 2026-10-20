@@ -25,7 +25,8 @@ Theme/integration:
 Apps:
 - Firefox
 - Kitty
-- Vim (with the included VimTeX/FZF configuration)
+- Neovim (with the included VimTeX/FZF configuration)
+- Sioyek for PDFs and Tectonic for compact, on-demand LaTeX compilation
 - Yazi as the `Super+E` file manager, with a Noctalia-generated palette
 - Dolphin + Ark available from the application launcher for graphical fallback
 - btop
@@ -43,8 +44,9 @@ Penguins' **I moved to Wayland :D** video: the creator's patched DWL fork, Foot,
 Someblocks, and Liberation Mono. It does not replace or edit the Niri + Noctalia flavour.
 
 Default media associations are set to qimgv for common images, mpv for common video and audio
-types, and Firefox for PDF. VimTeX follows the system PDF association,
-so a replacement reader can be selected later without editing Vim.
+types, and Sioyek for PDF. VimTeX uses Sioyek directly for SyncTeX, compiles with Tectonic whenever
+a TeX buffer is saved, and refreshes the viewer after a successful build. Tectonic is used instead
+of a multi-gigabyte TeX Live installation and downloads support files only when a document needs them.
 
 ## Wallpapers
 
@@ -120,6 +122,9 @@ terminal, FZF, C++ highlighting, VimTeX, and TeX completion behavior while dropp
 colorscheme plugin. Noctalia renders `~/.config/nvim/colors/noctalia.lua` from the active wallpaper,
 and Neovim loads that palette as its only colorscheme. It uses a thin blinking beam in every mode;
 the installer also removes the old `vim`/`vim-enhanced` package. `EDITOR` and `VISUAL` are set to `nvim`.
+Sioyek is the PDF default and VimTeX viewer. Saving a TeX buffer runs a single Tectonic build and
+opens or refreshes Sioyek with SyncTeX support. Run `./install.sh --documents-only` to install or
+repair only this lightweight document stack.
 
 Firefox receives a deliberately small default extension set through its normal-install policy:
 Pywalfox, uBlock Origin, SponsorBlock, and Ctrl+Number to switch tabs. Normal-installed extensions
@@ -267,6 +272,7 @@ stable upstream release using the upstream-documented Void dependencies. The ins
   default,
 - uses Noctalia's regular circular password mask and, on Void's source build, gives each newly typed
   circle a short fade-and-spring animation,
+- hides the Noctalia logo for a cleaner login card,
 - runs greetd on VT7 on Void, leaving tty1 available as a recovery console,
 - enables the constrained passwordless appearance-sync rule for the current user,
 - enables greetd for the next boot on Fedora; Void activation is left as an explicit TTY step so the
