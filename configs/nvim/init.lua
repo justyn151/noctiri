@@ -15,6 +15,7 @@ vim.opt.incsearch = true
 vim.opt.hlsearch = true
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
+vim.opt.hidden = true
 
 local map = vim.keymap.set
 map("n", "<leader>n", function()
@@ -25,8 +26,6 @@ map("n", "<leader><CR>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight
 map("n", "n", "nzz", { desc = "Next search result" })
 map("n", "N", "Nzz", { desc = "Previous search result" })
 map("n", "<leader>q", "<cmd>quit<CR>", { desc = "Close window" })
-map("n", "<leader>t", "<cmd>vsplit | terminal<CR>", { desc = "Terminal in vertical split" })
-map("n", "<leader><leader>t", "<cmd>terminal<CR>", { desc = "Terminal" })
 map("t", "<M-e>", [[<C-\><C-n>]], { desc = "Leave terminal mode" })
 map("n", "<leader>w", "<C-w>", { remap = true, desc = "Window command" })
 map("n", "<leader><Up>", "<cmd>resize +2<CR>", { desc = "Grow window vertically" })
@@ -65,23 +64,24 @@ vim.api.nvim_create_autocmd("FileType", {
     pattern = "tex",
     callback = function(args)
         vim.bo[args.buf].omnifunc = "vimtex#complete#omnifunc"
-        vim.bo[args.buf].complete = "o,.,w,b"
-        pcall(function()
-            vim.bo[args.buf].completefunc = ""
-            vim.opt_local.completeopt = { "menuone", "popup", "fuzzy" }
-            if vim.fn.exists("+autocomplete") == 1 then
-                vim.opt_local.autocomplete = true
+        vim.bo[args.buf].autocomplete = false
+        vim.b[args.buf].noctiri_tex_live = true
+
+        map("n", "<localleader>lx", function()
+            vim.b.noctiri_tex_live = not vim.b.noctiri_tex_live
+            local state = vim.b.noctiri_tex_live and "enabled" or "disabled"
+            vim.notify("TeX compile-on-save " .. state, vim.log.levels.INFO)
+            if vim.b.noctiri_tex_live and vim.fn.exists(":VimtexCompileSS") == 2 then
+                vim.cmd("silent update")
+                vim.cmd("silent VimtexCompileSS")
             end
-            if vim.fn.exists("+autocompletedelay") == 1 then
-                vim.opt_local.autocompletedelay = 100
-            end
-        end)
-        map("i", "<Tab>", function()
-            return vim.fn.pumvisible() == 1 and "<C-n>" or "<Tab>"
-        end, { buffer = args.buf, expr = true, silent = true })
-        map("i", "<S-Tab>", function()
-            return vim.fn.pumvisible() == 1 and "<C-p>" or "<S-Tab>"
-        end, { buffer = args.buf, expr = true, silent = true })
+        end, { buffer = args.buf, desc = "Toggle TeX compile on save" })
+        map("n", "<localleader>lb", function()
+            vim.cmd("silent update")
+            vim.cmd("VimtexCompileSS")
+        end, { buffer = args.buf, desc = "Build TeX once" })
+        map("n", "<localleader>lv", "<cmd>VimtexView<CR>",
+            { buffer = args.buf, desc = "Open TeX PDF viewer" })
     end,
 })
 
@@ -89,8 +89,9 @@ if vim.fn.executable("tectonic") == 1 then
     vim.api.nvim_create_autocmd("BufWritePost", {
         group = tex_group,
         pattern = "*.tex",
-        callback = function()
-            if vim.fn.exists(":VimtexCompileSS") == 2 then
+        callback = function(args)
+            if vim.b[args.buf].noctiri_tex_live ~= false
+                and vim.fn.exists(":VimtexCompileSS") == 2 then
                 vim.cmd("silent VimtexCompileSS")
             end
         end,
@@ -129,6 +130,78 @@ if lazy_ok then
         { "junegunn/fzf", build = "./install --bin" },
         { "junegunn/fzf.vim", dependencies = { "junegunn/fzf" }, lazy = false },
         { "octol/vim-cpp-enhanced-highlight", ft = { "c", "cpp" } },
+        {
+            "hrsh7th/nvim-cmp",
+            event = "InsertEnter",
+            dependencies = {
+                "hrsh7th/cmp-buffer",
+                "hrsh7th/cmp-path",
+                "hrsh7th/cmp-omni",
+            },
+            config = function()
+                local cmp = require("cmp")
+                vim.opt.completeopt = { "menu", "menuone", "noselect" }
+                cmp.setup({
+                    snippet = {
+                        expand = function(args)
+                            vim.snippet.expand(args.body)
+                        end,
+                    },
+                    mapping = cmp.mapping.preset.insert({
+                        ["<C-Space>"] = cmp.mapping.complete(),
+                        ["<C-e>"] = cmp.mapping.abort(),
+                        ["<Tab>"] = cmp.mapping(function(fallback)
+                            if cmp.visible() then
+                                cmp.select_next_item()
+                            else
+                                fallback()
+                            end
+                        end, { "i", "s" }),
+                        ["<S-Tab>"] = cmp.mapping(function(fallback)
+                            if cmp.visible() then
+                                cmp.select_prev_item()
+                            else
+                                fallback()
+                            end
+                        end, { "i", "s" }),
+                        ["<CR>"] = cmp.mapping.confirm({ select = false }),
+                    }),
+                    sources = cmp.config.sources({
+                        { name = "path" },
+                    }, {
+                        { name = "buffer", keyword_length = 3 },
+                    }),
+                })
+                local tex_sources = cmp.config.sources({
+                    { name = "omni" },
+                }, {
+                    { name = "path" },
+                    { name = "buffer", keyword_length = 3 },
+                })
+                cmp.setup.filetype("tex", { sources = tex_sources })
+                cmp.setup.filetype("plaintex", { sources = tex_sources })
+            end,
+        },
+        {
+            "akinsho/toggleterm.nvim",
+            version = "*",
+            keys = {
+                { "<leader>t", "<cmd>ToggleTerm direction=float<CR>", desc = "Floating terminal" },
+                { "<leader>vt", "<cmd>ToggleTerm direction=vertical<CR>", desc = "Vertical terminal" },
+                { "<leader>ht", "<cmd>ToggleTerm direction=horizontal<CR>", desc = "Horizontal terminal" },
+            },
+            opts = {
+                open_mapping = [[<C-\>]],
+                direction = "float",
+                start_in_insert = true,
+                persist_mode = true,
+                shade_terminals = false,
+                float_opts = {
+                    border = "rounded",
+                    winblend = 4,
+                },
+            },
+        },
         -- VimTeX must be available before FileType events so inverse search and
         -- its project detection are reliable.
         { "lervag/vimtex", lazy = false },

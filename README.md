@@ -118,13 +118,20 @@ so no legacy Python Pywalfox daemon is installed. Restart Firefox once after ini
 Yazi or Neovim after changing palettes so it reloads the rendered theme.
 
 Neovim replaces Vim in the package set. Its Lua configuration keeps the original navigation,
-terminal, FZF, C++ highlighting, VimTeX, and TeX completion behavior while dropping every fixed
+FZF, C++ highlighting, VimTeX, and TeX completion behavior while dropping every fixed
 colorscheme plugin. Noctalia renders `~/.config/nvim/colors/noctalia.lua` from the active wallpaper,
 and Neovim loads that palette as its only colorscheme. It uses a thin blinking beam in every mode;
 the installer also removes the old `vim`/`vim-enhanced` package. `EDITOR` and `VISUAL` are set to `nvim`.
+Completion is handled by `nvim-cmp` with VimTeX's omnifunc, file paths, and buffer words; `Tab` and
+`Shift+Tab` move through suggestions, `Enter` accepts an explicitly selected suggestion, and
+`Ctrl+Space` opens completion manually. ToggleTerm provides persistent floating and split terminals:
+`Space+t` opens the float, `Space+v,t` opens a vertical terminal, `Space+h,t` opens a horizontal one,
+and `Ctrl+\` toggles the active terminal from normal or terminal mode.
 Sioyek is the PDF default and VimTeX viewer. Saving a TeX buffer runs a single Tectonic build and
 opens or refreshes Sioyek with SyncTeX support. Run `./install.sh --documents-only` to install or
 repair only this lightweight document stack.
+Inside a TeX buffer, `Space+l,x` toggles compile-on-save, `Space+l,b` builds once, and `Space+l,v`
+opens the generated PDF. Compile-on-save starts enabled for each TeX buffer.
 
 Firefox receives a deliberately small default extension set through its normal-install policy:
 Pywalfox, uBlock Origin, SponsorBlock, and Ctrl+Number to switch tabs. Normal-installed extensions
