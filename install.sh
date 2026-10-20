@@ -178,7 +178,7 @@ else
 fi
 
 run_stateful_step user-directories-v1 "Standard XDG home folders" configure_user_directories
-run_stateful_step noctiri-doctor-v1 "Noctiri diagnostic command" install_noctiri_doctor
+run_stateful_step noctiri-doctor-v2 "Noctiri diagnostic GUI and command" install_noctiri_doctor
 run_stateful_step "services-core-v3-$DISTRO_ID" "Bluetooth, supervised PipeWire, and brightness persistence setup" repair_connectivity_audio
 if [[ "$DISTRO_ID" == "void" ]] && ! step_is_complete greeter-panel-blur-v3; then
     run_stateful_step greeter-panel-blur-v3 \

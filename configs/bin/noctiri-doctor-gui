@@ -1,0 +1,29 @@
+#!/bin/sh
+
+config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/noctiri-doctor"
+
+# Restart this small helper each time so opening the panel always performs a
+# fresh health check, even after a Quickshell or compositor reload.
+qs kill --any-display -p "$config_dir" >/dev/null 2>&1 || true
+
+for pid in $(pgrep -u "$(id -u)" -x qs 2>/dev/null); do
+    if tr '\0' '\n' < "/proc/$pid/cmdline" 2>/dev/null | grep -Fxq "$config_dir"; then
+        kill "$pid" 2>/dev/null || true
+    fi
+done
+
+attempts=0
+while pgrep -u "$(id -u)" -x qs >/dev/null 2>&1 && [ "$attempts" -lt 10 ]; do
+    found=false
+    for pid in $(pgrep -u "$(id -u)" -x qs 2>/dev/null); do
+        if tr '\0' '\n' < "/proc/$pid/cmdline" 2>/dev/null | grep -Fxq "$config_dir"; then
+            found=true
+            break
+        fi
+    done
+    [ "$found" = true ] || break
+    sleep 0.05
+    attempts=$((attempts + 1))
+done
+
+exec qs -d -n -p "$config_dir"

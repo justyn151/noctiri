@@ -3,6 +3,9 @@
 This installer was generated from the supplied `setup-export.tar.gz`.
 
 Sanitization/portability changes:
+- Added a movable, theme-aware Quickshell GUI for `noctiri-doctor`, including summary cards, full
+  diagnostic output, and a safe-repair button. Expanded the shortcut window with Desktop, Neovim,
+  Yazi, and rmpc tabs sourced from the controls that Noctiri actually installs.
 - Added `noctiri-doctor` with read-only checks for session configuration, system services,
   connectivity, audio, MPD/MPRIS, portals, fonts, and XDG folders. Its optional `--repair` mode
   only performs safe user-session recovery and leaves system-level changes explicit.

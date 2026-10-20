@@ -17,6 +17,18 @@ configure_user_directories() {
 install_noctiri_doctor() {
     install_file "$ROOT_DIR/configs/bin/noctiri-doctor" \
         "$HOME/.local/bin/noctiri-doctor" 0755
+    install_file "$ROOT_DIR/configs/bin/noctiri-doctor-gui" \
+        "$HOME/.local/bin/noctiri-doctor-gui" 0755
+    install_file "$ROOT_DIR/configs/quickshell/noctiri-doctor/shell.qml" \
+        "$HOME/.config/quickshell/noctiri-doctor/shell.qml"
+    install_file "$ROOT_DIR/configs/applications/noctiri-doctor.desktop" \
+        "$HOME/.local/share/applications/noctiri-doctor.desktop"
+    install_file "$ROOT_DIR/configs/icons/noctiri-doctor.svg" \
+        "$HOME/.local/share/icons/hicolor/scalable/apps/noctiri-doctor.svg"
+
+    if have update-desktop-database; then
+        update-desktop-database "$HOME/.local/share/applications" || true
+    fi
 }
 
 install_configs() {

@@ -397,6 +397,16 @@ window-rule {
     focus-ring { off; }
 }
 
+// The desktop doctor uses the same movable, rounded Quickshell window style.
+window-rule {
+    match app-id="noctiri-doctor"
+    open-floating true
+    geometry-corner-radius 18
+    clip-to-geometry true
+    draw-border-with-background false
+    focus-ring { off; }
+}
+
 binds {
     // Keys consist of modifiers separated by + signs, followed by an XKB key name
     // in the end. To find an XKB name for a particular key, you may use a program
@@ -411,6 +421,7 @@ binds {
     // Noctiri ships a theme-aware Noctalia panel containing the bindings that
     // are actually enabled below, rather than Niri's generic hotkey overlay.
     Mod+Shift+Slash hotkey-overlay-title=null { spawn "noctiri-shortcuts"; }
+    Mod+Shift+D hotkey-overlay-title="Noctiri Doctor" { spawn "noctiri-doctor-gui"; }
 
     // Apps / Noctalia.
     Mod+T hotkey-overlay-title="Terminal" { spawn "kitty" "--single-instance"; }

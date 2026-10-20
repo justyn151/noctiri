@@ -94,6 +94,9 @@ PipeWire/WirePlumber, MPD/MPRIS media integration, portals, fonts, and the stand
 folders. `noctiri-doctor --repair` may be used to restart safe per-user components and refresh
 templates/directories; system-level changes remain explicit installer repair steps. From the
 repository, `./install.sh --doctor` runs the same read-only checks without installing the command.
+The same checks are available in a movable, palette-matched Quickshell window from the app launcher
+or with `Super+Shift+D`. `Super+Shift+/` opens the shortcut guide, whose tabs cover the desktop,
+Neovim, Yazi, and rmpc controls installed by Noctiri.
 
 To install new wallpaper collections or update existing wallpaper repositories without package
 installation, configuration replacement, or source compilation, run:

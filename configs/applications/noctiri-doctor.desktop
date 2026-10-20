@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Noctiri Doctor
+Comment=Check and safely repair the Noctiri desktop session
+Exec=noctiri-doctor-gui
+Icon=noctiri-doctor
+Terminal=false
+Categories=System;Settings;
+Keywords=health;diagnostics;repair;services;audio;bluetooth;
