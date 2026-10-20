@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+# Void's Sioyek package currently ships Qt's xcb backend but not its Wayland
+# platform plugin. Keep the rest of the desktop native Wayland and run only
+# Sioyek through XWayland.
+export QT_QPA_PLATFORM=xcb
+exec /usr/bin/sioyek "$@"

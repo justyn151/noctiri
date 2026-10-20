@@ -71,6 +71,13 @@ install_document_stack() {
             # Tectonic is about 18 MiB on Void and downloads only the TeX
             # resources a document uses; texlive-core is several gigabytes.
             sudo xbps-install -Sy tectonic sioyek texlab nodejs
+            install_file "$ROOT_DIR/configs/bin/sioyek-void" \
+                "$HOME/.local/bin/sioyek" 0755
+            install_file "$ROOT_DIR/configs/applications/sioyek.desktop" \
+                "$HOME/.local/share/applications/sioyek.desktop"
+            if have update-desktop-database; then
+                update-desktop-database "$HOME/.local/share/applications" || true
+            fi
             ;;
         *) die "No document stack implementation for $DISTRO_ID" ;;
     esac

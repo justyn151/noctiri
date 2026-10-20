@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Sioyek
+Comment=Read and annotate PDF documents
+Exec=sioyek %f
+Icon=sioyek
+Terminal=false
+Categories=Office;Viewer;
+MimeType=application/pdf;
+StartupNotify=true

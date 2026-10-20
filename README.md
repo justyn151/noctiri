@@ -133,6 +133,9 @@ Sioyek is the PDF default and VimTeX viewer. Saving a complete TeX buffer runs a
 build and opens or refreshes Sioyek with SyncTeX support. TexLab supplies editing intelligence but
 does not launch a second build. Run `./install.sh --documents-only` to install or repair this
 lightweight document stack and its CoC runtime.
+On Void, the installer runs Sioyek through its packaged xcb backend because that build does not
+include Qt's native Wayland platform plugin; this affects only Sioyek and leaves the desktop native
+Wayland.
 Inside a TeX buffer, `Space+l,x` toggles compile-on-save, `Space+l,b` builds once, and `Space+l,v`
 opens the generated PDF. If no readable PDF exists, the viewer shortcut now points to
 `:VimtexErrors` instead of opening an empty viewer. Compile-on-save starts enabled for each TeX buffer.
