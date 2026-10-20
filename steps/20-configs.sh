@@ -1,4 +1,19 @@
 #!/usr/bin/env bash
+configure_user_directories() {
+    log "Creating the standard XDG home folders"
+
+    if ! have xdg-user-dirs-update; then
+        case "$DISTRO_ID" in
+            fedora) sudo dnf install -y xdg-user-dirs ;;
+            void) sudo xbps-install -Sy xdg-user-dirs ;;
+            *) die "Cannot install xdg-user-dirs on unsupported distribution: $DISTRO_ID" ;;
+        esac
+    fi
+
+    xdg-user-dirs-update
+    ok "Created or refreshed the standard Desktop, Documents, Downloads, Music, Pictures, Public, Templates, and Videos folders"
+}
+
 install_configs() {
     log "Installing Niri, Noctalia, Kitty, Qt and portal configuration"
 

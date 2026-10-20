@@ -239,7 +239,7 @@ install_packages_fedora() {
         NetworkManager bluez bluez-tools upower
         pipewire pipewire-alsa pipewire-pulseaudio wireplumber alsa-utils
         polkit gnome-keyring gnome-keyring-pam
-        kitty firefox neovim zsh ripgrep flatpak git curl tar xz unzip python3 xdg-utils wl-clipboard
+        kitty firefox neovim zsh ripgrep flatpak git curl tar xz unzip python3 xdg-utils xdg-user-dirs wl-clipboard
         playerctl brightnessctl
         qt6ct plasma-breeze-qt6 breeze-icon-theme
         dolphin ark btop cava fastfetch qimgv mpv
@@ -282,7 +282,7 @@ install_packages_void() {
         NetworkManager bluez rfkill upower
         pipewire wireplumber libspa-bluetooth alsa-pipewire alsa-utils pulseaudio-utils
         polkit gnome-keyring
-        kitty firefox neovim zsh ripgrep flatpak git curl tar xz unzip python3 xdg-utils wl-clipboard
+        kitty firefox neovim zsh ripgrep flatpak git curl tar xz unzip python3 xdg-utils xdg-user-dirs wl-clipboard
         playerctl brightnessctl
         qt6ct breeze-qt6 breeze-icons
         dolphin ark btop cava fastfetch qimgv mpv

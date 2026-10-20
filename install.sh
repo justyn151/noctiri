@@ -171,6 +171,7 @@ else
     run_stateful_step "$package_step" "System packages and desktop builds" install_packages
 fi
 
+run_stateful_step user-directories-v1 "Standard XDG home folders" configure_user_directories
 run_stateful_step "services-core-v3-$DISTRO_ID" "Bluetooth, supervised PipeWire, and brightness persistence setup" repair_connectivity_audio
 if [[ "$DISTRO_ID" == "void" ]] && ! step_is_complete greeter-panel-blur-v3; then
     run_stateful_step greeter-panel-blur-v3 \

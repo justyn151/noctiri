@@ -3,6 +3,8 @@
 This installer was generated from the supplied `setup-export.tar.gz`.
 
 Sanitization/portability changes:
+- Installed `xdg-user-dirs` and added a resumable setup stage that creates or refreshes the standard
+  Desktop, Documents, Downloads, Music, Pictures, Public, Templates, and Videos directories.
 - Added `~/.local/bin` to login/interactive shells and the greetd-launched Niri environment. Added
   Pywalfox as a user-disableable Firefox policy extension, enabled Noctalia's community template,
   and installed Noctalia v5's native messaging host without the obsolete Python daemon.

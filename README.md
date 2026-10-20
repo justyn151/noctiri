@@ -9,6 +9,7 @@ Core desktop:
 - Niri
 - Noctalia
 - greetd + Noctalia Greeter
+- Standard XDG home folders (`Desktop`, `Documents`, `Downloads`, `Music`, `Pictures`, `Public`, `Templates`, and `Videos`)
 - XWayland Satellite
 - PipeWire + WirePlumber
 - XDG portals (GNOME + GTK + KDE)
