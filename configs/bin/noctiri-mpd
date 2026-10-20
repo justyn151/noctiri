@@ -8,5 +8,6 @@ mkdir -p \
     "$HOME/Music" \
     "$HOME/.local/share/mpd/playlists" \
     "$HOME/.local/state/mpd"
+touch "$HOME/.local/state/mpd/state"
 
 exec mpd --no-daemon "$HOME/.config/mpd/mpd.conf"

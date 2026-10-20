@@ -113,6 +113,11 @@ install_rmpc_release_binary() {
     rm -rf "$tmp"
 }
 
+mpd_is_ready() {
+    pgrep -u "$(id -u)" -x mpd >/dev/null 2>&1 \
+        && timeout 1 bash -c 'exec 3<>/dev/tcp/127.0.0.1/6600' >/dev/null 2>&1
+}
+
 install_rmpc_stack() {
     log "Installing rmpc and its per-user MPD backend"
     export PATH="$HOME/.local/bin:$PATH"
@@ -138,6 +143,7 @@ install_rmpc_stack() {
         "$HOME/.local/share/mpd/playlists" \
         "$HOME/.local/state/mpd" \
         "$HOME/.config/rmpc"
+    touch "$HOME/.local/state/mpd/state"
 
     if [[ ! -s "$HOME/.config/rmpc/config.ron" ]]; then
         local generated_config
@@ -149,19 +155,19 @@ install_rmpc_stack() {
         ok "Preserved the existing rmpc configuration"
     fi
 
-    if ! pgrep -u "$(id -u)" -x mpd >/dev/null 2>&1; then
+    if ! mpd_is_ready; then
         import_graphical_session_environment
         "$HOME/.local/bin/noctiri-mpd" >/dev/null 2>&1 &
         local attempt
-        for attempt in {1..20}; do
-            pgrep -u "$(id -u)" -x mpd >/dev/null 2>&1 && break
+        for attempt in {1..50}; do
+            mpd_is_ready && break
             sleep 0.1
         done
     fi
 
     have rmpc || die "rmpc was installed but is not on PATH"
-    pgrep -u "$(id -u)" -x mpd >/dev/null 2>&1 \
-        || die "MPD did not start; inspect $HOME/.local/state/mpd/mpd.log"
+    sleep 0.25
+    mpd_is_ready || die "MPD did not become ready on 127.0.0.1:6600; inspect $HOME/.local/state/mpd/mpd.log"
     ok "Installed rmpc with a PipeWire-backed user MPD session"
 }
 
