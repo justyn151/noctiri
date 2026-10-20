@@ -165,11 +165,18 @@ Noctalia:
 ./install.sh --services-only
 ```
 
-On Void, this enables D-Bus, NetworkManager, and Bluetooth runit services; adds the login user to
-the required groups; enables WirePlumber, PipeWire's PulseAudio interface, XDG autostart, and ALSA
-integration; enables persistent screen-brightness save/restore; and checks all three stacks. If
-another network manager is active, the installer asks before switching because doing so can briefly
-disconnect the machine.
+On Void, this enables D-Bus and Bluetooth runit services; adds the login user to the required groups;
+enables WirePlumber, PipeWire's PulseAudio interface, XDG autostart, and ALSA integration; enables
+persistent screen-brightness save/restore; and checks the repaired services. During a full install,
+the NetworkManager handoff is deliberately postponed until Flatpak, wallpaper, and Spicetify
+downloads are finished. If another network manager is active, the installer asks before switching
+because doing so can briefly disconnect the machine. Declining leaves the existing connection alone
+and keeps the handoff available on a later run.
+
+The Void source build of Noctalia Greeter also applies Noctiri's animated password dots and glass
+styling: the wallpaper is softly blurred on the GPU while the login card remains translucent and its
+text stays sharp. The installer never restarts greetd automatically, so the new appearance is picked
+up at the next normal logout or reboot.
 
 ## Optional DWL preview (Void)
 

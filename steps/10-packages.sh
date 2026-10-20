@@ -217,9 +217,8 @@ configure_fedora_connectivity_audio() {
 }
 
 configure_void_connectivity_audio() {
-    log "Configuring Void Wi-Fi, Bluetooth, and PipeWire"
+    log "Configuring Void Bluetooth, PipeWire, and brightness persistence"
     enable_void_service dbus
-    configure_void_networkmanager
     enable_void_service bluetoothd
 
     add_user_to_group_if_present network
@@ -229,7 +228,15 @@ configure_void_connectivity_audio() {
 
     configure_void_pipewire
     configure_void_brightness_persistence
-    verify_connectivity_audio
+    verify_connectivity_audio false
+}
+
+finish_void_networkmanager_handoff() {
+    [[ "$DISTRO_ID" == "void" ]] || return 0
+
+    log "Finishing the Void NetworkManager handoff"
+    configure_void_networkmanager || return $?
+    verify_networkmanager
 }
 
 configure_void_brightness_persistence() {
@@ -270,15 +277,16 @@ configure_void_networkmanager() {
 
     if (( ${#conflicts[@]} > 0 )); then
         warn "NetworkManager conflicts with enabled service(s): ${conflicts[*]}"
-        if ask_yes_no "Switch networking to NetworkManager now? This may briefly disconnect the network." n; then
+        if ask_yes_no "All downloads are complete. Switch networking to NetworkManager now? This may briefly disconnect the network." n; then
             for service in "${conflicts[@]}"; do
                 sudo sv down "$service" >/dev/null 2>&1 || true
                 sudo unlink "/var/service/$service"
                 ok "Disabled the conflicting $service service"
             done
         else
-            warn "NetworkManager was not enabled; Noctalia's Wi-Fi widget will remain unavailable."
-            return 0
+            warn "NetworkManager was not enabled; the handoff can be retried with ./install.sh --services-only."
+            warn "Noctalia's Wi-Fi widget will remain unavailable until the handoff is completed."
+            return "$STEP_DEFERRED"
         fi
     fi
     enable_void_service NetworkManager
@@ -479,10 +487,9 @@ ensure_system_symlink() {
 }
 
 verify_connectivity_audio() {
-    if have nmcli && run_service_probe nmcli general status >/dev/null 2>&1; then
-        ok "NetworkManager is responding"
-    else
-        warn "NetworkManager is not responding yet"
+    local verify_network="${1:-true}"
+    if [[ "$verify_network" == "true" ]]; then
+        verify_networkmanager
     fi
     if have bluetoothctl && run_service_probe bluetoothctl list >/dev/null 2>&1; then
         ok "BlueZ is responding"
@@ -500,6 +507,14 @@ verify_connectivity_audio() {
         ok "PipeWire's PulseAudio compatibility server is responding"
     else
         warn "PipeWire's PulseAudio compatibility server did not respond within 5 seconds"
+    fi
+}
+
+verify_networkmanager() {
+    if have nmcli && run_service_probe nmcli general status >/dev/null 2>&1; then
+        ok "NetworkManager is responding"
+    else
+        warn "NetworkManager is not responding yet"
     fi
 }
 
@@ -540,6 +555,9 @@ repair_void_runtime() {
     sudo xbps-install -y mesa-dri dbus elogind seatd
     configure_void_runtime
     repair_connectivity_audio
+    local network_status=0
+    finish_void_networkmanager_handoff || network_status=$?
+    (( network_status == 0 || network_status == STEP_DEFERRED )) || return "$network_status"
     configure_niri_gpu_override
     configure_greeter
 }
@@ -629,7 +647,7 @@ install_noctalia_greeter_void() {
         sudo meson install -C build-release
     )
     rm -rf "$tmp"
-    mark_step_complete greeter-password-animation-v1
+    mark_step_complete greeter-glass-v2
 }
 
 install_bibata_cursor_void() {

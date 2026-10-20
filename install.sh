@@ -96,6 +96,10 @@ fi
 if [[ "$MODE" == "services" ]]; then
     printf '\nServices-only mode: the desktop stack and personal configuration will not be rebuilt.\n\n'
     repair_connectivity_audio
+    if [[ "$DISTRO_ID" == "void" ]]; then
+        run_stateful_step networkmanager-handoff-void-v1 \
+            "Void NetworkManager handoff" finish_void_networkmanager_handoff true
+    fi
     printf '\nWi-Fi, Bluetooth, audio, and brightness persistence repaired. Log out and back in once if group membership or PipeWire changed.\n'
     exit 0
 fi
@@ -144,10 +148,10 @@ else
     run_stateful_step "$package_step" "System packages and desktop builds" install_packages
 fi
 
-run_stateful_step "services-$DISTRO_ID" "Wi-Fi, Bluetooth, PipeWire, and brightness persistence setup" repair_connectivity_audio
-if [[ "$DISTRO_ID" == "void" ]] && ! step_is_complete greeter-password-animation-v1; then
-    run_stateful_step greeter-password-animation-v1 \
-        "Noctalia Greeter password animation build" install_noctalia_greeter_void
+run_stateful_step "services-core-v2-$DISTRO_ID" "Bluetooth, PipeWire, and brightness persistence setup" repair_connectivity_audio
+if [[ "$DISTRO_ID" == "void" ]] && ! step_is_complete greeter-glass-v2; then
+    run_stateful_step greeter-glass-v2 \
+        "Noctalia Greeter animation and glass-effect build" install_noctalia_greeter_void
 fi
 run_stateful_step fantasque-system-font-v1 "Fantasque Sans Mono system font" install_fantasque_system_font
 run_stateful_step neovim-editor-v2 "Neovim editor, beam cursor, and Vim removal" install_neovim_editor
@@ -160,4 +164,8 @@ run_stateful_step flatpaks "Flatpak applications" install_flatpaks
 run_stateful_step wallpapers "Wallpaper collections" configure_wallpapers
 run_stateful_step greeter-v2 "greetd and animated Noctalia Greeter configuration" configure_greeter
 run_stateful_step spicetify "Spicetify setup" install_spicetify
+if [[ "$DISTRO_ID" == "void" ]]; then
+    run_stateful_step networkmanager-handoff-void-v1 \
+        "Void NetworkManager handoff" finish_void_networkmanager_handoff
+fi
 finalize_setup
