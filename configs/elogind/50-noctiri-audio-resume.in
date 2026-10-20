@@ -21,7 +21,7 @@ fi
 # with the original user D-Bus and XDG runtime environment.
 if [ -d "/run/user/$user_uid" ]; then
     pkill -TERM -u "$user_uid" -x wireplumber >/dev/null 2>&1 || true
-    pkill -TERM -u "$user_uid" -x pipewire-pulse >/dev/null 2>&1 || true
+    pkill -TERM -u "$user_uid" -f '(^|/)pipewire -c pipewire-pulse\.conf$' >/dev/null 2>&1 || true
     pkill -TERM -u "$user_uid" -x pipewire >/dev/null 2>&1 || true
 fi
 

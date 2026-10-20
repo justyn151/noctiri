@@ -11,21 +11,19 @@ exec 9>"$runtime_dir/noctiri-audio-session.lock"
 flock -n 9 || exit 0
 
 stop_orphaned_children() {
-    local process attempts=0
-    for process in wireplumber pipewire-pulse; do
-        pkill -TERM -u "$uid" -x "$process" >/dev/null 2>&1 || true
-    done
+    local attempts=0
+    pkill -TERM -u "$uid" -x wireplumber >/dev/null 2>&1 || true
+    pkill -TERM -u "$uid" -f '(^|/)pipewire -c pipewire-pulse\.conf$' >/dev/null 2>&1 || true
     while (( attempts < 30 )); do
         if ! pgrep -u "$uid" -x wireplumber >/dev/null 2>&1 \
-            && ! pgrep -u "$uid" -x pipewire-pulse >/dev/null 2>&1; then
+            && ! pgrep -u "$uid" -f '(^|/)pipewire -c pipewire-pulse\.conf$' >/dev/null 2>&1; then
             return 0
         fi
         sleep 0.1
         ((attempts += 1))
     done
-    for process in wireplumber pipewire-pulse; do
-        pkill -KILL -u "$uid" -x "$process" >/dev/null 2>&1 || true
-    done
+    pkill -KILL -u "$uid" -x wireplumber >/dev/null 2>&1 || true
+    pkill -KILL -u "$uid" -f '(^|/)pipewire -c pipewire-pulse\.conf$' >/dev/null 2>&1 || true
 }
 
 clean_stale_sockets() {
@@ -42,8 +40,8 @@ clean_stale_sockets() {
 
 audio_stack_healthy() {
     pgrep -u "$uid" -x wireplumber >/dev/null 2>&1 \
-        && pgrep -u "$uid" -x pipewire-pulse >/dev/null 2>&1 \
-        && timeout 2 pw-cli info 0 >/dev/null 2>&1
+        && timeout 2 pw-cli info 0 >/dev/null 2>&1 \
+        && timeout 2 pactl info >/dev/null 2>&1
 }
 
 while :; do
