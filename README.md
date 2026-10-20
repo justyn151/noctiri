@@ -174,9 +174,9 @@ because doing so can briefly disconnect the machine. Declining leaves the existi
 and keeps the handoff available on a later run.
 
 The Void source build of Noctalia Greeter also applies Noctiri's animated password dots and glass
-styling: the wallpaper is softly blurred on the GPU while the login card remains translucent and its
-text stays sharp. The installer never restarts greetd automatically, so the new appearance is picked
-up at the next normal logout or reboot.
+styling: only the wallpaper area directly behind the translucent login card is softly blurred on the
+GPU; the rest of the background and the card's text stay sharp. The installer never restarts greetd
+automatically, so the new appearance is picked up at the next normal logout or reboot.
 
 ## Optional DWL preview (Void)
 
@@ -265,8 +265,8 @@ stable upstream release using the upstream-documented Void dependencies. The ins
 - installs the known-good greetd config,
 - pins Niri as the startup session so another discovered or remembered desktop is not selected by
   default,
-- uses Noctalia's random-shape password mask and, on Void's source build, gives each newly typed
-  glyph a short fade-and-spring animation,
+- uses Noctalia's regular circular password mask and, on Void's source build, gives each newly typed
+  circle a short fade-and-spring animation,
 - runs greetd on VT7 on Void, leaving tty1 available as a recovery console,
 - enables the constrained passwordless appearance-sync rule for the current user,
 - enables greetd for the next boot on Fedora; Void activation is left as an explicit TTY step so the

@@ -647,7 +647,7 @@ install_noctalia_greeter_void() {
         sudo meson install -C build-release
     )
     rm -rf "$tmp"
-    mark_step_complete greeter-glass-v2
+    mark_step_complete greeter-panel-blur-v3
 }
 
 install_bibata_cursor_void() {

@@ -149,8 +149,8 @@ else
 fi
 
 run_stateful_step "services-core-v2-$DISTRO_ID" "Bluetooth, PipeWire, and brightness persistence setup" repair_connectivity_audio
-if [[ "$DISTRO_ID" == "void" ]] && ! step_is_complete greeter-glass-v2; then
-    run_stateful_step greeter-glass-v2 \
+if [[ "$DISTRO_ID" == "void" ]] && ! step_is_complete greeter-panel-blur-v3; then
+    run_stateful_step greeter-panel-blur-v3 \
         "Noctalia Greeter animation and glass-effect build" install_noctalia_greeter_void
 fi
 run_stateful_step fantasque-system-font-v1 "Fantasque Sans Mono system font" install_fantasque_system_font

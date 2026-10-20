@@ -135,8 +135,8 @@ pin_greeter_session() {
 
 configure_greeter_password_style() {
     set_protected_greeter_toml_value \
-        /var/lib/noctalia-greeter/greeter.toml appearance password_style random
-    ok "Enabled Noctalia Greeter's animated random-shape password feedback"
+        /var/lib/noctalia-greeter/greeter.toml appearance password_style default
+    ok "Enabled Noctalia Greeter's animated circular password feedback"
 }
 
 enable_passwordless_greeter_sync() {
