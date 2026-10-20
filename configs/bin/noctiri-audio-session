@@ -66,7 +66,9 @@ while :; do
     stop_orphaned_children
     clean_stale_sockets
     printf '\n[%s] Starting PipeWire session\n' "$(date -Is)" >> "$log_path"
-    pipewire >> "$log_path" 2>&1 &
+    # Keep the singleton lock owned by this supervisor only. Audio children
+    # must not inherit fd 9 or an orphan could prevent a replacement supervisor.
+    pipewire 9>&- >> "$log_path" 2>&1 &
     pipewire_pid=$!
     failures=0
     while kill -0 "$pipewire_pid" >/dev/null 2>&1; do
