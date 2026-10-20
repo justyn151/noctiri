@@ -611,6 +611,11 @@ install_noctalia_greeter_void() {
     )
     sudo xbps-install -y "${build_pkgs[@]}"
 
+    # The greeter also links nlohmann_json. Keep this here even though the
+    # Noctalia build installs it too, because greeter repair/rebuild is a
+    # standalone stateful step and may run after package builds were skipped.
+    install_nlohmann_json_void
+
     log "Building the latest stable Noctalia Greeter release"
     local tmp src
     tmp="$(mktemp -d)"
