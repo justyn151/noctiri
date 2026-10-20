@@ -51,7 +51,7 @@ install_tectonic_release_binary() {
 }
 
 install_document_stack() {
-    log "Installing Sioyek and the compact Tectonic LaTeX engine"
+    log "Installing Sioyek, TexLab, Node.js, and the compact Tectonic LaTeX engine"
     case "$DISTRO_ID" in
         fedora)
             # Fedora does not currently ship either application in its base

@@ -36,7 +36,7 @@ case "${1:-}" in
         printf '  --zsh-only         Install Zsh, suggestions/highlighting, and smooth Kitty cursor settings\n'
         printf '  --dwl-only         Install the optional Void DWL + Foot + Somebar preview\n'
         printf '  --font-only        Install and apply Fantasque Sans Mono across the desktop\n'
-        printf '  --documents-only   Install Sioyek and the compact Tectonic LaTeX toolchain\n'
+        printf '  --documents-only   Install Sioyek, CoC/TexLab, and compact Tectonic LaTeX support\n'
         exit 0
         ;;
     *) die "Unknown option: $1 (try --help)" ;;
@@ -96,12 +96,12 @@ if [[ "$MODE" == "font" ]]; then
 fi
 
 if [[ "$MODE" == "documents" ]]; then
-    printf '\nDocuments-only mode: installing Sioyek and compact on-demand LaTeX support.\n\n'
+    printf '\nDocuments-only mode: installing Sioyek, CoC/TexLab, and compact on-demand LaTeX support.\n\n'
     install_document_stack
     install_neovim_integration
     set_pdf_default
     printf '\n\033[1;32mDocument setup complete.\033[0m\n'
-    printf 'In a TeX buffer, save to compile and open the refreshed PDF in Sioyek.\n'
+    printf 'In a complete TeX buffer, save to compile and open the refreshed PDF in Sioyek.\n'
     exit 0
 fi
 
