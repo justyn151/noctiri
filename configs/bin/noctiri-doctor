@@ -94,6 +94,11 @@ runit_service_check() {
     status="$(sv status "/var/service/$service" 2>/dev/null || true)"
     if [[ "$status" == run:* ]]; then
         pass "runit service $service is running"
+    elif pgrep -f "^runsv ${service}$" >/dev/null 2>&1; then
+        # Void may make supervise/ok root-only. A matching runsv process still
+        # confirms that the enabled service is actively supervised; the
+        # service-specific probes below verify its actual functionality.
+        pass "runit is supervising $service (direct status is restricted)"
     elif [[ "$required" == true ]]; then
         fail "runit service $service is enabled but not running"
         NEED_SERVICES=true
@@ -288,7 +293,7 @@ else
 fi
 
 section "Portals, fonts, and home folders"
-if pgrep -u "$(id -u)" -x xdg-desktop-portal >/dev/null 2>&1; then
+if pgrep -u "$(id -u)" -f '/xdg-desktop-portal($| )' >/dev/null 2>&1; then
     pass "XDG desktop portal is running"
 else
     warn "XDG desktop portal is not running"
