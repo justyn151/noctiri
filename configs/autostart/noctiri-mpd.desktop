@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Noctiri MPD
+Comment=Per-user music daemon for rmpc
+Exec=noctiri-mpd
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

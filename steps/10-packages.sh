@@ -90,6 +90,81 @@ install_document_stack() {
     fi
 }
 
+install_rmpc_release_binary() {
+    local arch tag asset tmp binary
+    case "$(uname -m)" in
+        x86_64) arch=x86_64-unknown-linux-gnu ;;
+        aarch64) arch=aarch64-unknown-linux-gnu ;;
+        *) die "No prebuilt rmpc release is available for $(uname -m)" ;;
+    esac
+
+    tag="$({ git ls-remote --refs --tags https://github.com/mierak/rmpc.git 2>/dev/null || true; } \
+        | awk '$2 ~ /^refs\/tags\/v[0-9]+\.[0-9]+\.[0-9]+$/ {sub("refs/tags/", "", $2); print $2}' \
+        | sort -V | tail -n 1)"
+    [[ -n "$tag" ]] || die "Could not determine the latest rmpc release"
+    asset="rmpc-${tag}-${arch}.tar.gz"
+    tmp="$(mktemp -d)"
+    curl -fL --retry 3 -o "$tmp/$asset" \
+        "https://github.com/mierak/rmpc/releases/download/$tag/$asset"
+    tar -xzf "$tmp/$asset" -C "$tmp"
+    binary="$(find "$tmp" -type f -name rmpc -perm -u+x -print -quit)"
+    [[ -n "$binary" ]] || die "The rmpc release archive did not contain its executable"
+    install_file "$binary" "$HOME/.local/bin/rmpc" 0755
+    rm -rf "$tmp"
+}
+
+install_rmpc_stack() {
+    log "Installing rmpc and its per-user MPD backend"
+    export PATH="$HOME/.local/bin:$PATH"
+    case "$DISTRO_ID" in
+        fedora)
+            sudo dnf install -y mpd
+            have rmpc || install_rmpc_release_binary
+            ;;
+        void)
+            sudo xbps-install -Sy rmpc mpd
+            ;;
+        *) die "No rmpc installation implementation for $DISTRO_ID" ;;
+    esac
+
+    render_home_template "$ROOT_DIR/configs/mpd/mpd.conf.in" \
+        "$HOME/.config/mpd/mpd.conf"
+    install_file "$ROOT_DIR/configs/bin/noctiri-mpd" \
+        "$HOME/.local/bin/noctiri-mpd" 0755
+    install_file "$ROOT_DIR/configs/autostart/noctiri-mpd.desktop" \
+        "$HOME/.config/autostart/noctiri-mpd.desktop"
+    mkdir -p \
+        "$HOME/Music" \
+        "$HOME/.local/share/mpd/playlists" \
+        "$HOME/.local/state/mpd" \
+        "$HOME/.config/rmpc"
+
+    if [[ ! -s "$HOME/.config/rmpc/config.ron" ]]; then
+        local generated_config
+        generated_config="$(mktemp)"
+        rmpc config > "$generated_config"
+        install_file "$generated_config" "$HOME/.config/rmpc/config.ron"
+        rm -f "$generated_config"
+    else
+        ok "Preserved the existing rmpc configuration"
+    fi
+
+    if ! pgrep -u "$(id -u)" -x mpd >/dev/null 2>&1; then
+        import_graphical_session_environment
+        "$HOME/.local/bin/noctiri-mpd" >/dev/null 2>&1 &
+        local attempt
+        for attempt in {1..20}; do
+            pgrep -u "$(id -u)" -x mpd >/dev/null 2>&1 && break
+            sleep 0.1
+        done
+    fi
+
+    have rmpc || die "rmpc was installed but is not on PATH"
+    pgrep -u "$(id -u)" -x mpd >/dev/null 2>&1 \
+        || die "MPD did not start; inspect $HOME/.local/state/mpd/mpd.log"
+    ok "Installed rmpc with a PipeWire-backed user MPD session"
+}
+
 install_zsh_shell() {
     log "Installing Zsh and Oh My Zsh"
     case "$DISTRO_ID" in

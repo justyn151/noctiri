@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+if pgrep -u "$(id -u)" -x mpd >/dev/null 2>&1; then
+    exit 0
+fi
+
+mkdir -p \
+    "$HOME/Music" \
+    "$HOME/.local/share/mpd/playlists" \
+    "$HOME/.local/state/mpd"
+
+exec mpd --no-daemon "$HOME/.config/mpd/mpd.conf"

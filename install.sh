@@ -24,8 +24,9 @@ case "${1:-}" in
     --dwl-only) MODE=dwl ;;
     --font-only) MODE=font ;;
     --documents-only) MODE=documents ;;
+    --music-only) MODE=music ;;
     -h|--help)
-        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --firefox-only | --zsh-only | --dwl-only | --font-only | --documents-only]\n' "$0"
+        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --firefox-only | --zsh-only | --dwl-only | --font-only | --documents-only | --music-only]\n' "$0"
         printf '  --wallpapers-only  Install or update wallpaper collections without rerunning setup\n'
         printf '  --spicetify-only   Install Spotify if needed, then finish Spicetify setup\n'
         printf '  --greeter-only     Repair greetd/Noctalia Greeter configuration without rebuilding\n'
@@ -37,6 +38,7 @@ case "${1:-}" in
         printf '  --dwl-only         Install the optional Void DWL + Foot + Somebar preview\n'
         printf '  --font-only        Install and apply Fantasque Sans Mono across the desktop\n'
         printf '  --documents-only   Install Sioyek, CoC/TexLab, and compact Tectonic LaTeX support\n'
+        printf '  --music-only       Install rmpc and a per-user PipeWire-backed MPD service\n'
         exit 0
         ;;
     *) die "Unknown option: $1 (try --help)" ;;
@@ -105,6 +107,15 @@ if [[ "$MODE" == "documents" ]]; then
     exit 0
 fi
 
+if [[ "$MODE" == "music" ]]; then
+    printf '\nMusic-only mode: installing rmpc and its local MPD playback backend.\n\n'
+    install_user_path
+    install_rmpc_stack
+    printf '\n\033[1;32mMusic setup complete.\033[0m\n'
+    printf 'Put local music under ~/Music, then run rmpc in Kitty.\n'
+    exit 0
+fi
+
 if [[ "$MODE" == "services" ]]; then
     printf '\nServices-only mode: the desktop stack and personal configuration will not be rebuilt.\n\n'
     repair_connectivity_audio
@@ -168,6 +179,7 @@ fi
 run_stateful_step fantasque-system-font-v1 "Fantasque Sans Mono system font" install_fantasque_system_font
 run_stateful_step neovim-editor-v3 "Neovim, CoC runtime, beam cursor, and Vim removal" install_neovim_editor
 run_stateful_step document-stack-v3 "Sioyek, TexLab, and compact on-demand LaTeX support" install_document_stack
+run_stateful_step rmpc-mpd-v1 "rmpc and per-user MPD music playback" install_rmpc_stack
 run_stateful_step zsh-ohmyzsh-v2 "Zsh, Oh My Zsh, suggestions, and highlighting" install_zsh_shell
 run_stateful_step configs-v4 "Desktop configuration" install_configs
 run_stateful_step firefox-policy-v4 "Firefox portal and extension policy" merge_firefox_policy

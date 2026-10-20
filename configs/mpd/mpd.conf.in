@@ -1,0 +1,16 @@
+music_directory     "@@HOME@@/Music"
+playlist_directory  "@@HOME@@/.local/share/mpd/playlists"
+db_file             "@@HOME@@/.local/share/mpd/database"
+log_file            "@@HOME@@/.local/state/mpd/mpd.log"
+state_file          "@@HOME@@/.local/state/mpd/state"
+sticker_file        "@@HOME@@/.local/share/mpd/sticker.sql"
+
+bind_to_address "127.0.0.1"
+port "6600"
+auto_update "yes"
+restore_paused "yes"
+
+audio_output {
+    type "pipewire"
+    name "PipeWire"
+}

@@ -159,6 +159,15 @@ the shell:
 
 Log out once after the first installation so terminals and SSH sessions use Zsh by default.
 
+rmpc is installed as the terminal music player together with a per-user MPD daemon. MPD scans
+`~/Music`, sends audio directly to PipeWire, and starts through the graphical session's XDG
+autostart support. The installer preserves an existing `~/.config/rmpc/config.ron`; on a new setup,
+run `rmpc` in Kitty and use its default Vim-style controls. To install or repair only this stack:
+
+```bash
+./install.sh --music-only
+```
+
 The installer also adds `~/.local/bin` to interactive/login shell startup and to the graphical Niri
 session. Log out and back in once after applying this to an existing installation so every desktop
 application inherits the updated `PATH`.
