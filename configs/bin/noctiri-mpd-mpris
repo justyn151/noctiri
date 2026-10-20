@@ -13,7 +13,8 @@ cleanup() {
     rmdir "$lock_dir" 2>/dev/null || true
 }
 trap cleanup EXIT
-trap 'exit 0' HUP INT TERM
+trap '' HUP
+trap 'exit 0' INT TERM
 
 # mpd-mpris exits when MPD disconnects. Keep the bridge supervised so a brief
 # MPD restart or suspend/resume cycle does not permanently remove it from the bar.

@@ -209,7 +209,7 @@ install_rmpc_stack() {
     mpd_is_ready || die "MPD did not become ready on 127.0.0.1:6600; inspect $HOME/.local/state/mpd/mpd.log"
     import_graphical_session_environment
     if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
-        "$HOME/.local/bin/noctiri-mpd-mpris" >/dev/null 2>&1 &
+        nohup "$HOME/.local/bin/noctiri-mpd-mpris" >/dev/null 2>&1 &
         local mpris_attempt
         for mpris_attempt in {1..50}; do
             if timeout 1 playerctl -l 2>/dev/null | grep -Eq '^mpd([.]|$)'; then
