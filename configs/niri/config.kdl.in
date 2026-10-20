@@ -464,11 +464,14 @@ binds {
     Mod+Up    { focus-window-up; }
     Mod+Down  { focus-window-down; }
 
-    // Move the focused column/window with Super+Shift + arrow keys.
+    // Move columns horizontally, send the focused window between workspaces
+    // vertically, or reorder a stacked window with Super+Ctrl+Up/Down.
     Mod+Shift+Left  { move-column-left; }
     Mod+Shift+Right { move-column-right; }
-    Mod+Shift+Up    { move-window-up; }
-    Mod+Shift+Down  { move-window-down; }
+    Mod+Shift+Up    { move-window-to-workspace-up; }
+    Mod+Shift+Down  { move-window-to-workspace-down; }
+    Mod+Ctrl+Up     { move-window-up; }
+    Mod+Ctrl+Down   { move-window-down; }
 
     // Alternative commands that move across workspaces when reaching
     // the first or last window in a column.

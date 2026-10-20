@@ -51,7 +51,8 @@ ShellRoot {
 
     readonly property var movement: [
         { combo: "Super + Shift + Left / Right", action: "Move the focused column" },
-        { combo: "Super + Shift + Up / Down", action: "Move the focused stacked window" },
+        { combo: "Super + Shift + Up / Down", action: "Send window to the workspace above / below" },
+        { combo: "Super + Ctrl + Up / Down", action: "Move a stacked window vertically" },
         { combo: "Super + Ctrl + Home / End", action: "Move column to the first or last position" },
         { combo: "Super + Ctrl + Page Up / Down", action: "Send column to another workspace" },
         { combo: "Super + Ctrl + 1…9", action: "Send column directly to a workspace" },
