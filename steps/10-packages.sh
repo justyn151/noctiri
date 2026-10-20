@@ -8,17 +8,17 @@ install_packages() {
 }
 
 install_neovim_editor() {
-    log "Installing Neovim and Wayland clipboard support"
+    log "Installing Neovim, the CoC runtime, and Wayland clipboard support"
     case "$DISTRO_ID" in
         fedora)
-            sudo dnf install -y neovim wl-clipboard
+            sudo dnf install -y neovim nodejs wl-clipboard
             if rpm -q vim-enhanced >/dev/null 2>&1; then
                 sudo dnf remove -y vim-enhanced
                 ok "Removed the legacy Vim package"
             fi
             ;;
         void)
-            sudo xbps-install -Sy neovim wl-clipboard
+            sudo xbps-install -Sy neovim nodejs wl-clipboard
             if xbps-query -e vim >/dev/null 2>&1; then
                 sudo xbps-remove -y vim
                 ok "Removed the legacy Vim package"
@@ -60,7 +60,7 @@ install_document_stack() {
             if ! have tectonic; then
                 install_tectonic_release_binary
             fi
-            sudo dnf install -y flatpak
+            sudo dnf install -y flatpak nodejs
             ensure_system_flathub
             sudo flatpak install --system -y flathub com.github.ahrm.sioyek
             flatpak override --user --filesystem=home com.github.ahrm.sioyek
@@ -70,7 +70,7 @@ install_document_stack() {
         void)
             # Tectonic is about 18 MiB on Void and downloads only the TeX
             # resources a document uses; texlive-core is several gigabytes.
-            sudo xbps-install -Sy tectonic sioyek
+            sudo xbps-install -Sy tectonic sioyek texlab nodejs
             ;;
         *) die "No document stack implementation for $DISTRO_ID" ;;
     esac

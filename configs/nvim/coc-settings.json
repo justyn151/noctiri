@@ -1,0 +1,16 @@
+{
+  "suggest.enablePreselect": false,
+  "suggest.noselect": true,
+  "diagnostic.checkCurrentLine": true,
+  "texlab.build.executable": "tectonic",
+  "texlab.build.args": [
+    "--synctex",
+    "--keep-logs",
+    "--keep-intermediates",
+    "--outdir=.",
+    "%f"
+  ],
+  "texlab.build.onSave": false,
+  "texlab.build.forwardSearchAfter": false,
+  "texlab.auxDirectory": "."
+}

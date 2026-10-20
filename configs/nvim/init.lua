@@ -16,6 +16,8 @@ vim.opt.hlsearch = true
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
 vim.opt.hidden = true
+vim.opt.updatetime = 300
+vim.opt.signcolumn = "yes"
 
 local map = vim.keymap.set
 map("n", "<leader>n", function()
@@ -63,8 +65,6 @@ vim.api.nvim_create_autocmd("FileType", {
     group = tex_group,
     pattern = "tex",
     callback = function(args)
-        vim.bo[args.buf].omnifunc = "vimtex#complete#omnifunc"
-        vim.bo[args.buf].autocomplete = false
         vim.b[args.buf].noctiri_tex_live = true
 
         map("n", "<localleader>lx", function()
@@ -80,8 +80,17 @@ vim.api.nvim_create_autocmd("FileType", {
             vim.cmd("silent update")
             vim.cmd("VimtexCompileSS")
         end, { buffer = args.buf, desc = "Build TeX once" })
-        map("n", "<localleader>lv", "<cmd>VimtexView<CR>",
-            { buffer = args.buf, desc = "Open TeX PDF viewer" })
+        map("n", "<localleader>lv", function()
+            local ok, pdf = pcall(vim.fn.eval, "b:vimtex.viewer.out()")
+            if not ok or pdf == "" or vim.fn.filereadable(pdf) == 0 then
+                vim.notify(
+                    "No PDF exists yet. Finish the document, build with Space l b, then check :VimtexErrors if it fails.",
+                    vim.log.levels.ERROR
+                )
+                return
+            end
+            vim.cmd("VimtexView")
+        end, { buffer = args.buf, desc = "Open compiled TeX PDF" })
     end,
 })
 
@@ -99,15 +108,42 @@ if vim.fn.executable("tectonic") == 1 then
     })
     vim.api.nvim_create_autocmd("User", {
         group = tex_group,
-        pattern = "VimtexEventCompileSuccess",
+        pattern = "VimtexEventCompileFailed",
         callback = function()
-            if vim.fn.executable("sioyek") == 1 then
-                vim.cmd("silent VimtexView")
-            end
+            vim.notify("TeX build failed. Run :VimtexErrors for the compiler errors.", vim.log.levels.ERROR)
         end,
-        desc = "Refresh the compiled PDF in Sioyek",
+        desc = "Explain failed TeX builds",
     })
 end
+
+vim.g.coc_global_extensions = { "coc-texlab" }
+
+vim.cmd([[
+function! CheckBackspace() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1] =~# '\s'
+endfunction
+
+inoremap <silent><expr> <Tab>
+      \ coc#pum#visible() ? coc#pum#next(1) :
+      \ CheckBackspace() ? "\<Tab>" :
+      \ coc#refresh()
+inoremap <silent><expr> <S-Tab>
+      \ coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
+inoremap <silent><expr> <CR>
+      \ coc#pum#visible() ? coc#pum#confirm() :
+      \ "\<C-g>u\<CR>\<C-r>=coc#on_enter()\<CR>"
+inoremap <silent><expr> <C-Space> coc#refresh()
+]])
+
+map("n", "gd", "<Plug>(coc-definition)", { silent = true, remap = true, desc = "Go to definition" })
+map("n", "gr", "<Plug>(coc-references)", { silent = true, remap = true, desc = "Find references" })
+map("n", "[d", "<Plug>(coc-diagnostic-prev)", { silent = true, remap = true, desc = "Previous diagnostic" })
+map("n", "]d", "<Plug>(coc-diagnostic-next)", { silent = true, remap = true, desc = "Next diagnostic" })
+map("n", "<leader>rn", "<Plug>(coc-rename)", { silent = true, remap = true, desc = "Rename symbol" })
+map("n", "K", function()
+    vim.fn.CocActionAsync("doHover")
+end, { silent = true, desc = "Show documentation" })
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 local uv = vim.uv or vim.loop
@@ -131,56 +167,9 @@ if lazy_ok then
         { "junegunn/fzf.vim", dependencies = { "junegunn/fzf" }, lazy = false },
         { "octol/vim-cpp-enhanced-highlight", ft = { "c", "cpp" } },
         {
-            "hrsh7th/nvim-cmp",
-            event = "InsertEnter",
-            dependencies = {
-                "hrsh7th/cmp-buffer",
-                "hrsh7th/cmp-path",
-                "hrsh7th/cmp-omni",
-            },
-            config = function()
-                local cmp = require("cmp")
-                vim.opt.completeopt = { "menu", "menuone", "noselect" }
-                cmp.setup({
-                    snippet = {
-                        expand = function(args)
-                            vim.snippet.expand(args.body)
-                        end,
-                    },
-                    mapping = cmp.mapping.preset.insert({
-                        ["<C-Space>"] = cmp.mapping.complete(),
-                        ["<C-e>"] = cmp.mapping.abort(),
-                        ["<Tab>"] = cmp.mapping(function(fallback)
-                            if cmp.visible() then
-                                cmp.select_next_item()
-                            else
-                                fallback()
-                            end
-                        end, { "i", "s" }),
-                        ["<S-Tab>"] = cmp.mapping(function(fallback)
-                            if cmp.visible() then
-                                cmp.select_prev_item()
-                            else
-                                fallback()
-                            end
-                        end, { "i", "s" }),
-                        ["<CR>"] = cmp.mapping.confirm({ select = false }),
-                    }),
-                    sources = cmp.config.sources({
-                        { name = "path" },
-                    }, {
-                        { name = "buffer", keyword_length = 3 },
-                    }),
-                })
-                local tex_sources = cmp.config.sources({
-                    { name = "omni" },
-                }, {
-                    { name = "path" },
-                    { name = "buffer", keyword_length = 3 },
-                })
-                cmp.setup.filetype("tex", { sources = tex_sources })
-                cmp.setup.filetype("plaintex", { sources = tex_sources })
-            end,
+            "neoclide/coc.nvim",
+            branch = "release",
+            lazy = false,
         },
         {
             "akinsho/toggleterm.nvim",

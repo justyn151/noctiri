@@ -263,6 +263,8 @@ install_yazi_integration() {
 install_neovim_integration() {
     install_file "$ROOT_DIR/configs/nvim/init.lua" \
         "$HOME/.config/nvim/init.lua"
+    install_file "$ROOT_DIR/configs/nvim/coc-settings.json" \
+        "$HOME/.config/nvim/coc-settings.json"
     install_file "$ROOT_DIR/configs/noctalia/nvim-template.toml" \
         "$HOME/.config/noctalia/31-nvim-template.toml"
     install_file "$ROOT_DIR/configs/noctalia/templates/nvim-colors.lua" \

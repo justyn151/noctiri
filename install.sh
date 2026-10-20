@@ -166,10 +166,10 @@ if [[ "$DISTRO_ID" == "void" ]] && ! step_is_complete greeter-panel-blur-v3; the
         "Noctalia Greeter animation and glass-effect build" install_noctalia_greeter_void
 fi
 run_stateful_step fantasque-system-font-v1 "Fantasque Sans Mono system font" install_fantasque_system_font
-run_stateful_step neovim-editor-v2 "Neovim editor, beam cursor, and Vim removal" install_neovim_editor
-run_stateful_step document-stack-v1 "Sioyek and compact on-demand LaTeX support" install_document_stack
+run_stateful_step neovim-editor-v3 "Neovim, CoC runtime, beam cursor, and Vim removal" install_neovim_editor
+run_stateful_step document-stack-v2 "Sioyek, TexLab, and compact on-demand LaTeX support" install_document_stack
 run_stateful_step zsh-ohmyzsh-v2 "Zsh, Oh My Zsh, suggestions, and highlighting" install_zsh_shell
-run_stateful_step configs-v3 "Desktop configuration" install_configs
+run_stateful_step configs-v4 "Desktop configuration" install_configs
 run_stateful_step firefox-policy-v4 "Firefox portal and extension policy" merge_firefox_policy
 run_stateful_step pywalfox "Noctalia Pywalfox native host" configure_pywalfox
 run_stateful_step default-apps-v2 "Default application associations" set_default_apps

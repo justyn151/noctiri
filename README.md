@@ -122,16 +122,20 @@ FZF, C++ highlighting, VimTeX, and TeX completion behavior while dropping every 
 colorscheme plugin. Noctalia renders `~/.config/nvim/colors/noctalia.lua` from the active wallpaper,
 and Neovim loads that palette as its only colorscheme. It uses a thin blinking beam in every mode;
 the installer also removes the old `vim`/`vim-enhanced` package. `EDITOR` and `VISUAL` are set to `nvim`.
-Completion is handled by `nvim-cmp` with VimTeX's omnifunc, file paths, and buffer words; `Tab` and
-`Shift+Tab` move through suggestions, `Enter` accepts an explicitly selected suggestion, and
-`Ctrl+Space` opens completion manually. ToggleTerm provides persistent floating and split terminals:
+Completion, diagnostics, symbol navigation, and LaTeX intelligence are handled by CoC with the
+`coc-texlab` extension. `Tab` and `Shift+Tab` move through suggestions, `Enter` accepts an explicitly
+selected suggestion, and `Ctrl+Space` opens completion manually. `gd` jumps to a definition, `gr`
+finds references, `[d`/`]d` move through diagnostics, and `Space+r,n` renames a symbol. ToggleTerm
+provides persistent floating and split terminals:
 `Space+t` opens the float, `Space+v,t` opens a vertical terminal, `Space+h,t` opens a horizontal one,
 and `Ctrl+\` toggles the active terminal from normal or terminal mode.
-Sioyek is the PDF default and VimTeX viewer. Saving a TeX buffer runs a single Tectonic build and
-opens or refreshes Sioyek with SyncTeX support. Run `./install.sh --documents-only` to install or
-repair only this lightweight document stack.
+Sioyek is the PDF default and VimTeX viewer. Saving a complete TeX buffer runs a single Tectonic
+build and opens or refreshes Sioyek with SyncTeX support. TexLab supplies editing intelligence but
+does not launch a second build. Run `./install.sh --documents-only` to install or repair this
+lightweight document stack and its CoC runtime.
 Inside a TeX buffer, `Space+l,x` toggles compile-on-save, `Space+l,b` builds once, and `Space+l,v`
-opens the generated PDF. Compile-on-save starts enabled for each TeX buffer.
+opens the generated PDF. If no readable PDF exists, the viewer shortcut now points to
+`:VimtexErrors` instead of opening an empty viewer. Compile-on-save starts enabled for each TeX buffer.
 
 Firefox receives a deliberately small default extension set through its normal-install policy:
 Pywalfox, uBlock Origin, SponsorBlock, and Ctrl+Number to switch tabs. Normal-installed extensions
