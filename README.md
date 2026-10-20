@@ -36,6 +36,7 @@ Apps:
 - qimgv
 - mpv
 - qpwgraph
+- Steam (native package on x86-64 glibc Void; Flatpak fallback elsewhere)
 - Spotify (Flatpak, installed by the optional Spicetify stage)
 - Vesktop (Flatpak)
 - Spicetify + Marketplace (optional interactive stage)
@@ -118,6 +119,12 @@ To repair only greetd and Noctalia Greeter without reinstalling or rebuilding th
 
 ```bash
 ./install.sh --greeter-only
+```
+
+To install or repair Steam without rerunning the desktop setup:
+
+```bash
+./install.sh --steam-only
 ```
 
 To repair KDE/Qt, btop, Yazi, Neovim, and Firefox color synchronization without reinstalling or rebuilding anything:

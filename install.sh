@@ -25,9 +25,10 @@ case "${1:-}" in
     --font-only) MODE=font ;;
     --documents-only) MODE=documents ;;
     --music-only) MODE=music ;;
+    --steam-only) MODE=steam ;;
     --doctor) MODE=doctor ;;
     -h|--help)
-        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --firefox-only | --zsh-only | --dwl-only | --font-only | --documents-only | --music-only | --doctor]\n' "$0"
+        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --firefox-only | --zsh-only | --dwl-only | --font-only | --documents-only | --music-only | --steam-only | --doctor]\n' "$0"
         printf '  --wallpapers-only  Install or update wallpaper collections without rerunning setup\n'
         printf '  --spicetify-only   Install Spotify if needed, then finish Spicetify setup\n'
         printf '  --greeter-only     Repair greetd/Noctalia Greeter configuration without rebuilding\n'
@@ -40,6 +41,7 @@ case "${1:-}" in
         printf '  --font-only        Install and apply Fantasque Sans Mono across the desktop\n'
         printf '  --documents-only   Install Sioyek, CoC/TexLab, and compact Tectonic LaTeX support\n'
         printf '  --music-only       Install rmpc, PipeWire-backed MPD, and MPRIS bar integration\n'
+        printf '  --steam-only       Install Steam and its required repository/runtime support\n'
         printf '  --doctor           Run read-only Noctiri desktop health checks\n'
         exit 0
         ;;
@@ -122,6 +124,14 @@ if [[ "$MODE" == "music" ]]; then
     exit 0
 fi
 
+if [[ "$MODE" == "steam" ]]; then
+    printf '\nSteam-only mode: installing Steam without rebuilding the desktop.\n\n'
+    install_steam
+    printf '\n\033[1;32mSteam installation complete.\033[0m\n'
+    printf 'Open Steam from the application launcher and sign in.\n'
+    exit 0
+fi
+
 if [[ "$MODE" == "services" ]]; then
     printf '\nServices-only mode: the desktop stack and personal configuration will not be rebuilt.\n\n'
     repair_connectivity_audio
@@ -193,6 +203,7 @@ run_stateful_step configs-v4 "Desktop configuration" install_configs
 run_stateful_step firefox-policy-v4 "Firefox portal and extension policy" merge_firefox_policy
 run_stateful_step pywalfox "Noctalia Pywalfox native host" configure_pywalfox
 run_stateful_step default-apps-v2 "Default application associations" set_default_apps
+run_stateful_step steam-v1 "Steam client and compatibility runtime" install_steam
 run_stateful_step flatpaks "Flatpak applications" install_flatpaks
 run_stateful_step wallpapers "Wallpaper collections" configure_wallpapers
 run_stateful_step greeter-v2 "greetd and animated Noctalia Greeter configuration" configure_greeter

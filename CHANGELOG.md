@@ -3,6 +3,9 @@
 This installer was generated from the supplied `setup-export.tar.gz`.
 
 Sanitization/portability changes:
+- Added a resumable Steam stage and `--steam-only` mode. On x86-64 glibc Void it enables the
+  required nonfree/multilib repositories, installs the native package, and detects Intel, AMD, and
+  Nouveau GPUs for matching 64/32-bit Vulkan support; other systems use the maintained Flathub build.
 - Added a movable, theme-aware Quickshell GUI for `noctiri-doctor`, including summary cards, full
   diagnostic output, and a safe-repair button. Expanded the shortcut window with Desktop, Neovim,
   Yazi, and rmpc tabs sourced from the controls that Noctiri actually installs.
