@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 
+export PATH="$HOME/.local/bin${PATH:+:$PATH}"
 state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/mpd"
 runtime_dir="${XDG_RUNTIME_DIR:-/tmp}"
 lock_dir="$runtime_dir/noctiri-mpd-mpris-$(id -u).lock"
