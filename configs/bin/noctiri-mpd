@@ -10,4 +10,4 @@ mkdir -p \
     "$HOME/.local/state/mpd"
 touch "$HOME/.local/state/mpd/state"
 
-exec mpd --no-daemon "$HOME/.config/mpd/mpd.conf"
+exec mpd "$HOME/.config/mpd/mpd.conf"
