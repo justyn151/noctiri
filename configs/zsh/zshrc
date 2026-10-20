@@ -4,6 +4,25 @@
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="robbyrussell"
 
-plugins=(git)
+# Show useful completions as a selectable menu and match case-insensitively.
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+setopt AUTO_MENU COMPLETE_IN_WORD
+
+# Keep suggestions lightweight: history first, then Zsh completion results.
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
+
+# Syntax highlighting must stay last so it can observe the widgets registered
+# by Oh My Zsh and the autosuggestion plugin.
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
 
 source "$ZSH/oh-my-zsh.sh"
+
+# Emacs-style editing keeps arrows/Home/End familiar; Right accepts a visible
+# autosuggestion one character at a time and End accepts the whole suggestion.
+bindkey -e
+bindkey '^[[H' beginning-of-line
+bindkey '^[[F' end-of-line
+bindkey '^[[1~' beginning-of-line
+bindkey '^[[4~' end-of-line

@@ -25,6 +25,7 @@ configure_greeter() {
 
     if have noctalia-greeter; then
         pin_greeter_session "$greeter_session"
+        configure_greeter_password_style
         enable_passwordless_greeter_sync
     fi
 
@@ -92,7 +93,7 @@ PY
 }
 
 set_protected_greeter_toml_value() {
-    local path="$1" key="$2" value="$3" greeter_group tmp_dir input_file output_file backup_file
+    local path="$1" table="$2" key="$3" value="$4" greeter_group tmp_dir input_file output_file backup_file
     greeter_group="$(id -gn "$GREETER_USER")"
     tmp_dir="$(mktemp -d)"
     input_file="$tmp_dir/input.toml"
@@ -112,7 +113,7 @@ set_protected_greeter_toml_value() {
         : > "$input_file"
     fi
 
-    set_toml_table_value "$input_file" "$output_file" session "$key" "$value"
+    set_toml_table_value "$input_file" "$output_file" "$table" "$key" "$value"
     sudo install -o "$GREETER_USER" -g "$greeter_group" -m 0640 "$output_file" "$path"
     rm -rf "$tmp_dir"
 }
@@ -125,11 +126,17 @@ pin_greeter_session() {
     [[ -n "$selected_session" ]] \
         || die "Noctalia Greeter cannot find the $requested_session session in /usr/share/wayland-sessions/."
 
-    set_protected_greeter_toml_value /var/lib/noctalia-greeter/greeter.toml default "$selected_session"
+    set_protected_greeter_toml_value /var/lib/noctalia-greeter/greeter.toml session default "$selected_session"
     # Also repair the remembered value because Greeter 1.5 has an open bug where
     # session.last can override both the CLI and administrator default.
-    set_protected_greeter_toml_value /var/lib/noctalia-greeter/sync.toml last "$selected_session"
+    set_protected_greeter_toml_value /var/lib/noctalia-greeter/sync.toml session last "$selected_session"
     ok "Pinned Noctalia Greeter's startup session to $selected_session"
+}
+
+configure_greeter_password_style() {
+    set_protected_greeter_toml_value \
+        /var/lib/noctalia-greeter/greeter.toml appearance password_style random
+    ok "Enabled Noctalia Greeter's animated random-shape password feedback"
 }
 
 enable_passwordless_greeter_sync() {

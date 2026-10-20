@@ -118,7 +118,8 @@ Yazi or Neovim after changing palettes so it reloads the rendered theme.
 Neovim replaces Vim in the package set. Its Lua configuration keeps the original navigation,
 terminal, FZF, C++ highlighting, VimTeX, and TeX completion behavior while dropping every fixed
 colorscheme plugin. Noctalia renders `~/.config/nvim/colors/noctalia.lua` from the active wallpaper,
-and Neovim loads that palette as its only colorscheme. `EDITOR` and `VISUAL` are also set to `nvim`.
+and Neovim loads that palette as its only colorscheme. It uses a thin blinking beam in every mode;
+the installer also removes the old `vim`/`vim-enhanced` package. `EDITOR` and `VISUAL` are set to `nvim`.
 
 Firefox receives a deliberately small default extension set through its normal-install policy:
 Pywalfox, uBlock Origin, SponsorBlock, and Ctrl+Number to switch tabs. Normal-installed extensions
@@ -126,8 +127,10 @@ can still be disabled by the user. Restart Firefox after installation so it read
 To install or repair only that browser setup, run `./install.sh --firefox-only`.
 
 Zsh is the default interactive shell, with Oh My Zsh installed from its official Git repository.
-The managed `.zshrc` enables the standard `robbyrussell` theme and Git plugin while retaining
-Noctiri's `~/.local/bin`, `EDITOR`, and `VISUAL` environment. To install or repair only the shell:
+The managed `.zshrc` enables the standard `robbyrussell` theme, Git integration, selectable
+completion menus, history/completion suggestions, and syntax highlighting while retaining Noctiri's
+`~/.local/bin`, `EDITOR`, and `VISUAL` environment. Kitty uses a beam cursor with a short cursor trail
+for smooth movement. To install or repair only the shell:
 
 ```bash
 ./install.sh --zsh-only
@@ -253,6 +256,8 @@ stable upstream release using the upstream-documented Void dependencies. The ins
 - installs the known-good greetd config,
 - pins Niri as the startup session so another discovered or remembered desktop is not selected by
   default,
+- uses Noctalia's random-shape password mask and, on Void's source build, gives each newly typed
+  glyph a short fade-and-spring animation,
 - runs greetd on VT7 on Void, leaving tty1 available as a recovery console,
 - enables the constrained passwordless appearance-sync rule for the current user,
 - enables greetd for the next boot on Fedora; Void activation is left as an explicit TTY step so the

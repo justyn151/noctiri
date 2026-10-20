@@ -10,8 +10,20 @@ install_packages() {
 install_neovim_editor() {
     log "Installing Neovim and Wayland clipboard support"
     case "$DISTRO_ID" in
-        fedora) sudo dnf install -y neovim wl-clipboard ;;
-        void) sudo xbps-install -Sy neovim wl-clipboard ;;
+        fedora)
+            sudo dnf install -y neovim wl-clipboard
+            if rpm -q vim-enhanced >/dev/null 2>&1; then
+                sudo dnf remove -y vim-enhanced
+                ok "Removed the legacy Vim package"
+            fi
+            ;;
+        void)
+            sudo xbps-install -Sy neovim wl-clipboard
+            if xbps-query -e vim >/dev/null 2>&1; then
+                sudo xbps-remove -y vim
+                ok "Removed the legacy Vim package"
+            fi
+            ;;
         *) die "No Neovim package installation implementation for $DISTRO_ID" ;;
     esac
 }
@@ -33,7 +45,26 @@ install_zsh_shell() {
         git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$oh_my_zsh_dir"
     fi
 
+    local custom_plugins="${ZSH_CUSTOM:-$oh_my_zsh_dir/custom}/plugins"
+    local plugin_name plugin_url plugin_dir
+    while read -r plugin_name plugin_url; do
+        plugin_dir="$custom_plugins/$plugin_name"
+        if [[ -d "$plugin_dir/.git" ]]; then
+            ok "$plugin_name is already installed"
+        elif [[ -e "$plugin_dir" ]]; then
+            die "$plugin_dir exists but is not a Git checkout"
+        else
+            git clone --depth=1 "$plugin_url" "$plugin_dir"
+        fi
+    done <<'PLUGINS'
+zsh-autosuggestions https://github.com/zsh-users/zsh-autosuggestions.git
+zsh-syntax-highlighting https://github.com/zsh-users/zsh-syntax-highlighting.git
+PLUGINS
+
     install_file "$ROOT_DIR/configs/zsh/zshrc" "$HOME/.zshrc"
+    if have kitty; then
+        install_file "$ROOT_DIR/configs/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
+    fi
 
     local zsh_path current_shell
     zsh_path="$(command -v zsh)"
@@ -587,11 +618,13 @@ install_noctalia_greeter_void() {
     clone_latest_release https://github.com/noctalia-dev/noctalia-greeter.git "$src"
     (
         cd "$src"
+        patch -p1 < "$ROOT_DIR/patches/noctalia-greeter/password-glyph-animation.patch"
         meson setup build-release --prefix=/usr --buildtype=release
         meson compile -C build-release
         sudo meson install -C build-release
     )
     rm -rf "$tmp"
+    mark_step_complete greeter-password-animation-v1
 }
 
 install_bibata_cursor_void() {

@@ -3,6 +3,7 @@ vim.g.maplocalleader = " "
 
 vim.opt.background = "dark"
 vim.opt.termguicolors = true
+vim.opt.guicursor = "a:ver25-blinkwait300-blinkon200-blinkoff150"
 vim.opt.autoindent = true
 vim.opt.smartindent = true
 vim.opt.wrap = false

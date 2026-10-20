@@ -32,7 +32,7 @@ case "${1:-}" in
         printf '  --theme-only       Repair Noctalia app colors and bar clocks without rebuilding\n'
         printf '  --services-only    Repair Wi-Fi, Bluetooth, PipeWire, and brightness persistence\n'
         printf '  --firefox-only     Install Firefox policies, extensions, and Noctalia theming\n'
-        printf '  --zsh-only         Install Zsh and Oh My Zsh, then set Zsh as the login shell\n'
+        printf '  --zsh-only         Install Zsh, suggestions/highlighting, and smooth Kitty cursor settings\n'
         printf '  --dwl-only         Install the optional Void DWL + Foot + Somebar preview\n'
         printf '  --font-only        Install and apply Fantasque Sans Mono across the desktop\n'
         exit 0
@@ -111,7 +111,7 @@ if [[ "$MODE" == "firefox" ]]; then
 fi
 
 if [[ "$MODE" == "zsh" ]]; then
-    printf '\nZsh-only mode: installing Zsh and Oh My Zsh without changing the desktop stack.\n\n'
+    printf '\nZsh-only mode: installing Zsh, completions, and Kitty cursor settings without changing the desktop stack.\n\n'
     install_zsh_shell
     printf '\nZsh setup complete. Start it now with zsh; log out once to make it the login shell everywhere.\n'
     exit 0
@@ -145,15 +145,19 @@ else
 fi
 
 run_stateful_step "services-$DISTRO_ID" "Wi-Fi, Bluetooth, PipeWire, and brightness persistence setup" repair_connectivity_audio
+if [[ "$DISTRO_ID" == "void" ]] && ! step_is_complete greeter-password-animation-v1; then
+    run_stateful_step greeter-password-animation-v1 \
+        "Noctalia Greeter password animation build" install_noctalia_greeter_void
+fi
 run_stateful_step fantasque-system-font-v1 "Fantasque Sans Mono system font" install_fantasque_system_font
-run_stateful_step neovim-editor-v1 "Neovim editor and Wayland clipboard" install_neovim_editor
-run_stateful_step zsh-ohmyzsh-v1 "Zsh and Oh My Zsh" install_zsh_shell
-run_stateful_step configs-v2 "Desktop configuration" install_configs
+run_stateful_step neovim-editor-v2 "Neovim editor, beam cursor, and Vim removal" install_neovim_editor
+run_stateful_step zsh-ohmyzsh-v2 "Zsh, Oh My Zsh, suggestions, and highlighting" install_zsh_shell
+run_stateful_step configs-v3 "Desktop configuration" install_configs
 run_stateful_step firefox-policy-v4 "Firefox portal and extension policy" merge_firefox_policy
 run_stateful_step pywalfox "Noctalia Pywalfox native host" configure_pywalfox
 run_stateful_step default-apps-v2 "Default application associations" set_default_apps
 run_stateful_step flatpaks "Flatpak applications" install_flatpaks
 run_stateful_step wallpapers "Wallpaper collections" configure_wallpapers
-run_stateful_step greeter "greetd and Noctalia Greeter configuration" configure_greeter
+run_stateful_step greeter-v2 "greetd and animated Noctalia Greeter configuration" configure_greeter
 run_stateful_step spicetify "Spicetify setup" install_spicetify
 finalize_setup
