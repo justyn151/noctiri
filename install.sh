@@ -171,15 +171,15 @@ else
     run_stateful_step "$package_step" "System packages and desktop builds" install_packages
 fi
 
-run_stateful_step "services-core-v2-$DISTRO_ID" "Bluetooth, PipeWire, and brightness persistence setup" repair_connectivity_audio
+run_stateful_step "services-core-v3-$DISTRO_ID" "Bluetooth, supervised PipeWire, and brightness persistence setup" repair_connectivity_audio
 if [[ "$DISTRO_ID" == "void" ]] && ! step_is_complete greeter-panel-blur-v3; then
     run_stateful_step greeter-panel-blur-v3 \
         "Noctalia Greeter animation and glass-effect build" install_noctalia_greeter_void
 fi
-run_stateful_step fantasque-system-font-v1 "Fantasque Sans Mono system font" install_fantasque_system_font
+run_stateful_step fantasque-system-font-v2 "Fantasque Sans Mono with CJK fallback fonts" install_fantasque_system_font
 run_stateful_step neovim-editor-v3 "Neovim, CoC runtime, beam cursor, and Vim removal" install_neovim_editor
 run_stateful_step document-stack-v3 "Sioyek, TexLab, and compact on-demand LaTeX support" install_document_stack
-run_stateful_step rmpc-mpd-v1 "rmpc and per-user MPD music playback" install_rmpc_stack
+run_stateful_step rmpc-mpd-v2 "rmpc, app launcher, and per-user MPD music playback" install_rmpc_stack
 run_stateful_step zsh-ohmyzsh-v2 "Zsh, Oh My Zsh, suggestions, and highlighting" install_zsh_shell
 run_stateful_step configs-v4 "Desktop configuration" install_configs
 run_stateful_step firefox-policy-v4 "Firefox portal and extension policy" merge_firefox_policy

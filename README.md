@@ -161,8 +161,10 @@ Log out once after the first installation so terminals and SSH sessions use Zsh 
 
 rmpc is installed as the terminal music player together with a per-user MPD daemon. MPD scans
 `~/Music`, sends audio directly to PipeWire, and starts through the graphical session's XDG
-autostart support. The installer preserves an existing `~/.config/rmpc/config.ron`; on a new setup,
-run `rmpc` in Kitty and use its default Vim-style controls. To install or repair only this stack:
+autostart support. A dedicated `rmpc Music Player` entry—with its own icon—opens it in Kitty from
+the application launcher. The installer preserves an existing `~/.config/rmpc/config.ron`; on a
+new setup, run `rmpc` in Kitty and use its default Vim-style controls. To install or repair only
+this stack:
 
 ```bash
 ./install.sh --music-only
@@ -180,11 +182,12 @@ To install or repair only the desktop font configuration:
 
 This pins the Fantasque Sans Mono Nerd Font 3.5.1 archive and verifies its checksum, then selects
 `FantasqueSansM Nerd Font` for Fontconfig's system UI, sans, and serif aliases and
-`FantasqueSansM Nerd Font Mono` for monospace. GTK 3/4, GNOME interface settings, Qt6ct,
-KDE applications, Kitty, and Noctalia receive explicit settings as well. The separate DWL preview's
-Foot and Somebar styling is left unchanged. Existing applications may cache fonts, so reopen them;
-one logout refreshes the entire Niri session. Web pages and documents that deliberately specify a
-typeface are not overridden.
+`FantasqueSansM Nerd Font Mono` for monospace. Noto Sans CJK is installed as the fallback for
+Chinese, Japanese, and Korean glyphs, including applications running through Flatpak. GTK 3/4,
+GNOME interface settings, Qt6ct, KDE applications, Kitty, and Noctalia receive explicit settings as
+well. The separate DWL preview's Foot and Somebar styling is left unchanged. Existing applications
+may cache fonts, so reopen them; one logout refreshes the entire Niri session. Web pages and
+documents that deliberately specify a typeface are not overridden.
 
 To install, configure, and check NetworkManager, Bluetooth, and PipeWire without rebuilding Niri or
 Noctalia:
@@ -195,11 +198,13 @@ Noctalia:
 
 On Void, this enables D-Bus and Bluetooth runit services; adds the login user to the required groups;
 enables WirePlumber, PipeWire's PulseAudio interface, XDG autostart, and ALSA integration; enables
-persistent screen-brightness save/restore; and checks the repaired services. During a full install,
-the NetworkManager handoff is deliberately postponed until Flatpak, wallpaper, and Spicetify
-downloads are finished. If another network manager is active, the installer asks before switching
-because doing so can briefly disconnect the machine. Declining leaves the existing connection alone
-and keeps the handoff available on a later run.
+persistent screen-brightness save/restore; and checks the repaired services. PipeWire runs beneath a
+single-instance session supervisor and an elogind resume hook cleanly recreates the stack after
+suspend. BlueZ and WirePlumber are configured to restore trusted Bluetooth audio profiles and retry
+them after resume. During a full install, the NetworkManager handoff is deliberately postponed until
+Flatpak, wallpaper, and Spicetify downloads are finished. If another network manager is active, the
+installer asks before switching because doing so can briefly disconnect the machine. Declining
+leaves the existing connection alone and keeps the handoff available on a later run.
 
 The Void source build of Noctalia Greeter also applies Noctiri's animated password dots and glass
 styling: only the wallpaper area directly behind the translucent login card is softly blurred on the

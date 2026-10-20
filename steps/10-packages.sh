@@ -138,6 +138,10 @@ install_rmpc_stack() {
         "$HOME/.local/bin/noctiri-mpd" 0755
     install_file "$ROOT_DIR/configs/autostart/noctiri-mpd.desktop" \
         "$HOME/.config/autostart/noctiri-mpd.desktop"
+    install_file "$ROOT_DIR/configs/applications/noctiri-rmpc.desktop" \
+        "$HOME/.local/share/applications/noctiri-rmpc.desktop"
+    install_file "$ROOT_DIR/configs/icons/noctiri-rmpc.svg" \
+        "$HOME/.local/share/icons/hicolor/scalable/apps/noctiri-rmpc.svg"
     mkdir -p \
         "$HOME/Music" \
         "$HOME/.local/share/mpd/playlists" \
@@ -168,6 +172,9 @@ install_rmpc_stack() {
     have rmpc || die "rmpc was installed but is not on PATH"
     sleep 0.25
     mpd_is_ready || die "MPD did not become ready on 127.0.0.1:6600; inspect $HOME/.local/state/mpd/mpd.log"
+    if have update-desktop-database; then
+        update-desktop-database "$HOME/.local/share/applications" || true
+    fi
     ok "Installed rmpc with a PipeWire-backed user MPD session"
 }
 
@@ -237,7 +244,7 @@ install_packages_fedora() {
         qt6ct plasma-breeze-qt6 breeze-icon-theme
         dolphin ark btop cava fastfetch qimgv mpv
         qpwgraph
-        rsms-inter-fonts
+        rsms-inter-fonts google-noto-sans-cjk-fonts
     )
     sudo dnf install -y "${pkgs[@]}"
 
@@ -281,7 +288,7 @@ install_packages_void() {
         dolphin ark btop cava fastfetch qimgv mpv
         qpwgraph
         yazi ffmpeg 7zip jq poppler fd fzf zoxide resvg ImageMagick
-        font-inter
+        font-inter noto-fonts-cjk-sans
     )
     sudo xbps-install -y "${pkgs[@]}"
 
@@ -333,12 +340,13 @@ repair_connectivity_audio() {
     case "$DISTRO_ID" in
         fedora)
             sudo dnf install -y NetworkManager bluez bluez-tools upower \
-                pipewire pipewire-alsa pipewire-pulseaudio wireplumber alsa-utils brightnessctl
+                pipewire pipewire-alsa pipewire-pulseaudio wireplumber alsa-utils brightnessctl \
+                python3
             ;;
         void)
             sudo xbps-install -Sy NetworkManager bluez rfkill upower \
                 pipewire wireplumber libspa-bluetooth alsa-pipewire alsa-utils pulseaudio-utils \
-                brightnessctl
+                brightnessctl python3
             ;;
     esac
     configure_connectivity_audio
@@ -363,6 +371,7 @@ configure_void_connectivity_audio() {
     log "Configuring Void Bluetooth, PipeWire, and brightness persistence"
     enable_void_service dbus
     enable_void_service bluetoothd
+    configure_void_bluetooth_policy
 
     add_user_to_group_if_present network
     add_user_to_group_if_present bluetooth
@@ -437,18 +446,23 @@ configure_void_networkmanager() {
 
 configure_void_pipewire() {
     local pipewire_dir="$HOME/.config/pipewire/pipewire.conf.d"
-    mkdir -p "$pipewire_dir" "$HOME/.config/autostart"
+    local wireplumber_dir="$HOME/.config/wireplumber/wireplumber.conf.d"
+    mkdir -p "$pipewire_dir" "$wireplumber_dir" "$HOME/.config/autostart"
     configure_void_pipewire_dropin /usr/share/examples/wireplumber/10-wireplumber.conf \
         10-wireplumber.conf
     configure_void_pipewire_dropin /usr/share/examples/pipewire/20-pipewire-pulse.conf \
         20-pipewire-pulse.conf
-
-    if [[ -e /usr/share/applications/pipewire.desktop ]]; then
-        ensure_user_symlink /usr/share/applications/pipewire.desktop \
-            "$HOME/.config/autostart/pipewire.desktop"
-    else
-        warn "PipeWire's XDG autostart entry is missing; audio cannot be started automatically."
+    install_file "$ROOT_DIR/configs/wireplumber/51-noctiri-bluetooth.conf" \
+        "$wireplumber_dir/51-noctiri-bluetooth.conf"
+    install_file "$ROOT_DIR/configs/bin/noctiri-audio-session" \
+        "$HOME/.local/bin/noctiri-audio-session" 0755
+    if [[ -L "$HOME/.config/autostart/pipewire.desktop" ]]; then
+        backup_path "$HOME/.config/autostart/pipewire.desktop"
+        unlink "$HOME/.config/autostart/pipewire.desktop"
     fi
+    install_file "$ROOT_DIR/configs/autostart/pipewire.desktop" \
+        "$HOME/.config/autostart/pipewire.desktop"
+    install_void_audio_resume_hook
 
     ensure_system_symlink /usr/share/alsa/alsa.conf.d/50-pipewire.conf \
         /etc/alsa/conf.d/50-pipewire.conf
@@ -462,6 +476,74 @@ configure_void_pipewire() {
     else
         warn "PipeWire will start automatically with the next Niri login."
     fi
+}
+
+configure_void_bluetooth_policy() {
+    local config=/etc/bluetooth/main.conf tmp
+    [[ -r "$config" ]] || {
+        warn "$config is missing; keeping BlueZ package defaults."
+        return 0
+    }
+
+    tmp="$(mktemp)"
+    python3 - "$config" "$tmp" <<'PY'
+import re
+import sys
+
+source, destination = sys.argv[1:]
+lines = open(source, encoding="utf-8").read().splitlines()
+settings = {
+    "ReconnectAttempts": "7",
+    "ReconnectIntervals": "1,2,4,8,16,32,64",
+    "AutoEnable": "true",
+    "ResumeDelay": "5",
+}
+
+start = next((i for i, line in enumerate(lines) if line.strip() == "[Policy]"), None)
+if start is None:
+    if lines and lines[-1]:
+        lines.append("")
+    lines.extend(["[Policy]"] + [f"{key}={value}" for key, value in settings.items()])
+else:
+    end = next(
+        (i for i in range(start + 1, len(lines)) if re.match(r"^\s*\[.*\]\s*$", lines[i])),
+        len(lines),
+    )
+    found = set()
+    for i in range(start + 1, end):
+        match = re.match(r"^\s*#?\s*([A-Za-z]+)\s*=.*$", lines[i])
+        if match and match.group(1) in settings and match.group(1) not in found:
+            key = match.group(1)
+            lines[i] = f"{key}={settings[key]}"
+            found.add(key)
+    missing = [f"{key}={value}" for key, value in settings.items() if key not in found]
+    lines[end:end] = missing
+
+open(destination, "w", encoding="utf-8").write("\n".join(lines) + "\n")
+PY
+
+    if ! cmp -s "$config" "$tmp"; then
+        backup_path "$config"
+        sudo install -m 0644 "$tmp" "$config"
+        sudo sv restart bluetoothd >/dev/null 2>&1 || true
+        ok "Enabled persistent BlueZ reconnect behavior with a resume-safe delay"
+    fi
+    rm -f "$tmp"
+}
+
+install_void_audio_resume_hook() {
+    local hook=/etc/elogind/system-sleep/50-noctiri-audio-resume tmp
+    tmp="$(mktemp)"
+    sed "s|@@UID@@|$(id -u)|g" \
+        "$ROOT_DIR/configs/elogind/50-noctiri-audio-resume.in" > "$tmp"
+    sudo install -Dm0755 "$tmp" "$hook"
+    rm -f "$tmp"
+}
+
+start_void_audio_supervisor() {
+    mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}/noctiri"
+    nohup "$HOME/.local/bin/noctiri-audio-session" >/dev/null 2>&1 </dev/null &
+    sleep 0.25
 }
 
 configure_void_pipewire_dropin() {
@@ -533,6 +615,8 @@ restart_void_pipewire_stack() {
     uid="$(id -u)"
     log_path="${XDG_STATE_HOME:-$HOME/.local/state}/noctiri/pipewire.log"
 
+    start_void_audio_supervisor
+
     # A previous failed launch can leave pipewire-pulse alive without the main
     # PipeWire daemon. Stop the complete per-user stack before starting it in
     # dependency order from PipeWire's configured context.exec entries.
@@ -540,46 +624,17 @@ restart_void_pipewire_stack() {
         pkill -TERM -u "$uid" -x "$process" >/dev/null 2>&1 || true
     done
     attempts=0
-    while (( attempts < 30 )); do
-        if ! pgrep -u "$uid" -x wireplumber >/dev/null 2>&1 \
-            && ! pgrep -u "$uid" -x pipewire-pulse >/dev/null 2>&1 \
-            && ! pgrep -u "$uid" -x pipewire >/dev/null 2>&1; then
-            break
+    while (( attempts < 80 )); do
+        if pgrep -u "$uid" -x pipewire >/dev/null 2>&1 \
+            && run_service_probe pw-cli info 0 >/dev/null 2>&1 \
+            && run_service_probe pactl info >/dev/null 2>&1; then
+            ok "Restarted a supervised PipeWire user stack"
+            return 0
         fi
-        sleep 0.1
+        sleep 0.25
         ((attempts += 1))
     done
-    if pgrep -u "$uid" -x wireplumber >/dev/null 2>&1 \
-        || pgrep -u "$uid" -x pipewire-pulse >/dev/null 2>&1 \
-        || pgrep -u "$uid" -x pipewire >/dev/null 2>&1; then
-        warn "The incomplete PipeWire stack did not stop gracefully; terminating its user processes."
-        for process in wireplumber pipewire-pulse pipewire; do
-            pkill -KILL -u "$uid" -x "$process" >/dev/null 2>&1 || true
-        done
-        sleep 0.2
-    fi
-    if pgrep -u "$uid" -x wireplumber >/dev/null 2>&1 \
-        || pgrep -u "$uid" -x pipewire-pulse >/dev/null 2>&1 \
-        || pgrep -u "$uid" -x pipewire >/dev/null 2>&1; then
-        warn "Could not stop the incomplete PipeWire stack; log out and back in to finish the repair."
-        return 0
-    fi
-
-    if ! clean_stale_pipewire_sockets; then
-        warn "Another process still owns an audio socket; PipeWire was not started on top of it."
-        warn "Find the owner with: sudo ss -xlpn | grep -E 'pulse/native|pipewire-'"
-        return 0
-    fi
-
-    mkdir -p "$(dirname "$log_path")"
-    : > "$log_path"
-    nohup pipewire > "$log_path" 2>&1 </dev/null &
-    sleep 2
-    if pgrep -u "$uid" -x pipewire >/dev/null 2>&1; then
-        ok "Restarted a clean PipeWire user stack"
-    else
-        warn "PipeWire exited during startup; inspect $log_path"
-    fi
+    warn "PipeWire did not recover; inspect $log_path"
 }
 
 clean_stale_pipewire_sockets() {
@@ -826,5 +881,15 @@ install_fantasque_nerd_font() {
         "$tmp/FantasqueSansMono.zip" | sha256sum -c -
     unzip -q "$tmp/FantasqueSansMono.zip" -d "$font_dir"
     rm -rf "$tmp"
+    fc-cache -f
+}
+
+install_cjk_fallback_fonts() {
+    log "Installing Chinese, Japanese, and Korean fallback fonts"
+    case "$DISTRO_ID" in
+        fedora) sudo dnf install -y google-noto-sans-cjk-fonts ;;
+        void) sudo xbps-install -Sy noto-fonts-cjk-sans ;;
+        *) die "No CJK font installation implementation for $DISTRO_ID" ;;
+    esac
     fc-cache -f
 }

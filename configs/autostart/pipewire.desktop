@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Noctiri Audio Session
+Comment=Keep PipeWire and WirePlumber available throughout the desktop session
+Exec=noctiri-audio-session
+TryExec=pipewire
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
+

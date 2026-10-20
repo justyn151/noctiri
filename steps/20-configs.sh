@@ -46,6 +46,7 @@ install_configs() {
 
 install_fantasque_system_font() {
     install_fantasque_nerd_font
+    install_cjk_fallback_fonts
     configure_system_fonts
 }
 
@@ -66,6 +67,10 @@ configure_system_fonts() {
     set_kde_font_preferences
     set_noctalia_font_preference
     fc-cache -f
+    if have flatpak && flatpak info com.spotify.Client >/dev/null 2>&1; then
+        timeout 30 flatpak run --command=fc-cache com.spotify.Client -f >/dev/null 2>&1 \
+            || warn "Spotify will refresh its CJK font cache the next time it starts."
+    fi
 
     discover_niri_environment_for_font_reload
 

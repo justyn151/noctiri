@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -u
+
+uid="$(id -u)"
+runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$uid}"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/noctiri"
+log_path="$state_dir/pipewire.log"
+
+mkdir -p "$runtime_dir" "$state_dir"
+exec 9>"$runtime_dir/noctiri-audio-session.lock"
+flock -n 9 || exit 0
+
+stop_orphaned_children() {
+    local process attempts=0
+    for process in wireplumber pipewire-pulse; do
+        pkill -TERM -u "$uid" -x "$process" >/dev/null 2>&1 || true
+    done
+    while (( attempts < 30 )); do
+        if ! pgrep -u "$uid" -x wireplumber >/dev/null 2>&1 \
+            && ! pgrep -u "$uid" -x pipewire-pulse >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 0.1
+        ((attempts += 1))
+    done
+    for process in wireplumber pipewire-pulse; do
+        pkill -KILL -u "$uid" -x "$process" >/dev/null 2>&1 || true
+    done
+}
+
+clean_stale_sockets() {
+    local socket
+    for socket in \
+        "$runtime_dir/pulse/native" \
+        "$runtime_dir/pipewire-0" \
+        "$runtime_dir/pipewire-0-manager"; do
+        [[ -S "$socket" ]] || continue
+        grep -Fq -- "$socket" /proc/net/unix && continue
+        unlink "$socket"
+    done
+}
+
+audio_stack_healthy() {
+    pgrep -u "$uid" -x wireplumber >/dev/null 2>&1 \
+        && pgrep -u "$uid" -x pipewire-pulse >/dev/null 2>&1 \
+        && timeout 2 pw-cli info 0 >/dev/null 2>&1
+}
+
+while :; do
+    # When upgrading an already-running session, observe its existing PipeWire
+    # process instead of starting a duplicate. If it exits, take over recovery.
+    failures=0
+    while pgrep -u "$uid" -x pipewire >/dev/null 2>&1; do
+        if audio_stack_healthy; then
+            failures=0
+        else
+            ((failures += 1))
+            if (( failures >= 2 )); then
+                printf '\n[%s] Existing PipeWire stack stopped responding; restarting\n' \
+                    "$(date -Is)" >> "$log_path"
+                pkill -TERM -u "$uid" -x pipewire >/dev/null 2>&1 || true
+                break
+            fi
+        fi
+        sleep 10
+    done
+
+    stop_orphaned_children
+    clean_stale_sockets
+    printf '\n[%s] Starting PipeWire session\n' "$(date -Is)" >> "$log_path"
+    pipewire >> "$log_path" 2>&1 &
+    pipewire_pid=$!
+    failures=0
+    while kill -0 "$pipewire_pid" >/dev/null 2>&1; do
+        if audio_stack_healthy; then
+            failures=0
+        else
+            ((failures += 1))
+            if (( failures >= 2 )); then
+                printf '[%s] PipeWire stack stopped responding; restarting\n' \
+                    "$(date -Is)" >> "$log_path"
+                kill -TERM "$pipewire_pid" >/dev/null 2>&1 || true
+                break
+            fi
+        fi
+        sleep 10
+    done
+    wait "$pipewire_pid"
+    status=$?
+    printf '[%s] PipeWire exited with status %s; restarting\n' \
+        "$(date -Is)" "$status" >> "$log_path"
+    sleep 2
+done
+

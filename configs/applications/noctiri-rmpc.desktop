@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=rmpc Music Player
+GenericName=Terminal Music Player
+Comment=Browse and play the local MPD music library
+Exec=kitty --single-instance --class noctiri-rmpc --title rmpc rmpc
+Icon=noctiri-rmpc
+Terminal=false
+Categories=AudioVideo;Audio;Player;
+Keywords=music;audio;mpd;terminal;
+StartupNotify=true
+StartupWMClass=noctiri-rmpc
+
