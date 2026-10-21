@@ -10,12 +10,22 @@ notify() {
     fi
 }
 
-for dependency in grim slurp tesseract wl-copy; do
+for dependency in grim slurp wl-copy; do
     have "$dependency" || {
         notify "OCR unavailable" "Missing command: $dependency"
         exit 1
     }
 done
+
+if have tesseract; then
+    tesseract_command=tesseract
+elif have tesseract-ocr; then
+    # Void names the executable after its package, unlike upstream/Fedora.
+    tesseract_command=tesseract-ocr
+else
+    notify "OCR unavailable" "Missing Tesseract executable"
+    exit 1
+fi
 
 geometry="$(slurp)" || exit 0
 [[ -n "$geometry" ]] || exit 0
@@ -29,14 +39,14 @@ text_path="$output_dir/OCR_$stamp.txt"
 grim -g "$geometry" "$image_path"
 
 languages=()
-available="$(tesseract --list-langs 2>/dev/null || true)"
+available="$("$tesseract_command" --list-langs 2>/dev/null || true)"
 for language in eng jpn chi_sim chi_tra; do
     grep -Fxq "$language" <<<"$available" && languages+=("$language")
 done
 (( ${#languages[@]} > 0 )) || languages=(eng)
 language_spec="$(IFS=+; printf '%s' "${languages[*]}")"
 
-if ! tesseract "$image_path" stdout -l "$language_spec" 2>/dev/null \
+if ! "$tesseract_command" "$image_path" stdout -l "$language_spec" 2>/dev/null \
     | sed -e 's/[[:space:]]\+$//' > "$text_path"; then
     notify "OCR failed" "The screenshot was kept at $image_path"
     exit 1

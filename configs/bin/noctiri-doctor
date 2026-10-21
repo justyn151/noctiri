@@ -335,7 +335,7 @@ else
 fi
 
 section "Daily utilities and recovery"
-for utility in keepassxc grim slurp tesseract; do
+for utility in keepassxc grim slurp; do
     if have "$utility"; then
         pass "$utility is available"
     else
@@ -343,9 +343,16 @@ for utility in keepassxc grim slurp tesseract; do
     fi
 done
 
+ocr_command=""
 if have tesseract; then
+    ocr_command=tesseract
+elif have tesseract-ocr; then
+    ocr_command=tesseract-ocr
+fi
+if [[ -n "$ocr_command" ]]; then
+    pass "Tesseract OCR is available"
     missing_ocr_languages=()
-    available_ocr_languages="$(tesseract --list-langs 2>/dev/null || true)"
+    available_ocr_languages="$("$ocr_command" --list-langs 2>/dev/null || true)"
     for language in eng jpn chi_sim chi_tra; do
         grep -Fxq "$language" <<<"$available_ocr_languages" \
             || missing_ocr_languages+=("$language")
@@ -355,6 +362,8 @@ if have tesseract; then
     else
         warn "OCR language data is missing: ${missing_ocr_languages[*]}"
     fi
+else
+    warn "Tesseract OCR is missing; rerun ./install.sh --utilities-only"
 fi
 
 if have ya && ya pkg list 2>/dev/null | grep -Fq 'yazi-rs/plugins:mount'; then
