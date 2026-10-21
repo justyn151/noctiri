@@ -339,6 +339,48 @@ else
     warn "xdg-user-dir is unavailable"
 fi
 
+section "Gaming graphics"
+if [[ "${ID:-unknown}" == "void" ]]; then
+    nvidia_driver=""
+    for device_path in /sys/bus/pci/devices/*; do
+        [[ -r "$device_path/vendor" ]] || continue
+        [[ "$(<"$device_path/vendor")" == "0x10de" ]] || continue
+        if [[ -L "$device_path/driver" ]]; then
+            nvidia_driver="$(basename "$(readlink -f "$device_path/driver")")"
+        fi
+        break
+    done
+
+    if [[ "$nvidia_driver" == "nvidia" ]]; then
+        pass "NVIDIA proprietary kernel driver is active"
+        if xbps-query -e nvidia-libs-32bit >/dev/null 2>&1; then
+            pass "Matching 32-bit NVIDIA libraries are installed for Steam"
+        else
+            fail "32-bit NVIDIA libraries are missing; rerun ./install.sh --steam-only"
+        fi
+    elif [[ "$nvidia_driver" == "nouveau" ]]; then
+        pass "Nouveau kernel driver is active for the NVIDIA GPU"
+    elif [[ -n "$nvidia_driver" ]]; then
+        warn "NVIDIA GPU is attached to the unexpected $nvidia_driver driver"
+    fi
+
+    for gaming_tool in gamescope mangohud gamemoderun vulkaninfo; do
+        if have "$gaming_tool"; then
+            pass "$gaming_tool is available"
+        else
+            warn "$gaming_tool is missing; rerun ./install.sh --steam-only"
+        fi
+    done
+
+    if [[ -x "$HOME/.local/bin/noctiri-gpu-run" ]]; then
+        pass "Discrete-GPU game launcher is installed"
+    else
+        warn "Discrete-GPU game launcher is missing"
+    fi
+else
+    warn "Gaming graphics diagnostics currently target Void Linux"
+fi
+
 section "Summary"
 printf '%s passed, %s warning(s), %s failure(s)\n' "$PASS_COUNT" "$WARN_COUNT" "$FAIL_COUNT"
 

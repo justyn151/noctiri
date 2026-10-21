@@ -41,7 +41,7 @@ case "${1:-}" in
         printf '  --font-only        Install and apply Fantasque Sans Mono across the desktop\n'
         printf '  --documents-only   Install Sioyek, CoC/TexLab, and compact Tectonic LaTeX support\n'
         printf '  --music-only       Install rmpc, PipeWire-backed MPD, and MPRIS bar integration\n'
-        printf '  --steam-only       Install Steam and its required repository/runtime support\n'
+        printf '  --steam-only       Install Steam, GPU offload, Gamescope, MangoHud, and GameMode\n'
         printf '  --doctor           Run read-only Noctiri desktop health checks\n'
         exit 0
         ;;
@@ -125,10 +125,10 @@ if [[ "$MODE" == "music" ]]; then
 fi
 
 if [[ "$MODE" == "steam" ]]; then
-    printf '\nSteam-only mode: installing Steam without rebuilding the desktop.\n\n'
+    printf '\nSteam-only mode: installing Steam and its gaming runtime without rebuilding the desktop.\n\n'
     install_steam
     printf '\n\033[1;32mSteam installation complete.\033[0m\n'
-    printf 'Open Steam from the application launcher and sign in.\n'
+    printf 'Use "Steam (Discrete GPU)" for the RTX GPU, or add "noctiri-gpu-run %%command%%" to one game.\n'
     exit 0
 fi
 
@@ -203,7 +203,7 @@ run_stateful_step configs-v4 "Desktop configuration" install_configs
 run_stateful_step firefox-policy-v4 "Firefox portal and extension policy" merge_firefox_policy
 run_stateful_step pywalfox "Noctalia Pywalfox native host" configure_pywalfox
 run_stateful_step default-apps-v2 "Default application associations" set_default_apps
-run_stateful_step steam-v1 "Steam client and compatibility runtime" install_steam
+run_stateful_step steam-v2 "Steam client, GPU offload, and gaming runtime" install_steam
 run_stateful_step flatpaks "Flatpak applications" install_flatpaks
 run_stateful_step wallpapers "Wallpaper collections" configure_wallpapers
 run_stateful_step greeter-v2 "greetd and animated Noctalia Greeter configuration" configure_greeter

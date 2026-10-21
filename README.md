@@ -127,6 +127,16 @@ To install or repair Steam without rerunning the desktop setup:
 ./install.sh --steam-only
 ```
 
+On Void, this also installs the matching 32-bit Vulkan libraries, Gamescope, MangoHud, and
+GameMode. Hybrid laptops get a **Steam (Discrete GPU)** launcher. To offload only one title instead,
+put this in that game's Steam launch options:
+
+```text
+noctiri-gpu-run %command%
+```
+
+The normal Steam launcher remains available and does not force the dedicated GPU awake.
+
 To repair KDE/Qt, btop, Yazi, Neovim, and Firefox color synchronization without reinstalling or rebuilding anything:
 
 ```bash

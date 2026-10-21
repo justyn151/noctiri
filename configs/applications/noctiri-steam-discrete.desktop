@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Steam (Discrete GPU)
+Comment=Run Steam and its games on the dedicated graphics card
+Exec=noctiri-gpu-run steam %U
+Icon=steam
+Terminal=false
+Categories=Network;FileTransfer;Game;
+MimeType=x-scheme-handler/steam;x-scheme-handler/steamlink;
+Keywords=steam;games;rtx;nvidia;gpu;
+PrefersNonDefaultGPU=true
+X-KDE-RunOnDiscreteGpu=true

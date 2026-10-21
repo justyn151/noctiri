@@ -9,7 +9,7 @@ ensure_system_flathub() {
 }
 
 install_steam() {
-    log "Installing Steam"
+    log "Installing Steam and the Noctiri gaming runtime"
 
     case "$DISTRO_ID" in
         void)
@@ -23,7 +23,19 @@ install_steam() {
                     void-repo-multilib-nonfree
                 sudo xbps-install -Sy steam
 
-                local steam_graphics=(mesa-dri-32bit vulkan-loader-32bit)
+                local steam_graphics=(
+                    mesa-dri-32bit
+                    vulkan-loader
+                    vulkan-loader-32bit
+                    Vulkan-Tools
+                    gamescope
+                    gamescope-32bit
+                    MangoHud
+                    MangoHud-32bit
+                    gamemode
+                    libgamemode
+                    libgamemode-32bit
+                )
                 if grep -Fqx 0x8086 /sys/bus/pci/devices/*/vendor 2>/dev/null; then
                     steam_graphics+=(mesa-vulkan-intel mesa-vulkan-intel-32bit)
                 fi
@@ -31,9 +43,27 @@ install_steam() {
                     steam_graphics+=(mesa-vulkan-radeon mesa-vulkan-radeon-32bit)
                 fi
                 if grep -Fqx 0x10de /sys/bus/pci/devices/*/vendor 2>/dev/null; then
-                    steam_graphics+=(mesa-vulkan-nouveau mesa-vulkan-nouveau-32bit)
+                    # Do not mix the Nouveau Vulkan provider into a system that
+                    # is already using NVIDIA's proprietary kernel/userspace
+                    # stack. Steam games need the matching 32-bit NVIDIA library.
+                    if find /sys/bus/pci/devices -maxdepth 2 -path '*/driver' \
+                        -type l -lname '*/nvidia' -print -quit 2>/dev/null \
+                        | grep -q . \
+                        || xbps-query -e nvidia-libs >/dev/null 2>&1; then
+                        steam_graphics+=(nvidia-libs nvidia-libs-32bit)
+                    else
+                        steam_graphics+=(mesa-vulkan-nouveau mesa-vulkan-nouveau-32bit)
+                    fi
                 fi
                 sudo xbps-install -Sy "${steam_graphics[@]}"
+
+                install_file "$ROOT_DIR/configs/bin/noctiri-gpu-run" \
+                    "$HOME/.local/bin/noctiri-gpu-run" 0755
+                install_file "$ROOT_DIR/configs/applications/noctiri-steam-discrete.desktop" \
+                    "$HOME/.local/share/applications/noctiri-steam-discrete.desktop"
+                if have update-desktop-database; then
+                    update-desktop-database "$HOME/.local/share/applications" || true
+                fi
             else
                 # Native Steam is not available on Void musl or non-x86_64.
                 # The Flatpak bundles its compatible userspace instead.
@@ -51,7 +81,10 @@ install_steam() {
     esac
 
     if have steam || flatpak info --system com.valvesoftware.Steam >/dev/null 2>&1; then
-        ok "Installed Steam"
+        ok "Installed Steam and its gaming runtime"
+        if [[ "$DISTRO_ID" == "void" && -x "$HOME/.local/bin/noctiri-gpu-run" ]]; then
+            "$HOME/.local/bin/noctiri-gpu-run" --print
+        fi
     else
         die "Steam installation could not be verified"
     fi

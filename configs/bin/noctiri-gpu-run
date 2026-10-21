@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+driver=""
+gpu_name=""
+
+for device_path in /sys/bus/pci/devices/*; do
+    [[ -r "$device_path/vendor" ]] || continue
+    [[ "$(<"$device_path/vendor")" == "0x10de" ]] || continue
+    if [[ -L "$device_path/driver" ]]; then
+        driver="$(basename "$(readlink -f "$device_path/driver")")"
+    fi
+    if [[ -r "$device_path/uevent" ]]; then
+        gpu_name="$(sed -n 's/^PCI_ID=//p' "$device_path/uevent" | head -n 1)"
+    fi
+    break
+done
+
+case "$driver" in
+    nvidia)
+        export __NV_PRIME_RENDER_OFFLOAD=1
+        export __GLX_VENDOR_LIBRARY_NAME=nvidia
+        export __VK_LAYER_NV_optimus=NVIDIA_only
+        ;;
+    nouveau)
+        export DRI_PRIME=1
+        ;;
+    "")
+        # DRI_PRIME also covers Intel + AMD hybrid systems. It is harmless on
+        # a single-GPU Mesa system and lets this helper remain useful there.
+        export DRI_PRIME=1
+        ;;
+esac
+
+if [[ "${1:-}" == "--print" ]]; then
+    printf 'Discrete GPU: %s (driver: %s)\n' "${gpu_name:-not detected}" "${driver:-Mesa/default}"
+    case "$driver" in
+        nvidia) printf 'Launch prefix: __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia __VK_LAYER_NV_optimus=NVIDIA_only\n' ;;
+        *) printf 'Launch prefix: DRI_PRIME=1\n' ;;
+    esac
+    exit 0
+fi
+
+if (( $# == 0 )); then
+    printf 'Usage: noctiri-gpu-run COMMAND [ARGUMENT ...]\n' >&2
+    printf 'Steam launch option: noctiri-gpu-run %%command%%\n' >&2
+    exit 2
+fi
+
+exec "$@"
