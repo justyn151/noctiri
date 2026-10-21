@@ -121,7 +121,7 @@ configure_system_fonts() {
             || warn "Noctalia will load Fantasque Sans Mono after the next login."
     fi
 
-    ok "Configured Fontconfig, GTK, Qt/KDE, Kitty, and Noctalia for Fantasque Sans Mono"
+    ok "Configured Fantasque Sans Mono with Noto script fallback across the desktop"
 }
 
 discover_niri_environment_for_font_reload() {
@@ -180,11 +180,13 @@ source, destination = sys.argv[1:]
 text = open(source, encoding="utf-8").read()
 section = re.search(r"(?ms)^\[shell\]\n(?P<body>.*?)(?=^\[|\Z)", text)
 if section is None:
-    text += '\n[shell]\nfont_family = "FantasqueSansM Nerd Font"\n'
+    text += '\n[shell]\nfont_family = "sans-serif"\n'
 else:
     body = section.group("body")
     pattern = re.compile(r"(?m)^font_family\s*=.*$")
-    value = 'font_family = "FantasqueSansM Nerd Font"'
+    # Noctalia renders text with Pango. A generic family preserves Fontconfig's
+    # full fallback chain: Fantasque remains first, while Noto supplies CJK.
+    value = 'font_family = "sans-serif"'
     body = pattern.sub(value, body, count=1) if pattern.search(body) else body + value + "\n"
     text = text[:section.start("body")] + body + text[section.end("body"):]
 with open(destination, "w", encoding="utf-8") as stream:

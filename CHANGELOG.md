@@ -3,6 +3,9 @@
 This installer was generated from the supplied `setup-export.tar.gz`.
 
 Sanitization/portability changes:
+- Fixed Mandarin/Japanese media titles rendering as squares in Noctalia's bar and lock screen.
+  Noctalia now requests the generic `sans-serif` family so Pango follows the configured Fontconfig
+  chain: Fantasque remains the visible primary face and Noto supplies missing scripts.
 - Added a resumable Steam stage and `--steam-only` mode. On x86-64 glibc Void it enables the
   required nonfree/multilib repositories, installs the native package, and detects Intel, AMD, and
   Nouveau GPUs for matching 64/32-bit Vulkan support; other systems use the maintained Flathub build.

@@ -312,10 +312,12 @@ else
     NEED_THEME=true
 fi
 
-if have fc-match && fc-match 'Noto Sans CJK SC' 2>/dev/null | grep -Eqi 'Noto.*CJK|Source Han'; then
-    pass "CJK fallback fonts are available"
+if have fc-match \
+    && fc-match 'sans-serif:charset=4e2d' 2>/dev/null | grep -Eqi 'Noto.*CJK|Source Han' \
+    && fc-match 'sans-serif:charset=3042' 2>/dev/null | grep -Eqi 'Noto.*CJK|Source Han'; then
+    pass "Noctalia's font chain resolves Chinese and Japanese glyphs"
 else
-    warn "CJK fallback fonts could not be confirmed"
+    warn "Noctalia's font chain does not resolve Chinese/Japanese glyphs"
     NEED_THEME=true
 fi
 

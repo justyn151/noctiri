@@ -17,7 +17,7 @@ Core desktop:
 
 Theme/integration:
 - Bibata Modern Ice cursor
-- Fantasque Sans Mono Nerd Font 3.5.1 for the desktop UI and terminals
+- Fantasque Sans Mono Nerd Font 3.5.1 for the desktop UI and terminals, with Noto fallback for CJK and other scripts
 - qt6ct + Breeze Qt style/icons
 - Noctalia templates for `btop`, `cava`, KDE/Qt, Kitty, Niri, Yazi, and Pywalfox
 - KDE file picker through `xdg-desktop-portal-kde`
