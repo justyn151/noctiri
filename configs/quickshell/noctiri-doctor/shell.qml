@@ -51,6 +51,12 @@ ShellRoot {
         return output.replace(/\x1b\[[0-9;]*m/g, "");
     }
 
+    function closeWindow() {
+        // This panel is on demand. Hiding its final window would leave an
+        // otherwise idle Qt/Quickshell process resident in memory.
+        Qt.quit();
+    }
+
     function runProcess(command, message, operationName) {
         if (checking)
             return;
@@ -220,7 +226,7 @@ ShellRoot {
             border.width: 1
             border.color: root.accentColor
             focus: true
-            Keys.onEscapePressed: doctorWindow.visible = false
+            Keys.onEscapePressed: root.closeWindow()
 
             ColumnLayout {
                 anchors.fill: parent
@@ -280,7 +286,7 @@ ShellRoot {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: doctorWindow.visible = false
+                            onClicked: root.closeWindow()
                         }
                     }
                 }
@@ -462,7 +468,12 @@ ShellRoot {
 
         IpcHandler {
             target: "doctor"
-            function toggle(): void { doctorWindow.visible = !doctorWindow.visible; }
+            function toggle(): void {
+                if (doctorWindow.visible)
+                    root.closeWindow();
+                else
+                    doctorWindow.visible = true;
+            }
             function refresh(): void { root.runDoctor(false); }
         }
     }

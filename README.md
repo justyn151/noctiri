@@ -103,7 +103,9 @@ repository, `./install.sh --doctor` runs the same read-only checks without insta
 The same checks are available in a movable, palette-matched Quickshell window from the app launcher
 or with `Super+Shift+D`. Its **Maintenance** tab creates snapshots, updates Noctiri, and performs a
 two-step confirmed rollback; its **Memory** tab shows the proportional cost of each process and
-reclaimable cache. `Super+Shift+/` opens the shortcut guide, whose tabs cover the desktop,
+separates reclaimable cache, kernel slab, shared buffers, locked/display pages, and kernel
+bookkeeping from ordinary process memory. The Doctor and shortcut-guide processes exit completely
+when their windows close. `Super+Shift+/` opens the shortcut guide, whose tabs cover the desktop,
 Neovim, Yazi, and rmpc controls installed by Noctiri.
 
 ## Daily utilities and safe updates

@@ -29,6 +29,12 @@ ShellRoot {
 
     readonly property var tabNames: ["Desktop", "Neovim", "Yazi", "rmpc"]
 
+    function closeWindow() {
+        // The guide is opened on demand, so closing it should release the
+        // standalone Qt/Quickshell process instead of merely hiding it.
+        Qt.quit();
+    }
+
     readonly property var essentials: [
         { combo: "Super + Shift + /", action: "Toggle this shortcut window" },
         { combo: "Super + Shift + D", action: "Open Noctiri Doctor" },
@@ -405,7 +411,7 @@ ShellRoot {
             border.width: 1
             border.color: root.accentColor
             focus: true
-            Keys.onEscapePressed: shortcutWindow.visible = false
+            Keys.onEscapePressed: root.closeWindow()
 
             ColumnLayout {
                 anchors.fill: parent
@@ -457,7 +463,7 @@ ShellRoot {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: shortcutWindow.visible = false
+                            onClicked: root.closeWindow()
                         }
                     }
                 }
@@ -520,7 +526,12 @@ ShellRoot {
 
         IpcHandler {
             target: "shortcuts"
-            function toggle(): void { shortcutWindow.visible = !shortcutWindow.visible; }
+            function toggle(): void {
+                if (shortcutWindow.visible)
+                    root.closeWindow();
+                else
+                    shortcutWindow.visible = true;
+            }
         }
     }
 }

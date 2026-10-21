@@ -357,12 +357,18 @@ command_maintenance() {
 
 command_memory() {
     local total_mib available_mib used_mib cache_mib shmem_mib pss_total=0
+    local slab_mib reclaimable_slab_mib retained_slab_mib unevictable_mib bookkeeping_mib
     local pid pss comm tmp sorted
     total_mib="$(awk '/MemTotal:/ { printf "%d", $2/1024 }' /proc/meminfo)"
     available_mib="$(awk '/MemAvailable:/ { printf "%d", $2/1024 }' /proc/meminfo)"
     used_mib=$((total_mib - available_mib))
     cache_mib="$(awk '/^Cached:/ { cached=$2 } /^Buffers:/ { buffers=$2 } /^SReclaimable:/ { reclaimable=$2 } END { printf "%d", (cached+buffers+reclaimable)/1024 }' /proc/meminfo)"
     shmem_mib="$(awk '/^Shmem:/ { printf "%d", $2/1024 }' /proc/meminfo)"
+    slab_mib="$(awk '/^Slab:/ { printf "%d", $2/1024 }' /proc/meminfo)"
+    reclaimable_slab_mib="$(awk '/^SReclaimable:/ { printf "%d", $2/1024 }' /proc/meminfo)"
+    retained_slab_mib="$(awk '/^SUnreclaim:/ { printf "%d", $2/1024 }' /proc/meminfo)"
+    unevictable_mib="$(awk '/^Unevictable:/ { printf "%d", $2/1024 }' /proc/meminfo)"
+    bookkeeping_mib="$(awk '/^KernelStack:/ { stack=$2 } /^PageTables:/ { tables=$2 } /^Percpu:/ { percpu=$2 } END { printf "%d", (stack+tables+percpu)/1024 }' /proc/meminfo)"
     tmp="$(mktemp)"
     sorted="$(mktemp)"
     while IFS= read -r pid; do
@@ -385,10 +391,15 @@ command_memory() {
     printf '  User-session PSS:  %s MiB\n' "$((pss_total / 1024))"
     printf '  Reclaimable cache: %s MiB\n' "$cache_mib"
     printf '  Shared memory:     %s MiB\n' "$shmem_mib"
+    printf '  Kernel slab:       %s MiB (%s reclaimable, %s retained)\n' \
+        "$slab_mib" "$reclaimable_slab_mib" "$retained_slab_mib"
+    printf '  Locked/display pages: %s MiB\n' "$unevictable_mib"
+    printf '  Kernel tables/stacks: %s MiB\n' "$bookkeeping_mib"
     printf '\nLargest user-session processes (proportional memory):\n'
     head -n 12 "$sorted" | awk -F '\t' '{printf "  %-22s %6.1f MiB  pid %s\n", $2, $1/1024, $3}'
-    printf '\nPSS avoids counting shared libraries once per process. “Available” is the\n'
-    printf 'important pressure figure; cache is reclaimed automatically when applications need it.\n'
+    printf '\nPSS avoids counting shared libraries once per process. Root-owned services are not\n'
+    printf 'included in user-session PSS. The categories above can overlap and should not be added.\n'
+    printf '“Available” is the pressure figure; cache and reclaimable slab are released on demand.\n'
     rm -f "$tmp" "$sorted"
 }
 

@@ -29,7 +29,8 @@ Sanitization/portability changes:
   Nouveau GPUs for matching 64/32-bit Vulkan support; other systems use the maintained Flathub build.
 - Added a movable, theme-aware Quickshell GUI for `noctiri-doctor`, including summary cards, full
   diagnostic output, and a safe-repair button. Expanded the shortcut window with Desktop, Neovim,
-  Yazi, and rmpc tabs sourced from the controls that Noctiri actually installs.
+  Yazi, and rmpc tabs sourced from the controls that Noctiri actually installs. Both on-demand
+  windows now terminate when closed instead of retaining a hidden Quickshell process.
 - Added `noctiri-doctor` with read-only checks for session configuration, system services,
   connectivity, audio, MPD/MPRIS, portals, fonts, and XDG folders. Its optional `--repair` mode
   only performs safe user-session recovery and leaves system-level changes explicit.
