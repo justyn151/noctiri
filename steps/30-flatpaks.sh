@@ -29,7 +29,6 @@ install_steam() {
                     vulkan-loader-32bit
                     Vulkan-Tools
                     gamescope
-                    gamescope-32bit
                     MangoHud
                     MangoHud-32bit
                     gamemode
@@ -46,10 +45,17 @@ install_steam() {
                     # Do not mix the Nouveau Vulkan provider into a system that
                     # is already using NVIDIA's proprietary kernel/userspace
                     # stack. Steam games need the matching 32-bit NVIDIA library.
-                    if find /sys/bus/pci/devices -maxdepth 2 -path '*/driver' \
-                        -type l -lname '*/nvidia' -print -quit 2>/dev/null \
-                        | grep -q . \
-                        || xbps-query -e nvidia-libs >/dev/null 2>&1; then
+                    local driver_link nvidia_driver_active=false
+                    for driver_link in /sys/bus/pci/devices/*/driver; do
+                        [[ -L "$driver_link" ]] || continue
+                        if [[ "$(basename "$(readlink -f "$driver_link")")" == "nvidia" ]]; then
+                            nvidia_driver_active=true
+                            break
+                        fi
+                    done
+                    if [[ "$nvidia_driver_active" == true ]] \
+                        || xbps-query -l 2>/dev/null \
+                            | grep -Eq '^ii nvidia-libs-[0-9]'; then
                         steam_graphics+=(nvidia-libs nvidia-libs-32bit)
                     else
                         steam_graphics+=(mesa-vulkan-nouveau mesa-vulkan-nouveau-32bit)

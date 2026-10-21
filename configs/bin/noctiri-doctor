@@ -353,7 +353,7 @@ if [[ "${ID:-unknown}" == "void" ]]; then
 
     if [[ "$nvidia_driver" == "nvidia" ]]; then
         pass "NVIDIA proprietary kernel driver is active"
-        if xbps-query -e nvidia-libs-32bit >/dev/null 2>&1; then
+        if xbps-query -l 2>/dev/null | grep -Eq '^ii nvidia-libs-32bit-[0-9]'; then
             pass "Matching 32-bit NVIDIA libraries are installed for Steam"
         else
             fail "32-bit NVIDIA libraries are missing; rerun ./install.sh --steam-only"
