@@ -21,7 +21,19 @@ install_steam() {
                     void-repo-nonfree \
                     void-repo-multilib \
                     void-repo-multilib-nonfree
-                sudo xbps-install -Sy steam
+
+                # Some repository-enabler packages still point at repo-default,
+                # which can be extremely slow from Southeast Asia. Keep this
+                # transaction self-contained and prefer Void's official Fastly
+                # endpoints without rewriting the user's global XBPS config.
+                local void_steam_repositories=(
+                    -i
+                    -R https://repo-fastly.voidlinux.org/current
+                    -R https://repo-fastly.voidlinux.org/current/nonfree
+                    -R https://repo-fastly.voidlinux.org/current/multilib
+                    -R https://repo-fastly.voidlinux.org/current/multilib/nonfree
+                )
+                sudo xbps-install "${void_steam_repositories[@]}" -Sy steam
 
                 local steam_graphics=(
                     mesa-dri-32bit
@@ -61,7 +73,7 @@ install_steam() {
                         steam_graphics+=(mesa-vulkan-nouveau mesa-vulkan-nouveau-32bit)
                     fi
                 fi
-                sudo xbps-install -Sy "${steam_graphics[@]}"
+                sudo xbps-install "${void_steam_repositories[@]}" -Sy "${steam_graphics[@]}"
 
                 install_file "$ROOT_DIR/configs/bin/noctiri-gpu-run" \
                     "$HOME/.local/bin/noctiri-gpu-run" 0755

@@ -6,7 +6,8 @@ Sanitization/portability changes:
 - Expanded Void's Steam stage into a hybrid-GPU gaming setup: it installs the matching proprietary
   NVIDIA 32-bit libraries when that driver is active, plus Vulkan Tools, 64-bit Gamescope, MangoHud, and
   GameMode. A driver-aware `noctiri-gpu-run` command and discrete-GPU Steam launcher keep Niri on
-  the integrated GPU while allowing games to opt into NVIDIA PRIME render offload.
+  the integrated GPU while allowing games to opt into NVIDIA PRIME render offload. Its package
+  transaction prefers Void's official Fastly endpoints without changing global XBPS mirror files.
 - Fixed Mandarin/Japanese media titles rendering as squares in Noctalia's bar and lock screen.
   Noctalia now requests the generic `sans-serif` family so Pango follows the configured Fontconfig
   chain: Fantasque remains the visible primary face and Noto supplies missing scripts.
