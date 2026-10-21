@@ -3,6 +3,10 @@
 This installer was generated from the supplied `setup-export.tar.gz`.
 
 Sanitization/portability changes:
+- Expanded Yazi into a complete on-demand file workflow without adding a daemon: smart enter and
+  paste behavior, Git status, size/date metadata, full and zoomable previews, Noctalia-colored
+  selection state, archive creation, permission editing, drive management, and explicit Neovim/PDF
+  opening rules. The installer and Doctor now manage and verify the matching official plugins.
 - Added reviewed Minimal, Standard, and Full installation profiles. The interactive installer
   remembers the last choice, supports `--profile` for unattended runs, keeps all repair-only modes
   independent, and never folds the optional DWL preview into the normal Niri installation.

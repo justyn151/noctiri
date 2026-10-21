@@ -1,4 +1,14 @@
 [[mgr.prepend_keymap]]
+on = [ "l" ]
+run = "plugin smart-enter"
+desc = "Enter a directory or open a file"
+
+[[mgr.prepend_keymap]]
+on = [ "p" ]
+run = "plugin smart-paste"
+desc = "Paste into the hovered directory or current directory"
+
+[[mgr.prepend_keymap]]
 on = [ "M" ]
 run = "plugin mount"
 desc = "Mount, unmount, or eject a drive"
@@ -7,3 +17,33 @@ desc = "Mount, unmount, or eject a drive"
 on = [ "E" ]
 run = "open --interactive"
 desc = "Archive actions / Open with"
+
+[[mgr.prepend_keymap]]
+on = [ "A" ]
+run = "shell --block -- noctiri-yazi-archive %s"
+desc = "Create a .7z or .zip archive"
+
+[[mgr.prepend_keymap]]
+on = [ "F" ]
+run = "plugin smart-filter"
+desc = "Filter continuously and open the result"
+
+[[mgr.prepend_keymap]]
+on = [ "T" ]
+run = "plugin toggle-pane max-preview"
+desc = "Maximize or restore the preview"
+
+[[mgr.prepend_keymap]]
+on = [ "+" ]
+run = "plugin zoom 1"
+desc = "Zoom into an image preview"
+
+[[mgr.prepend_keymap]]
+on = [ "-" ]
+run = "plugin zoom -1"
+desc = "Zoom out of an image preview"
+
+[[mgr.prepend_keymap]]
+on = [ "c", "m" ]
+run = "plugin chmod"
+desc = "Change file permissions"

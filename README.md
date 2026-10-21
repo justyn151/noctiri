@@ -129,8 +129,11 @@ history, and Do Not Disturb support, so these features do not add another always
 text are kept in `~/Pictures/Screenshots`.
 
 KeePassXC is installed with the normal-install Firefox extension. Open KeePassXC once, create or
-open a database, then enable Firefox under **Settings → Browser Integration**. Yazi's `M` key opens
-its drive mount/unmount/eject interface, while `E` opens the interactive archive/open-with menu.
+open a database, then enable Firefox under **Settings → Browser Integration**. Yazi includes
+Noctalia-colored cut/copy markers, image/PDF/video/archive previews, Git status, smart enter/paste,
+and a combined size/date column. `M` opens its drive mount/unmount/eject interface, `E` opens the
+interactive archive/open-with menu, and `A` creates a `.7z` or `.zip` archive. `T` expands the
+preview, while `+` and `-` zoom image previews.
 Install or repair only this bundle on Void with:
 
 ```bash

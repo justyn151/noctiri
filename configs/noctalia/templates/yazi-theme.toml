@@ -114,3 +114,14 @@ rules = [
     { url = "*", is = "orphan", fg = "{{ colors.error.default.hex }}" },
     { url = "*", fg = "{{ colors.on_surface.default.hex }}" },
 ]
+
+[git]
+unknown = { fg = "{{ colors.outline.default.hex }}" }
+ignored = { fg = "{{ colors.outline_variant.default.hex }}" }
+untracked = { fg = "{{ colors.tertiary.default.hex }}" }
+unstaged = { fg = "{{ colors.error.default.hex }}" }
+staged = { fg = "{{ colors.secondary.default.hex }}" }
+added = { fg = "{{ colors.secondary.default.hex }}", bold = true }
+deleted = { fg = "{{ colors.error.default.hex }}", bold = true }
+updated = { fg = "{{ colors.primary.default.hex }}", bold = true }
+clean = { fg = "{{ colors.outline_variant.default.hex }}" }

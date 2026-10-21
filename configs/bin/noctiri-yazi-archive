@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if (( $# == 0 )); then
+    printf 'No files are selected.\n' >&2
+    exit 1
+fi
+
+if ! command -v 7z >/dev/null 2>&1; then
+    printf '7-Zip is not installed. Rerun the Noctiri utilities installer.\n' >&2
+    exit 1
+fi
+
+default_name="archive-$(date +%Y-%m-%d)"
+printf 'Archive name (.7z or .zip) [%s.7z]: ' "$default_name"
+IFS= read -r archive_name
+archive_name="${archive_name:-$default_name.7z}"
+
+case "$archive_name" in
+    */*|.|..)
+        printf 'Enter a file name, not a path. The archive is created in this directory.\n' >&2
+        exit 1
+        ;;
+    *.7z|*.zip) ;;
+    *) archive_name="${archive_name}.7z" ;;
+esac
+
+if [[ -e "$archive_name" ]]; then
+    printf 'Refusing to overwrite %s.\n' "$archive_name" >&2
+    exit 1
+fi
+
+items=()
+for item in "$@"; do
+    if [[ "$item" == "$PWD/"* ]]; then
+        items+=("${item#"$PWD/"}")
+    else
+        items+=("$item")
+    fi
+done
+
+7z a -- "$archive_name" "${items[@]}"
+printf '\nCreated %s\n' "$archive_name"

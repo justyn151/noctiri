@@ -335,25 +335,48 @@ install_shortcut_window() {
 }
 
 install_yazi_integration() {
+    local plugin installed_plugins
+    local -a yazi_plugins missing_plugins
+
     install_file "$ROOT_DIR/configs/yazi/yazi.toml" \
         "$HOME/.config/yazi/yazi.toml"
     install_file "$ROOT_DIR/configs/yazi/keymap.toml" \
         "$HOME/.config/yazi/keymap.toml"
+    install_file "$ROOT_DIR/configs/yazi/init.lua" \
+        "$HOME/.config/yazi/init.lua"
+    install_file "$ROOT_DIR/configs/bin/noctiri-yazi-archive" \
+        "$HOME/.local/bin/noctiri-yazi-archive" 0755
     install_file "$ROOT_DIR/configs/noctalia/yazi-template.toml" \
         "$HOME/.config/noctalia/30-yazi-template.toml"
     install_file "$ROOT_DIR/configs/noctalia/templates/yazi-theme.toml" \
         "$HOME/.config/noctalia/templates/yazi-theme.toml"
 
     if have ya; then
-        if ya pkg list 2>/dev/null | grep -Fq 'yazi-rs/plugins:mount'; then
-            ya pkg upgrade >/dev/null 2>&1 \
-                || warn "Yazi's mount plugin could not be refreshed; the installed copy was kept."
-        else
-            ya pkg add yazi-rs/plugins:mount >/dev/null 2>&1 \
-                || warn "Yazi's mount plugin could not be downloaded; rerun --utilities-only when online."
+        yazi_plugins=(
+            yazi-rs/plugins:mount
+            yazi-rs/plugins:smart-enter
+            yazi-rs/plugins:smart-paste
+            yazi-rs/plugins:smart-filter
+            yazi-rs/plugins:toggle-pane
+            yazi-rs/plugins:zoom
+            yazi-rs/plugins:chmod
+            yazi-rs/plugins:full-border
+            yazi-rs/plugins:git
+        )
+        installed_plugins="$(ya pkg list 2>/dev/null || true)"
+        missing_plugins=()
+        for plugin in "${yazi_plugins[@]}"; do
+            grep -Fq "$plugin" <<<"$installed_plugins" || missing_plugins+=("$plugin")
+        done
+
+        if (( ${#missing_plugins[@]} > 0 )); then
+            ya pkg add "${missing_plugins[@]}" >/dev/null 2>&1 \
+                || warn "Some Yazi workflow plugins could not be downloaded; rerun --utilities-only when online."
         fi
+        ya pkg upgrade >/dev/null 2>&1 \
+            || warn "Yazi plugins could not be refreshed; installed copies were kept."
     else
-        warn "The Yazi package manager is unavailable; drive controls were not installed."
+        warn "The Yazi package manager is unavailable; workflow plugins were not installed."
     fi
 }
 

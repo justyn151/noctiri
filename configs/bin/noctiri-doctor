@@ -367,10 +367,21 @@ else
     warn "Tesseract OCR is missing; rerun ./install.sh --utilities-only"
 fi
 
-if have ya && ya pkg list 2>/dev/null | grep -Fq 'yazi-rs/plugins:mount'; then
-    pass "Yazi drive mount/eject plugin is installed"
+required_yazi_plugins=(mount smart-enter smart-paste smart-filter toggle-pane zoom chmod full-border git)
+missing_yazi_plugins=()
+if have ya; then
+    installed_yazi_plugins="$(ya pkg list 2>/dev/null || true)"
+    for yazi_plugin in "${required_yazi_plugins[@]}"; do
+        grep -Fq "yazi-rs/plugins:${yazi_plugin}" <<<"$installed_yazi_plugins" \
+            || missing_yazi_plugins+=("$yazi_plugin")
+    done
+    if (( ${#missing_yazi_plugins[@]} == 0 )); then
+        pass "Yazi workflow, preview, Git, and drive plugins are installed"
+    else
+        warn "Yazi plugins are missing: ${missing_yazi_plugins[*]}"
+    fi
 else
-    warn "Yazi drive mount/eject plugin is missing"
+    warn "Yazi's package manager is unavailable"
 fi
 
 if [[ -x "$HOME/.local/bin/noctiri" ]]; then

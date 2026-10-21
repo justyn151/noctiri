@@ -150,7 +150,7 @@ ShellRoot {
     readonly property var yaziNavigation: [
         { combo: "h / Left", action: "Go to the parent directory" },
         { combo: "j / k", action: "Move down / up" },
-        { combo: "l / Right", action: "Enter the selected directory" },
+        { combo: "l / Right", action: "Enter a directory or open a file" },
         { combo: "g g / G", action: "Jump to the top / bottom" },
         { combo: "J / K", action: "Seek the preview down / up" },
         { combo: "z / Z", action: "Jump with fzf / zoxide" }
@@ -167,11 +167,13 @@ ShellRoot {
         { combo: ".", action: "Toggle hidden files" },
         { combo: "Tab", action: "Show file information" },
         { combo: "E", action: "Choose an archive/open action" },
+        { combo: "A", action: "Create a 7z/zip archive" },
         { combo: "M", action: "Mount, unmount, or eject a drive" }
     ]
 
     readonly property var yaziSearch: [
         { combo: "f", action: "Filter the current directory" },
+        { combo: "F", action: "Smart-filter and open the result" },
         { combo: "/ / ?", action: "Find next / previous match" },
         { combo: "n / N", action: "Next / previous found item" },
         { combo: "s / S", action: "Search filenames / file contents" },
@@ -187,6 +189,9 @@ ShellRoot {
         { combo: "[ / ]", action: "Previous / next tab" },
         { combo: "{ / }", action: "Move the current tab left / right" },
         { combo: "Ctrl + C", action: "Close the current tab" },
+        { combo: "T", action: "Maximize / restore the preview" },
+        { combo: "+ / -", action: "Zoom an image preview in / out" },
+        { combo: "c m", action: "Change selected file permissions" },
         { combo: "w", action: "Open the task manager" }
     ]
 

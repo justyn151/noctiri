@@ -5,7 +5,7 @@ sort_by = "natural"
 sort_sensitive = false
 sort_reverse = false
 sort_dir_first = true
-linemode = "size"
+linemode = "size_and_mtime"
 show_hidden = false
 show_symlink = true
 scrolloff = 5
@@ -16,3 +16,30 @@ tab_size = 4
 image_delay = 30
 image_filter = "lanczos3"
 image_quality = 80
+max_width = 1600
+max_height = 1600
+
+[opener]
+noctiri-edit = [
+    { run = 'if command -v nvim >/dev/null 2>&1; then nvim %s; else xdg-open %s1; fi', block = true, desc = "Edit in Neovim" },
+]
+noctiri-pdf = [
+    { run = 'if command -v sioyek >/dev/null 2>&1; then sioyek %s1; else xdg-open %s1; fi', orphan = true, desc = "View PDF" },
+]
+
+[open]
+prepend_rules = [
+    { url = "*.{c,cc,cpp,h,hpp,css,go,html,ini,java,js,json,kdl,lua,md,py,rs,sh,toml,ts,tsx,txt,xml,yaml,yml}", use = [ "noctiri-edit", "open" ] },
+    { url = "*.tex", use = [ "noctiri-edit", "open" ] },
+    { mime = "application/pdf", use = [ "noctiri-pdf", "open" ] },
+]
+
+[[plugin.prepend_fetchers]]
+url = "*"
+run = "git"
+group = "git"
+
+[[plugin.prepend_fetchers]]
+url = "*/"
+run = "git"
+group = "git"
