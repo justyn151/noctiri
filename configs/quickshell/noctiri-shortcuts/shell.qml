@@ -36,7 +36,12 @@ ShellRoot {
         { combo: "Super + D", action: "Open the app launcher" },
         { combo: "Super + P", action: "Open the wallpaper picker" },
         { combo: "Super + E", action: "Open Yazi in Kitty" },
-        { combo: "Super + Shift + S", action: "Take a screenshot" },
+        { combo: "Super + Shift + S", action: "Capture and annotate a region" },
+        { combo: "Print", action: "Capture the current monitor" },
+        { combo: "Super + Shift + O", action: "OCR a region and copy its text" },
+        { combo: "Super + Ctrl + V", action: "Open encrypted clipboard history" },
+        { combo: "Super + N", action: "Open notification history" },
+        { combo: "Super + Shift + N", action: "Toggle Do Not Disturb" },
         { combo: "Super + Alt + L", action: "Lock the session" },
         { combo: "Super + Tab", action: "Toggle the Niri overview" },
         { combo: "Alt + Tab", action: "Switch through recent windows" },
@@ -154,7 +159,9 @@ ShellRoot {
         { combo: "d / D", action: "Trash / permanently delete" },
         { combo: "a / r", action: "Create / rename" },
         { combo: ".", action: "Toggle hidden files" },
-        { combo: "Tab", action: "Show file information" }
+        { combo: "Tab", action: "Show file information" },
+        { combo: "E", action: "Choose an archive/open action" },
+        { combo: "M", action: "Mount, unmount, or eject a drive" }
     ]
 
     readonly property var yaziSearch: [

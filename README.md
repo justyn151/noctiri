@@ -12,7 +12,7 @@ Core desktop:
 - Standard XDG home folders (`Desktop`, `Documents`, `Downloads`, `Music`, `Pictures`, `Public`, `Templates`, and `Videos`)
 - XWayland Satellite
 - PipeWire + WirePlumber
-- XDG portals (GNOME + GTK + KDE)
+- XDG portals (GNOME + GTK; KDE is retained only on Fedora)
 - Polkit and GNOME Keyring PAM integration
 
 Theme/integration:
@@ -20,7 +20,7 @@ Theme/integration:
 - Fantasque Sans Mono Nerd Font 3.5.1 for the desktop UI and terminals, with Noto fallback for CJK and other scripts
 - qt6ct + Breeze Qt style/icons
 - Noctalia templates for `btop`, `cava`, KDE/Qt, Kitty, Niri, Yazi, and Pywalfox
-- KDE file picker through `xdg-desktop-portal-kde`
+- Native XDG file picker integration
 - Firefox policy forcing the XDG portal file picker and installing the Pywalfox extension
 
 Apps:
@@ -29,6 +29,7 @@ Apps:
 - Neovim (with the included VimTeX/FZF configuration)
 - Sioyek for PDFs and Tectonic for compact, on-demand LaTeX compilation
 - Yazi as the `Super+E` file manager, with a Noctalia-generated palette
+- KeePassXC with its Firefox integration
 - Dolphin + Ark available from the application launcher for graphical fallback
 - btop
 - cava
@@ -92,12 +93,50 @@ noctiri-doctor
 
 It checks Niri and Noctalia configuration, runit/systemd services, NetworkManager, BlueZ,
 PipeWire/WirePlumber, MPD/MPRIS media integration, portals, fonts, and the standard XDG home
-folders. `noctiri-doctor --repair` may be used to restart safe per-user components and refresh
+folders. It also checks the daily utilities, OCR languages, Yazi drive plugin, Noctiri recovery
+command, and current memory against the 1500 MiB target. `noctiri-doctor --repair` may be used to
+restart safe per-user components and refresh
 templates/directories; system-level changes remain explicit installer repair steps. From the
 repository, `./install.sh --doctor` runs the same read-only checks without installing the command.
 The same checks are available in a movable, palette-matched Quickshell window from the app launcher
 or with `Super+Shift+D`. `Super+Shift+/` opens the shortcut guide, whose tabs cover the desktop,
 Neovim, Yazi, and rmpc controls installed by Noctiri.
+
+## Daily utilities and safe updates
+
+Noctiri uses Noctalia's existing encrypted clipboard store, screenshot annotator, notification
+history, and Do Not Disturb support, so these features do not add another always-running shell.
+`Super+Ctrl+V` opens clipboard history, `Super+N` opens notification history,
+`Super+Shift+N` toggles DND, `Super+Shift+S` captures and annotates a region, and
+`Super+Shift+O` captures a region and copies English/Japanese/Chinese OCR text. Screenshots and OCR
+text are kept in `~/Pictures/Screenshots`.
+
+KeePassXC is installed with the normal-install Firefox extension. Open KeePassXC once, create or
+open a database, then enable Firefox under **Settings → Browser Integration**. Yazi's `M` key opens
+its drive mount/unmount/eject interface, while `E` opens the interactive archive/open-with menu.
+Install or repair only this bundle on Void with:
+
+```bash
+./install.sh --utilities-only
+```
+
+The `noctiri` command provides configuration snapshots without copying personal documents or
+rolling back system packages:
+
+```bash
+noctiri status
+noctiri snapshot
+noctiri update
+noctiri update --system
+noctiri snapshots
+noctiri rollback                 # restores the newest snapshot
+noctiri rollback YYYYMMDD-HHMMSS # restores a selected snapshot
+```
+
+Every update and rollback makes a safety snapshot first, validates Niri and Noctalia, and reloads
+the running shell. The app launcher also contains **Noctiri Update** and **Noctiri Rollback**.
+DND scheduling is opt-in (`noctiri dnd schedule 23:00 07:00`) and otherwise has no resident
+process; disable it with `noctiri dnd disable-schedule`.
 
 To install new wallpaper collections or update existing wallpaper repositories without package
 installation, configuration replacement, or source compilation, run:
@@ -174,7 +213,7 @@ opens the generated PDF. If no readable PDF exists, the viewer shortcut now poin
 `:VimtexErrors` instead of opening an empty viewer. Compile-on-save starts enabled for each TeX buffer.
 
 Firefox receives a deliberately small default extension set through its normal-install policy:
-Pywalfox, uBlock Origin, SponsorBlock, and Ctrl+Number to switch tabs. Normal-installed extensions
+Pywalfox, uBlock Origin, SponsorBlock, Ctrl+Number to switch tabs, and KeePassXC-Browser. Normal-installed extensions
 can still be disabled by the user. Restart Firefox after installation so it reads the policy and connects Pywalfox.
 To install or repair only that browser setup, run `./install.sh --firefox-only`.
 
@@ -193,8 +232,9 @@ the shell:
 Log out once after the first installation so terminals and SSH sessions use Zsh by default.
 
 rmpc is installed as the terminal music player together with a per-user MPD daemon. MPD scans
-`~/Music`, sends audio directly to PipeWire, and starts through the graphical session's XDG
-autostart support. The installer also supervises
+`~/Music` and sends audio directly to PipeWire. To preserve idle memory, MPD and its media bridge
+start on demand when **rmpc Music Player** is opened instead of at every login. They remain active
+after the terminal closes so playback is uninterrupted. The installer also supervises
 [`mpd-mpris`](https://github.com/natsukagami/mpd-mpris), allowing Noctalia's media widget,
 `playerctl`, and media keys to see and control rmpc/MPD playback. A dedicated `rmpc Music Player`
 entry—with its own icon—opens it in Kitty from the application launcher. The installer preserves

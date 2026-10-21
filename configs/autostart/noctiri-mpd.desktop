@@ -5,4 +5,5 @@ Comment=Per-user music daemon for rmpc
 Exec=noctiri-mpd
 Terminal=false
 NoDisplay=true
-X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-enabled=false
+Hidden=true

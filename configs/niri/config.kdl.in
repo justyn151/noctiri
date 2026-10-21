@@ -304,6 +304,9 @@ layout {
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
 spawn-at-startup "noctalia"
+// Exits immediately unless the user enabled a DND schedule with
+// `noctiri dnd schedule HH:MM HH:MM`.
+spawn-at-startup "noctiri" "dnd" "daemon"
 // Pre-warm Kitty invisibly. Visible windows then reuse its process/GPU cache
 // instead of paying the full startup cost on every shortcut press.
 spawn-at-startup "kitty" "--single-instance" "--start-as=hidden"
@@ -427,7 +430,13 @@ binds {
     Mod+T hotkey-overlay-title="Terminal" { spawn "kitty" "--single-instance"; }
     Mod+D hotkey-overlay-title="Launcher" { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
     Mod+P hotkey-overlay-title="Wallpaper Picker" { spawn "noctalia" "msg" "panel-toggle" "wallpaper"; }
-    Mod+Shift+S hotkey-overlay-title="Screenshot" { screenshot; }
+    Mod+Shift+S hotkey-overlay-title="Screenshot region + annotate" { spawn "noctalia" "msg" "screenshot-region"; }
+    Print hotkey-overlay-title="Screenshot current monitor" { spawn "noctalia" "msg" "screenshot-fullscreen"; }
+    Mod+Shift+A hotkey-overlay-title="Annotate the screen" { spawn "noctalia" "msg" "screenshot-annotate"; }
+    Mod+Shift+O hotkey-overlay-title="OCR a screen region" { spawn "noctiri-screenshot-ocr"; }
+    Mod+Ctrl+V hotkey-overlay-title="Clipboard history" { spawn "noctalia" "msg" "panel-toggle" "clipboard"; }
+    Mod+N hotkey-overlay-title="Notification history" { spawn "noctalia" "msg" "panel-toggle" "control-center" "notifications"; }
+    Mod+Shift+N hotkey-overlay-title="Toggle Do Not Disturb" { spawn "noctalia" "msg" "notification-dnd-toggle"; }
     Mod+E hotkey-overlay-title="File Manager: Yazi" { spawn "kitty" "--single-instance" "--class" "noctiri-yazi" "--title" "Yazi" "yazi"; }
     Super+Alt+L hotkey-overlay-title="Lock Screen" { spawn "noctalia" "msg" "session" "lock"; }
 

@@ -129,19 +129,7 @@ repair_user_session() {
         pass "Requested a supervised PipeWire recovery"
     fi
 
-    if ! pgrep -u "$(id -u)" -x mpd >/dev/null 2>&1 \
-        && [[ -x "$HOME/.local/bin/noctiri-mpd" ]]; then
-        nohup "$HOME/.local/bin/noctiri-mpd" >/dev/null 2>&1 </dev/null &
-        pass "Started the per-user MPD daemon"
-    fi
-
     import_graphical_environment || true
-    if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]] \
-        && ! pgrep -u "$(id -u)" -x mpd-mpris >/dev/null 2>&1 \
-        && [[ -x "$HOME/.local/bin/noctiri-mpd-mpris" ]]; then
-        nohup "$HOME/.local/bin/noctiri-mpd-mpris" >/dev/null 2>&1 </dev/null &
-        pass "Started the MPD MPRIS bridge"
-    fi
 
     if have noctalia && pgrep -u "$(id -u)" -af noctalia >/dev/null 2>&1; then
         noctalia msg templates-apply >/dev/null 2>&1 || true
@@ -271,6 +259,8 @@ fi
 section "Music and desktop media controls"
 if pgrep -u "$(id -u)" -x mpd >/dev/null 2>&1; then
     pass "MPD is running"
+elif [[ -x "$HOME/.local/bin/noctiri-rmpc" ]]; then
+    pass "MPD is idle and will start on demand with rmpc"
 else
     warn "MPD is not running"
     NEED_MUSIC=true
@@ -278,6 +268,8 @@ fi
 
 if pgrep -u "$(id -u)" -x mpd-mpris >/dev/null 2>&1; then
     pass "MPD MPRIS bridge is running"
+elif [[ -x "$HOME/.local/bin/noctiri-rmpc" ]]; then
+    pass "MPD MPRIS bridge is idle and will start on demand with rmpc"
 else
     warn "MPD MPRIS bridge is not running"
     NEED_MUSIC=true
@@ -287,6 +279,9 @@ if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]] && have playerctl \
     && probe playerctl -l \
     && playerctl -l 2>/dev/null | grep -Eq '^mpd([.]|$)'; then
     pass "MPD is visible to Noctalia and playerctl"
+elif ! pgrep -u "$(id -u)" -x mpd >/dev/null 2>&1 \
+    && [[ -x "$HOME/.local/bin/noctiri-rmpc" ]]; then
+    pass "MPD media controls are idle until rmpc opens"
 else
     warn "MPD is not currently visible over MPRIS"
     NEED_MUSIC=true
@@ -337,6 +332,54 @@ if have xdg-user-dir; then
     fi
 else
     warn "xdg-user-dir is unavailable"
+fi
+
+section "Daily utilities and recovery"
+for utility in keepassxc grim slurp tesseract; do
+    if have "$utility"; then
+        pass "$utility is available"
+    else
+        warn "$utility is missing; rerun ./install.sh --utilities-only"
+    fi
+done
+
+if have tesseract; then
+    missing_ocr_languages=()
+    available_ocr_languages="$(tesseract --list-langs 2>/dev/null || true)"
+    for language in eng jpn chi_sim chi_tra; do
+        grep -Fxq "$language" <<<"$available_ocr_languages" \
+            || missing_ocr_languages+=("$language")
+    done
+    if (( ${#missing_ocr_languages[@]} == 0 )); then
+        pass "OCR language data covers English, Japanese, Simplified Chinese, and Traditional Chinese"
+    else
+        warn "OCR language data is missing: ${missing_ocr_languages[*]}"
+    fi
+fi
+
+if have ya && ya pkg list 2>/dev/null | grep -Fq 'yazi-rs/plugins:mount'; then
+    pass "Yazi drive mount/eject plugin is installed"
+else
+    warn "Yazi drive mount/eject plugin is missing"
+fi
+
+if [[ -x "$HOME/.local/bin/noctiri" ]]; then
+    pass "Noctiri snapshot, updater, and rollback command is installed"
+else
+    warn "Noctiri updater is missing; rerun ./install.sh --utilities-only"
+fi
+
+if [[ -x "$HOME/.local/bin/noctiri-screenshot-ocr" ]]; then
+    pass "On-demand screenshot OCR command is installed"
+else
+    warn "Screenshot OCR command is missing"
+fi
+
+memory_used_mib="$(awk '/MemTotal:/ { total=$2 } /MemAvailable:/ { available=$2 } END { printf "%d", (total-available)/1024 }' /proc/meminfo)"
+if (( memory_used_mib <= 1500 )); then
+    pass "Memory in use is ${memory_used_mib} MiB (within the 1500 MiB target)"
+else
+    warn "Memory in use is ${memory_used_mib} MiB (above the 1500 MiB target)"
 fi
 
 section "Gaming graphics"

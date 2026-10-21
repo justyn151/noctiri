@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+have() { command -v "$1" >/dev/null 2>&1; }
+notify() {
+    if have noctalia; then
+        noctalia msg notification-show "$1" "${2:-}" >/dev/null 2>&1 || true
+    elif have notify-send; then
+        notify-send "$1" "${2:-}" >/dev/null 2>&1 || true
+    fi
+}
+
+for dependency in grim slurp tesseract wl-copy; do
+    have "$dependency" || {
+        notify "OCR unavailable" "Missing command: $dependency"
+        exit 1
+    }
+done
+
+geometry="$(slurp)" || exit 0
+[[ -n "$geometry" ]] || exit 0
+
+output_dir="${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots"
+mkdir -p "$output_dir"
+stamp="$(date +%Y-%m-%d_%H-%M-%S)"
+image_path="$output_dir/OCR_$stamp.png"
+text_path="$output_dir/OCR_$stamp.txt"
+
+grim -g "$geometry" "$image_path"
+
+languages=()
+available="$(tesseract --list-langs 2>/dev/null || true)"
+for language in eng jpn chi_sim chi_tra; do
+    grep -Fxq "$language" <<<"$available" && languages+=("$language")
+done
+(( ${#languages[@]} > 0 )) || languages=(eng)
+language_spec="$(IFS=+; printf '%s' "${languages[*]}")"
+
+if ! tesseract "$image_path" stdout -l "$language_spec" 2>/dev/null \
+    | sed -e 's/[[:space:]]\+$//' > "$text_path"; then
+    notify "OCR failed" "The screenshot was kept at $image_path"
+    exit 1
+fi
+
+if [[ ! -s "$text_path" ]]; then
+    notify "No text found" "The screenshot was kept in Pictures/Screenshots"
+    exit 0
+fi
+
+wl-copy --type 'text/plain;charset=utf-8' < "$text_path"
+notify "OCR copied" "Recognized text is on the clipboard; image and text were saved."

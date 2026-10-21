@@ -53,6 +53,8 @@ background_opacity = 0.8399999812245369
 [notification]
 background_opacity = 0.4999999888241291
 border = false
+history_retention_hours = 168
+keep_dismissed_in_history = true
 max_visible = 2
 offset_x = 12
 offset_y = 10
@@ -68,6 +70,11 @@ scale = 0.80000000447034836
 [shell]
 button_borders = false
 card_borders = false
+clipboard_auto_paste = "auto"
+clipboard_confirm_clear_history = true
+clipboard_enabled = true
+clipboard_history_max_entries = 100
+clipboard_keep_from_closed_apps = true
 corner_radius_scale = 0.85000001266598701
 # Keep this generic so Pango/Fontconfig can use Fantasque for Latin and Nerd
 # glyphs while falling back to Noto for CJK and other writing systems.
@@ -86,6 +93,19 @@ popup_borders = false
 
     [shell.shadow]
     alpha = 0.39999999105930328
+
+    [shell.screenshot]
+    annotate = true
+    close_on_copy = true
+    close_on_save = true
+    confirm_region = false
+    copy_to_clipboard = true
+    directory = "@@HOME@@/Pictures/Screenshots"
+    filename_pattern = "Screenshot_%Y-%m-%d_%H-%M-%S"
+    freeze_screen = true
+    remember_last_region = true
+    save_to_file = true
+    show_cursor = false
 
 [theme]
 builtin = "Noctalia"

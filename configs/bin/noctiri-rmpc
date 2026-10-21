@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+export PATH="$HOME/.local/bin${PATH:+:$PATH}"
+
+noctiri-mpd >/dev/null 2>&1 || exit 1
+if ! pgrep -u "$(id -u)" -x mpd-mpris >/dev/null 2>&1; then
+    nohup noctiri-mpd-mpris >/dev/null 2>&1 </dev/null &
+fi
+
+exec kitty --single-instance --class noctiri-rmpc --title rmpc rmpc

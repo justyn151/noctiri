@@ -7,6 +7,36 @@ install_packages() {
     esac
 }
 
+install_daily_utility_packages() {
+    log "Installing the on-demand daily utility tools"
+    case "$DISTRO_ID" in
+        void)
+            sudo xbps-install -Sy \
+                keepassxc \
+                grim slurp \
+                tesseract-ocr \
+                tesseract-ocr-eng \
+                tesseract-ocr-jpn \
+                tesseract-ocr-chi_sim \
+                tesseract-ocr-chi_tra
+            ;;
+        fedora)
+            warn "The daily utility package bundle is currently maintained for Void Linux only."
+            ;;
+        *) die "No daily utility package implementation for $DISTRO_ID" ;;
+    esac
+}
+
+remove_unused_void_kde_portal() {
+    [[ "$DISTRO_ID" == "void" ]] || return 0
+    if xbps-query -e xdg-desktop-portal-kde >/dev/null 2>&1; then
+        sudo xbps-remove -y xdg-desktop-portal-kde
+        pkill -u "$(id -u)" -f '^/usr/libexec/xdg-desktop-portal-kde($| )' \
+            >/dev/null 2>&1 || true
+        ok "Removed the unused KDE portal backend; Niri continues to use GNOME and GTK portals"
+    fi
+}
+
 install_neovim_editor() {
     log "Installing Neovim, the CoC runtime, and Wayland clipboard support"
     case "$DISTRO_ID" in
@@ -148,6 +178,17 @@ mpd_is_ready() {
         && timeout 1 bash -c 'exec 3<>/dev/tcp/127.0.0.1/6600' >/dev/null 2>&1
 }
 
+configure_on_demand_music() {
+    install_file "$ROOT_DIR/configs/bin/noctiri-rmpc" \
+        "$HOME/.local/bin/noctiri-rmpc" 0755
+    install_file "$ROOT_DIR/configs/autostart/noctiri-mpd.desktop" \
+        "$HOME/.config/autostart/noctiri-mpd.desktop"
+    install_file "$ROOT_DIR/configs/autostart/noctiri-mpd-mpris.desktop" \
+        "$HOME/.config/autostart/noctiri-mpd-mpris.desktop"
+    install_file "$ROOT_DIR/configs/applications/noctiri-rmpc.desktop" \
+        "$HOME/.local/share/applications/noctiri-rmpc.desktop"
+}
+
 install_rmpc_stack() {
     log "Installing rmpc, its per-user MPD backend, and MPRIS bar integration"
     export PATH="$HOME/.local/bin:$PATH"
@@ -167,14 +208,9 @@ install_rmpc_stack() {
         "$HOME/.config/mpd/mpd.conf"
     install_file "$ROOT_DIR/configs/bin/noctiri-mpd" \
         "$HOME/.local/bin/noctiri-mpd" 0755
-    install_file "$ROOT_DIR/configs/autostart/noctiri-mpd.desktop" \
-        "$HOME/.config/autostart/noctiri-mpd.desktop"
     install_file "$ROOT_DIR/configs/bin/noctiri-mpd-mpris" \
         "$HOME/.local/bin/noctiri-mpd-mpris" 0755
-    install_file "$ROOT_DIR/configs/autostart/noctiri-mpd-mpris.desktop" \
-        "$HOME/.config/autostart/noctiri-mpd-mpris.desktop"
-    install_file "$ROOT_DIR/configs/applications/noctiri-rmpc.desktop" \
-        "$HOME/.local/share/applications/noctiri-rmpc.desktop"
+    configure_on_demand_music
     install_file "$ROOT_DIR/configs/icons/noctiri-rmpc.svg" \
         "$HOME/.local/share/icons/hicolor/scalable/apps/noctiri-rmpc.svg"
     mkdir -p \
@@ -326,7 +362,7 @@ install_packages_void() {
     local pkgs=(
         niri quickshell greetd dbus elogind seatd accountsservice mesa-dri
         xwayland-satellite
-        xdg-desktop-portal xdg-desktop-portal-gnome xdg-desktop-portal-gtk xdg-desktop-portal-kde
+        xdg-desktop-portal xdg-desktop-portal-gnome xdg-desktop-portal-gtk
         NetworkManager bluez rfkill upower
         pipewire wireplumber libspa-bluetooth alsa-pipewire alsa-utils pulseaudio-utils
         polkit gnome-keyring
@@ -336,6 +372,8 @@ install_packages_void() {
         dolphin ark btop cava fastfetch qimgv mpv
         qpwgraph
         yazi ffmpeg 7zip jq poppler fd fzf zoxide resvg ImageMagick
+        keepassxc grim slurp tesseract-ocr tesseract-ocr-eng tesseract-ocr-jpn
+        tesseract-ocr-chi_sim tesseract-ocr-chi_tra
         font-inter noto-fonts-cjk-sans
     )
     sudo xbps-install -y "${pkgs[@]}"

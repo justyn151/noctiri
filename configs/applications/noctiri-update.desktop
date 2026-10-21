@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Noctiri Update
+Comment=Snapshot and safely update Noctiri configuration
+Exec=kitty --class noctiri-update --title "Noctiri Update" noctiri update
+Icon=system-software-update
+Terminal=false
+Categories=System;Settings;
+Keywords=noctiri;update;snapshot;configuration;

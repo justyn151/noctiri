@@ -26,9 +26,11 @@ case "${1:-}" in
     --documents-only) MODE=documents ;;
     --music-only) MODE=music ;;
     --steam-only) MODE=steam ;;
+    --utilities-only) MODE=utilities ;;
+    --apply-configs-only) MODE=apply-configs ;;
     --doctor) MODE=doctor ;;
     -h|--help)
-        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --firefox-only | --zsh-only | --dwl-only | --font-only | --documents-only | --music-only | --steam-only | --doctor]\n' "$0"
+        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --firefox-only | --zsh-only | --dwl-only | --font-only | --documents-only | --music-only | --steam-only | --utilities-only | --doctor]\n' "$0"
         printf '  --wallpapers-only  Install or update wallpaper collections without rerunning setup\n'
         printf '  --spicetify-only   Install Spotify if needed, then finish Spicetify setup\n'
         printf '  --greeter-only     Repair greetd/Noctalia Greeter configuration without rebuilding\n'
@@ -42,6 +44,7 @@ case "${1:-}" in
         printf '  --documents-only   Install Sioyek, CoC/TexLab, and compact Tectonic LaTeX support\n'
         printf '  --music-only       Install rmpc, PipeWire-backed MPD, and MPRIS bar integration\n'
         printf '  --steam-only       Install Steam, GPU offload, Gamescope, MangoHud, and GameMode\n'
+        printf '  --utilities-only   Install clipboard/OCR/history, KeePassXC, Yazi drive and archive tools\n'
         printf '  --doctor           Run read-only Noctiri desktop health checks\n'
         exit 0
         ;;
@@ -132,6 +135,26 @@ if [[ "$MODE" == "steam" ]]; then
     exit 0
 fi
 
+if [[ "$MODE" == "utilities" ]]; then
+    [[ "$DISTRO_ID" == "void" ]] || die "--utilities-only is currently maintained for Void Linux"
+    printf '\nUtilities-only mode: installing daily-use tools without rebuilding Niri or Noctalia.\n\n'
+    install_daily_utilities
+    printf '\n\033[1;32mDaily utilities installed.\033[0m\n'
+    printf 'Use Super+Ctrl+V for clipboard history, Super+N for notifications, and Super+Shift+O for OCR.\n'
+    printf 'Open KeePassXC once to create a database and connect its Firefox extension.\n'
+    exit 0
+fi
+
+if [[ "$MODE" == "apply-configs" ]]; then
+    printf '\nApplying managed Noctiri configuration while preserving GUI runtime preferences.\n\n'
+    install_configs true
+    merge_firefox_policy
+    niri validate -c "$HOME/.config/niri/config.kdl"
+    noctalia config validate
+    printf '\n\033[1;32mManaged Noctiri configuration applied.\033[0m\n'
+    exit 0
+fi
+
 if [[ "$MODE" == "services" ]]; then
     printf '\nServices-only mode: the desktop stack and personal configuration will not be rebuilt.\n\n'
     repair_connectivity_audio
@@ -199,7 +222,8 @@ run_stateful_step neovim-editor-v3 "Neovim, CoC runtime, beam cursor, and Vim re
 run_stateful_step document-stack-v3 "Sioyek, TexLab, and compact on-demand LaTeX support" install_document_stack
 run_stateful_step rmpc-mpd-v2 "rmpc, app launcher, and per-user MPD music playback" install_rmpc_stack
 run_stateful_step zsh-ohmyzsh-v2 "Zsh, Oh My Zsh, suggestions, and highlighting" install_zsh_shell
-run_stateful_step configs-v4 "Desktop configuration" install_configs
+run_stateful_step daily-utilities-v1 "Daily utilities, OCR, KeePassXC, and Yazi drive controls" install_daily_utility_packages
+run_stateful_step configs-v5 "Desktop configuration" install_configs
 run_stateful_step firefox-policy-v4 "Firefox portal and extension policy" merge_firefox_policy
 run_stateful_step pywalfox "Noctalia Pywalfox native host" configure_pywalfox
 run_stateful_step default-apps-v2 "Default application associations" set_default_apps

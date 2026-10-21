@@ -3,6 +3,18 @@
 This installer was generated from the supplied `setup-export.tar.gz`.
 
 Sanitization/portability changes:
+- Added a low-overhead daily-utilities layer around Noctalia's built-in encrypted clipboard,
+  screenshot annotation/history, notification history, and Do Not Disturb controls. Added
+  on-demand multilingual screenshot OCR, KeePassXC plus its Firefox extension, and Yazi drive and
+  archive actions without adding another always-running desktop shell.
+- Added `noctiri` configuration snapshots, guarded updates, validated rollbacks, optional Void
+  system updates, opt-in DND scheduling, launcher entries, shortcut-guide coverage, doctor checks,
+  and a dedicated `--utilities-only` installer mode. The doctor now reports memory against the
+  1500 MiB target.
+- Removed the unused KDE portal backend from the Void package set while retaining GNOME's
+  screencast portal and GTK integration; Fedora keeps KDE portal support.
+- Changed MPD and its MPRIS bridge from login autostart to on-demand rmpc startup, recovering about
+  40 MiB of idle memory while keeping playback alive after the terminal closes.
 - Expanded Void's Steam stage into a hybrid-GPU gaming setup: it installs the matching proprietary
   NVIDIA 32-bit libraries when that driver is active, plus Vulkan Tools, 64-bit Gamescope, MangoHud, and
   GameMode. A driver-aware `noctiri-gpu-run` command and discrete-GPU Steam launcher keep Niri on

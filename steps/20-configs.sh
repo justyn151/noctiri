@@ -31,11 +31,52 @@ install_noctiri_doctor() {
     fi
 }
 
+install_noctiri_commands() {
+    local repository_record
+
+    install_file "$ROOT_DIR/configs/bin/noctiri" \
+        "$HOME/.local/bin/noctiri" 0755
+    install_file "$ROOT_DIR/configs/bin/noctiri-screenshot-ocr" \
+        "$HOME/.local/bin/noctiri-screenshot-ocr" 0755
+    install_file "$ROOT_DIR/configs/applications/noctiri-update.desktop" \
+        "$HOME/.local/share/applications/noctiri-update.desktop"
+    install_file "$ROOT_DIR/configs/applications/noctiri-rollback.desktop" \
+        "$HOME/.local/share/applications/noctiri-rollback.desktop"
+
+    repository_record="$(mktemp)"
+    printf '%s\n' "$ROOT_DIR" > "$repository_record"
+    install_file "$repository_record" "$HOME/.config/noctiri/repository"
+    rm -f "$repository_record"
+
+    mkdir -p "$HOME/Pictures/Screenshots"
+    if have update-desktop-database; then
+        update-desktop-database "$HOME/.local/share/applications" || true
+    fi
+}
+
+install_daily_utilities() {
+    install_daily_utility_packages
+    remove_unused_void_kde_portal
+    if have rmpc \
+        && [[ -x "$HOME/.local/bin/noctiri-mpd" ]] \
+        && [[ -x "$HOME/.local/bin/noctiri-mpd-mpris" ]]; then
+        configure_on_demand_music
+    fi
+    install_configs true
+    merge_firefox_policy
+    if pgrep -x noctalia >/dev/null 2>&1; then
+        noctalia msg config-reload >/dev/null 2>&1 || true
+    fi
+    ok "Installed Noctalia daily utilities, OCR, Yazi drive controls, and KeePassXC"
+}
+
 install_configs() {
+    local preserve_runtime_overrides="${1:-false}"
     log "Installing Niri, Noctalia, Kitty, Qt and portal configuration"
 
     install_user_path
     install_noctiri_doctor
+    install_noctiri_commands
     render_home_template "$ROOT_DIR/configs/niri/config.kdl.in" "$HOME/.config/niri/config.kdl"
     # Niri's config already includes this generated Noctalia theme fragment. Keep an empty
     # placeholder valid until Noctalia's template renderer writes the real one.
@@ -54,7 +95,8 @@ install_configs() {
 
     # GUI/runtime state overrides declarative config. Back it up and clear it so the
     # installer config is authoritative on first start.
-    if [[ -f "$HOME/.local/state/noctalia/settings.toml" ]]; then
+    if [[ "$preserve_runtime_overrides" != true \
+        && -f "$HOME/.local/state/noctalia/settings.toml" ]]; then
         backup_path "$HOME/.local/state/noctalia/settings.toml"
         rm -f "$HOME/.local/state/noctalia/settings.toml"
     fi
@@ -294,10 +336,24 @@ install_shortcut_window() {
 install_yazi_integration() {
     install_file "$ROOT_DIR/configs/yazi/yazi.toml" \
         "$HOME/.config/yazi/yazi.toml"
+    install_file "$ROOT_DIR/configs/yazi/keymap.toml" \
+        "$HOME/.config/yazi/keymap.toml"
     install_file "$ROOT_DIR/configs/noctalia/yazi-template.toml" \
         "$HOME/.config/noctalia/30-yazi-template.toml"
     install_file "$ROOT_DIR/configs/noctalia/templates/yazi-theme.toml" \
         "$HOME/.config/noctalia/templates/yazi-theme.toml"
+
+    if have ya; then
+        if ya pkg list 2>/dev/null | grep -Fq 'yazi-rs/plugins:mount'; then
+            ya pkg upgrade >/dev/null 2>&1 \
+                || warn "Yazi's mount plugin could not be refreshed; the installed copy was kept."
+        else
+            ya pkg add yazi-rs/plugins:mount >/dev/null 2>&1 \
+                || warn "Yazi's mount plugin could not be downloaded; rerun --utilities-only when online."
+        fi
+    else
+        warn "The Yazi package manager is unavailable; drive controls were not installed."
+    fi
 }
 
 install_neovim_integration() {
@@ -572,6 +628,7 @@ managed_extensions = {
     'uBlock0@raymondhill.net': 'https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi',
     'sponsorBlocker@ajay.app': 'https://addons.mozilla.org/firefox/downloads/latest/sponsorblock/latest.xpi',
     '{84601290-bec9-494a-b11c-1baa897a9683}': 'https://addons.mozilla.org/firefox/downloads/latest/ctrl-number-to-switch-tabs/latest.xpi',
+    'keepassxc-browser@keepassxc.org': 'https://addons.mozilla.org/firefox/downloads/latest/keepassxc-browser/latest.xpi',
 }
 # Stop managing Vimium when upgrading a policy written by an older Noctiri
 # release. Firefox can then remove it like any other normal extension.
