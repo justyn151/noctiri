@@ -5,5 +5,5 @@ Comment=Snapshot and safely update Noctiri configuration
 Exec=kitty --class noctiri-update --title "Noctiri Update" noctiri update
 Icon=system-software-update
 Terminal=false
-Categories=System;Settings;
+Categories=System;
 Keywords=noctiri;update;snapshot;configuration;

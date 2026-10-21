@@ -5,5 +5,5 @@ Comment=Restore the latest Noctiri configuration snapshot
 Exec=kitty --class noctiri-rollback --title "Noctiri Rollback" noctiri rollback
 Icon=edit-undo
 Terminal=false
-Categories=System;Settings;
+Categories=System;
 Keywords=noctiri;rollback;restore;snapshot;
