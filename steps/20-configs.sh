@@ -684,9 +684,17 @@ set_default_apps() {
     local videos=(video/mp4 video/x-matroska video/webm video/quicktime video/x-msvideo video/mpeg)
     local audio=(audio/mpeg audio/flac audio/x-flac audio/ogg audio/opus audio/x-wav audio/wav audio/mp4)
     local mime
-    for mime in "${images[@]}"; do xdg-mime default qimgv.desktop "$mime" || true; done
-    for mime in "${videos[@]}"; do xdg-mime default mpv.desktop "$mime" || true; done
-    for mime in "${audio[@]}"; do xdg-mime default mpv.desktop "$mime" || true; done
+    if have qimgv; then
+        for mime in "${images[@]}"; do xdg-mime default qimgv.desktop "$mime" || true; done
+    else
+        warn "qimgv is not installed; leaving image associations unchanged"
+    fi
+    if have mpv; then
+        for mime in "${videos[@]}"; do xdg-mime default mpv.desktop "$mime" || true; done
+        for mime in "${audio[@]}"; do xdg-mime default mpv.desktop "$mime" || true; done
+    else
+        warn "mpv is not installed; leaving audio/video associations unchanged"
+    fi
     set_pdf_default
 }
 

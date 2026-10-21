@@ -76,6 +76,7 @@ create_snapshot() {
     candidates=(
         "$CONFIG_HOME/niri"
         "$CONFIG_HOME/noctalia"
+        "$CONFIG_HOME/noctiri"
         "$CONFIG_HOME/yazi"
         "$CONFIG_HOME/nvim"
         "$CONFIG_HOME/kitty"
@@ -331,15 +332,19 @@ command_dnd() {
 }
 
 command_status() {
-    local repo revision latest="none" used
+    local repo revision latest="none" used profile="not recorded"
     repo="$(repository_path)"
     revision="$(git -C "$repo" rev-parse --short HEAD)"
+    if [[ -r "$CONFIG_HOME/noctiri/install-profile" ]]; then
+        IFS= read -r profile < "$CONFIG_HOME/noctiri/install-profile"
+    fi
     if [[ -d "$SNAPSHOT_DIR" ]]; then
         latest="$(find "$SNAPSHOT_DIR" -mindepth 1 -maxdepth 1 -type d -print | sort -r | head -n 1)"
         [[ -n "$latest" ]] && latest="${latest##*/}" || latest=none
     fi
     used="$(memory_used_mib)"
-    printf 'Repository: %s\nRevision:   %s\nSnapshot:   %s\nMemory:     %s MiB used' "$repo" "$revision" "$latest" "$used"
+    printf 'Repository: %s\nRevision:   %s\nProfile:    %s\nSnapshot:   %s\nMemory:     %s MiB used' \
+        "$repo" "$revision" "$profile" "$latest" "$used"
     if (( used > 1500 )); then
         printf ' (above 1500 MiB target)\n'
     else

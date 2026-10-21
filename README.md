@@ -24,23 +24,13 @@ Theme/integration:
 - Firefox policy forcing the XDG portal file picker and installing the Pywalfox extension
 
 Apps:
-- Firefox
-- Kitty
-- Neovim (with the included VimTeX/FZF configuration)
-- Sioyek for PDFs and Tectonic for compact, on-demand LaTeX compilation
-- Yazi as the `Super+E` file manager, with a Noctalia-generated palette
-- KeePassXC with its Firefox integration
-- Dolphin + Ark available from the application launcher for graphical fallback
-- btop
-- cava
-- fastfetch
-- qimgv
-- mpv
-- qpwgraph
-- Steam (native package on x86-64 glibc Void; Flatpak fallback elsewhere)
-- Spotify (Flatpak, installed by the optional Spicetify stage)
-- Vesktop (Flatpak)
-- Spicetify + Marketplace (optional interactive stage)
+- Firefox, Kitty, and Yazi are included in every profile.
+- Standard and Full add Neovim (with VimTeX/CoC/FZF), Sioyek with compact Tectonic LaTeX,
+  rmpc/MPD, Zsh/Oh My Zsh, KeePassXC, OCR tools, and Dolphin + Ark as graphical fallbacks.
+- Standard and Full also include btop, cava, fastfetch, qimgv, mpv, and qpwgraph.
+- Standard and Full add Spotify, Vesktop, and the optional interactive Spicetify stage.
+- Full adds Steam (native on x86-64 glibc Void; Flatpak fallback elsewhere), Gamescope,
+  MangoHud, GameMode, 32-bit graphics support, and hybrid-GPU launch helpers.
 
 An optional, side-by-side Void preview is also available for the setup shown in Bread on
 Penguins' **I moved to Wayland :D** video: the creator's patched DWL fork, Foot, Somebar,
@@ -78,6 +68,27 @@ Do **not** run the whole installer with sudo. Run it as your normal user:
 chmod +x install.sh
 ./install.sh
 ```
+
+The interactive installer offers three profiles and prints a final review before installing:
+
+| Profile | Included |
+| --- | --- |
+| **Minimal** | Niri, Noctalia, greeter, Kitty, Firefox, Yazi, fonts, services, Doctor, and managed configuration |
+| **Standard** | Minimal plus Neovim/LaTeX, rmpc, Zsh, daily utilities, fallback desktop apps, Vesktop, wallpapers, Spotify, and Spicetify |
+| **Full** | Standard plus Steam and the complete hybrid-GPU gaming runtime |
+
+Choose non-interactively or inspect the profiles without starting installation:
+
+```bash
+./install.sh --profile minimal
+./install.sh --profile standard
+./install.sh --profile full
+./install.sh --list-profiles
+```
+
+The selected profile is remembered for later non-interactive runs. Repair modes such as
+`--services-only`, `--music-only`, and `--steam-only` remain independent, so a Minimal system can
+add one feature later without changing profiles. DWL is always separate under `--dwl-only`.
 
 Completed stages are recorded under `~/.local/state/noctiri-installer/completed/`. On later full
 runs, each completed stage defaults to **skip** but can be rerun when you want to update or repair

@@ -313,7 +313,7 @@ PLUGINS
 }
 
 install_packages_fedora() {
-    log "Installing Fedora packages"
+    log "Installing Fedora packages for the $(profile_title "$INSTALL_PROFILE") profile"
     sudo dnf install -y dnf5-plugins
 
     local pkgs=(
@@ -323,13 +323,17 @@ install_packages_fedora() {
         NetworkManager bluez bluez-tools upower
         pipewire pipewire-alsa pipewire-pulseaudio wireplumber alsa-utils
         polkit gnome-keyring gnome-keyring-pam
-        kitty firefox neovim zsh ripgrep flatpak git curl tar xz unzip python3 xdg-utils xdg-user-dirs wl-clipboard
+        kitty firefox git curl tar xz unzip python3 xdg-utils xdg-user-dirs wl-clipboard
         playerctl brightnessctl
         qt6ct plasma-breeze-qt6 breeze-icon-theme
-        dolphin ark btop cava fastfetch qimgv mpv
-        qpwgraph
         rsms-inter-fonts google-noto-sans-cjk-fonts
     )
+    if profile_has desktop-apps; then
+        pkgs+=(
+            neovim zsh ripgrep flatpak
+            dolphin ark btop cava fastfetch qimgv mpv qpwgraph
+        )
+    fi
     sudo dnf install -y "${pkgs[@]}"
 
     if ! have yazi; then
@@ -354,7 +358,7 @@ install_packages_fedora() {
 }
 
 install_packages_void() {
-    log "Updating Void Linux and installing desktop packages"
+    log "Updating Void Linux and installing the $(profile_title "$INSTALL_PROFILE") profile packages"
     # Void does not support partial upgrades, so update the installed system before
     # resolving this installer's package set.
     sudo xbps-install -Suy
@@ -366,16 +370,18 @@ install_packages_void() {
         NetworkManager bluez rfkill upower
         pipewire wireplumber libspa-bluetooth alsa-pipewire alsa-utils pulseaudio-utils
         polkit gnome-keyring
-        kitty firefox neovim zsh ripgrep flatpak git curl tar xz unzip python3 xdg-utils xdg-user-dirs wl-clipboard
+        kitty firefox git curl tar xz unzip python3 xdg-utils xdg-user-dirs wl-clipboard
         playerctl brightnessctl
         qt6ct breeze-qt6 breeze-icons
-        dolphin ark btop cava fastfetch qimgv mpv
-        qpwgraph
         yazi ffmpeg 7zip jq poppler fd fzf zoxide resvg ImageMagick
-        keepassxc grim slurp tesseract-ocr tesseract-ocr-eng tesseract-ocr-jpn
-        tesseract-ocr-chi_sim tesseract-ocr-chi_tra
         font-inter noto-fonts-cjk-sans
     )
+    if profile_has desktop-apps; then
+        pkgs+=(
+            neovim zsh ripgrep flatpak
+            dolphin ark btop cava fastfetch qimgv mpv qpwgraph
+        )
+    fi
     sudo xbps-install -y "${pkgs[@]}"
 
     install_noctalia_void

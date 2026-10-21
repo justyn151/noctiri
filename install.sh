@@ -3,6 +3,8 @@ set -Eeuo pipefail
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/common.sh
 source "$ROOT_DIR/lib/common.sh"
+# shellcheck source=lib/profiles.sh
+source "$ROOT_DIR/lib/profiles.sh"
 for step in "$ROOT_DIR"/steps/*.sh; do
     # shellcheck disable=SC1090
     source "$step"
@@ -10,27 +12,11 @@ done
 
 trap 'printf "\nInstaller stopped at line %s. Existing files were backed up under: %s\n" "$LINENO" "$BACKUP_DIR" >&2' ERR
 
-MODE=full
-case "${1:-}" in
-    "") ;;
-    --wallpapers-only) MODE=wallpapers ;;
-    --spicetify-only) MODE=spicetify ;;
-    --greeter-only) MODE=greeter ;;
-    --void-runtime-only) MODE=void-runtime ;;
-    --theme-only) MODE=theme ;;
-    --services-only) MODE=services ;;
-    --firefox-only) MODE=firefox ;;
-    --zsh-only) MODE=zsh ;;
-    --dwl-only) MODE=dwl ;;
-    --font-only) MODE=font ;;
-    --documents-only) MODE=documents ;;
-    --music-only) MODE=music ;;
-    --steam-only) MODE=steam ;;
-    --utilities-only) MODE=utilities ;;
-    --apply-configs-only) MODE=apply-configs ;;
-    --doctor) MODE=doctor ;;
-    -h|--help)
-        printf 'Usage: %s [--wallpapers-only | --spicetify-only | --greeter-only | --void-runtime-only | --theme-only | --services-only | --firefox-only | --zsh-only | --dwl-only | --font-only | --documents-only | --music-only | --steam-only | --utilities-only | --doctor]\n' "$0"
+usage() {
+        printf 'Usage: %s [--profile minimal|standard|full]\n' "$0"
+        printf '       %s [REPAIR MODE]\n' "$0"
+        printf '  --profile PROFILE   Select a full-install profile without the chooser\n'
+        printf '  --list-profiles     Describe the available installation profiles\n'
         printf '  --wallpapers-only  Install or update wallpaper collections without rerunning setup\n'
         printf '  --spicetify-only   Install Spotify if needed, then finish Spicetify setup\n'
         printf '  --greeter-only     Repair greetd/Noctalia Greeter configuration without rebuilding\n'
@@ -46,10 +32,53 @@ case "${1:-}" in
         printf '  --steam-only       Install Steam, GPU offload, Gamescope, MangoHud, and GameMode\n'
         printf '  --utilities-only   Install clipboard/OCR/history, KeePassXC, Yazi drive and archive tools\n'
         printf '  --doctor           Run read-only Noctiri desktop health checks\n'
-        exit 0
-        ;;
-    *) die "Unknown option: $1 (try --help)" ;;
-esac
+}
+
+MODE=full
+INSTALL_PROFILE="${NOCTIRI_PROFILE:-}"
+PROFILE_OPTION=false
+while (( $# > 0 )); do
+    case "$1" in
+        --profile)
+            shift
+            (( $# > 0 )) || die "--profile requires minimal, standard, or full"
+            INSTALL_PROFILE="$1"
+            PROFILE_OPTION=true
+            ;;
+        --profile=*)
+            INSTALL_PROFILE="${1#*=}"
+            PROFILE_OPTION=true
+            ;;
+        --list-profiles) MODE=profiles ;;
+        --wallpapers-only) MODE=wallpapers ;;
+        --spicetify-only) MODE=spicetify ;;
+        --greeter-only) MODE=greeter ;;
+        --void-runtime-only) MODE=void-runtime ;;
+        --theme-only) MODE=theme ;;
+        --services-only) MODE=services ;;
+        --firefox-only) MODE=firefox ;;
+        --zsh-only) MODE=zsh ;;
+        --dwl-only) MODE=dwl ;;
+        --font-only) MODE=font ;;
+        --documents-only) MODE=documents ;;
+        --music-only) MODE=music ;;
+        --steam-only) MODE=steam ;;
+        --utilities-only) MODE=utilities ;;
+        --apply-configs-only) MODE=apply-configs ;;
+        --doctor) MODE=doctor ;;
+        -h|--help) usage; exit 0 ;;
+        *) die "Unknown option: $1 (try --help)" ;;
+    esac
+    shift
+done
+
+if [[ "$MODE" == profiles ]]; then
+    print_install_profiles
+    exit 0
+fi
+if [[ "$MODE" != full && "$PROFILE_OPTION" == true ]]; then
+    die "--profile cannot be combined with a repair-only mode"
+fi
 
 checks
 
@@ -198,9 +227,13 @@ printf 'It DOES NOT start/restart greetd during the run, so it will not intentio
 if [[ "$DISTRO_ID" == "void" ]]; then
     printf 'Void note: when selected, the package stage performs a full XBPS upgrade and builds Noctalia + its greeter from stable source releases.\n\n'
 fi
-ask_yes_no "Continue?" y || exit 0
+select_install_profile
+print_install_review
+printf '\n'
+ask_yes_no "Install the reviewed $(profile_title "$INSTALL_PROFILE") profile?" y || exit 0
+save_install_profile
 
-package_step="packages-$DISTRO_ID"
+package_step="packages-$DISTRO_ID-$INSTALL_PROFILE-v1"
 if ! step_is_complete "$package_step" \
     && have niri && have noctalia && have noctalia-greeter \
     && ask_yes_no "An existing Niri + Noctalia + Noctalia Greeter installation was detected. Skip package installation and source builds, and save that choice?" y; then
@@ -218,20 +251,56 @@ if [[ "$DISTRO_ID" == "void" ]] && ! step_is_complete greeter-panel-blur-v3; the
         "Noctalia Greeter animation and glass-effect build" install_noctalia_greeter_void
 fi
 run_stateful_step fantasque-system-font-v2 "Fantasque Sans Mono with CJK fallback fonts" install_fantasque_system_font
-run_stateful_step neovim-editor-v3 "Neovim, CoC runtime, beam cursor, and Vim removal" install_neovim_editor
-run_stateful_step document-stack-v3 "Sioyek, TexLab, and compact on-demand LaTeX support" install_document_stack
-run_stateful_step rmpc-mpd-v2 "rmpc, app launcher, and per-user MPD music playback" install_rmpc_stack
-run_stateful_step zsh-ohmyzsh-v2 "Zsh, Oh My Zsh, suggestions, and highlighting" install_zsh_shell
-run_stateful_step daily-utilities-v1 "Daily utilities, OCR, KeePassXC, and Yazi drive controls" install_daily_utility_packages
+if profile_has editor; then
+    run_stateful_step neovim-editor-v3 "Neovim, CoC runtime, beam cursor, and Vim removal" install_neovim_editor
+else
+    profile_skip "Neovim editor"
+fi
+if profile_has documents; then
+    run_stateful_step document-stack-v3 "Sioyek, TexLab, and compact on-demand LaTeX support" install_document_stack
+else
+    profile_skip "Document and LaTeX stack"
+fi
+if profile_has music; then
+    run_stateful_step rmpc-mpd-v2 "rmpc, app launcher, and per-user MPD music playback" install_rmpc_stack
+else
+    profile_skip "rmpc and MPD music stack"
+fi
+if profile_has zsh; then
+    run_stateful_step zsh-ohmyzsh-v2 "Zsh, Oh My Zsh, suggestions, and highlighting" install_zsh_shell
+else
+    profile_skip "Zsh and Oh My Zsh"
+fi
+if profile_has utilities; then
+    run_stateful_step daily-utilities-v1 "Daily utilities, OCR, KeePassXC, and Yazi drive controls" install_daily_utility_packages
+else
+    profile_skip "Daily utility bundle"
+fi
 run_stateful_step configs-v5 "Desktop configuration" install_configs
 run_stateful_step firefox-policy-v4 "Firefox portal and extension policy" merge_firefox_policy
 run_stateful_step pywalfox "Noctalia Pywalfox native host" configure_pywalfox
 run_stateful_step default-apps-v2 "Default application associations" set_default_apps
-run_stateful_step steam-v2 "Steam client, GPU offload, and gaming runtime" install_steam
-run_stateful_step flatpaks "Flatpak applications" install_flatpaks
-run_stateful_step wallpapers "Wallpaper collections" configure_wallpapers
+if profile_has gaming; then
+    run_stateful_step steam-v2 "Steam client, GPU offload, and gaming runtime" install_steam
+else
+    profile_skip "Steam and gaming runtime"
+fi
+if profile_has flatpaks; then
+    run_stateful_step flatpaks "Flatpak applications" install_flatpaks
+else
+    profile_skip "Optional Flatpak applications"
+fi
+if profile_has wallpapers; then
+    run_stateful_step wallpapers "Wallpaper collections" configure_wallpapers
+else
+    profile_skip "Wallpaper collections"
+fi
 run_stateful_step greeter-v2 "greetd and animated Noctalia Greeter configuration" configure_greeter
-run_stateful_step spicetify "Spicetify setup" install_spicetify
+if profile_has spicetify; then
+    run_stateful_step spicetify "Spicetify setup" install_spicetify
+else
+    profile_skip "Spotify and Spicetify"
+fi
 if [[ "$DISTRO_ID" == "void" ]]; then
     run_stateful_step networkmanager-handoff-void-v1 \
         "Void NetworkManager handoff" finish_void_networkmanager_handoff

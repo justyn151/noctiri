@@ -3,6 +3,9 @@
 This installer was generated from the supplied `setup-export.tar.gz`.
 
 Sanitization/portability changes:
+- Added reviewed Minimal, Standard, and Full installation profiles. The interactive installer
+  remembers the last choice, supports `--profile` for unattended runs, keeps all repair-only modes
+  independent, and never folds the optional DWL preview into the normal Niri installation.
 - Added a low-overhead daily-utilities layer around Noctalia's built-in encrypted clipboard,
   screenshot annotation/history, notification history, and Do Not Disturb controls. Added
   on-demand multilingual screenshot OCR, KeePassXC plus its Firefox extension, and Yazi drive and
