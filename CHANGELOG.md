@@ -8,9 +8,10 @@ Sanitization/portability changes:
   on-demand multilingual screenshot OCR, KeePassXC plus its Firefox extension, and Yazi drive and
   archive actions without adding another always-running desktop shell.
 - Added `noctiri` configuration snapshots, guarded updates, validated rollbacks, optional Void
-  system updates, opt-in DND scheduling, launcher entries, shortcut-guide coverage, doctor checks,
-  and a dedicated `--utilities-only` installer mode. The doctor now reports memory against the
-  1500 MiB target.
+  system updates, opt-in DND scheduling, shortcut-guide coverage, doctor checks, and a dedicated
+  `--utilities-only` installer mode. Update and two-step rollback controls now live in the Doctor's
+  Maintenance tab instead of separate launcher entries. Its Memory tab reports proportional process
+  cost, reclaimable cache, available RAM, and the kernel-reported figure against the 1500 MiB target.
 - Removed the unused KDE portal backend from the Void package set while retaining GNOME's
   screencast portal and GTK integration; Fedora keeps KDE portal support.
 - Changed MPD and its MPRIS bridge from login autostart to on-demand rmpc startup, recovering about

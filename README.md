@@ -94,12 +94,16 @@ noctiri-doctor
 It checks Niri and Noctalia configuration, runit/systemd services, NetworkManager, BlueZ,
 PipeWire/WirePlumber, MPD/MPRIS media integration, portals, fonts, and the standard XDG home
 folders. It also checks the daily utilities, OCR languages, Yazi drive plugin, Noctiri recovery
-command, and current memory against the 1500 MiB target. `noctiri-doctor --repair` may be used to
+command, and current memory against the 1500 MiB target. The memory result distinguishes Linux's
+kernel-reported use from proportional application memory (PSS) and shows how much remains readily
+available. `noctiri-doctor --repair` may be used to
 restart safe per-user components and refresh
 templates/directories; system-level changes remain explicit installer repair steps. From the
 repository, `./install.sh --doctor` runs the same read-only checks without installing the command.
 The same checks are available in a movable, palette-matched Quickshell window from the app launcher
-or with `Super+Shift+D`. `Super+Shift+/` opens the shortcut guide, whose tabs cover the desktop,
+or with `Super+Shift+D`. Its **Maintenance** tab creates snapshots, updates Noctiri, and performs a
+two-step confirmed rollback; its **Memory** tab shows the proportional cost of each process and
+reclaimable cache. `Super+Shift+/` opens the shortcut guide, whose tabs cover the desktop,
 Neovim, Yazi, and rmpc controls installed by Noctiri.
 
 ## Daily utilities and safe updates
@@ -134,7 +138,8 @@ noctiri rollback YYYYMMDD-HHMMSS # restores a selected snapshot
 ```
 
 Every update and rollback makes a safety snapshot first, validates Niri and Noctalia, and reloads
-the running shell. The app launcher also contains **Noctiri Update** and **Noctiri Rollback**.
+the running shell. These actions are also available from **Noctiri Doctor → Maintenance**; protected
+changes use a graphical administrator prompt.
 DND scheduling is opt-in (`noctiri dnd schedule 23:00 07:00`) and otherwise has no resident
 process; disable it with `noctiri dnd disable-schedule`.
 

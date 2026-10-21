@@ -16,6 +16,10 @@ ShellRoot {
     property int passed: 0
     property int warnings: 0
     property int failures: 0
+    property int activeTab: 0
+    property string operation: "health"
+    property bool rollbackArmed: false
+    readonly property var tabNames: ["Health", "Maintenance", "Memory"]
 
     function paletteValue(name, fallback) {
         if (!paletteFile.loaded)
@@ -43,14 +47,54 @@ ShellRoot {
         failures = Number(match[3]);
     }
 
-    function runDoctor(repair) {
+    function cleanOutput(output) {
+        return output.replace(/\x1b\[[0-9;]*m/g, "");
+    }
+
+    function runProcess(command, message, operationName) {
         if (checking)
             return;
         checking = true;
+        operation = operationName;
+        rollbackArmed = false;
         processError = "";
-        report = repair ? "Applying safe user-session repairs…" : "Checking the desktop session…";
-        doctorProcess.command = repair ? ["noctiri-doctor", "--repair"] : ["noctiri-doctor"];
+        report = message;
+        reportScroll.contentY = 0;
+        doctorProcess.command = command;
         doctorProcess.running = true;
+    }
+
+    function runDoctor(repair) {
+        runProcess(
+            repair ? ["noctiri-doctor", "--repair"] : ["noctiri-doctor"],
+            repair ? "Applying safe user-session repairs…" : "Checking the desktop session…",
+            "health"
+        );
+    }
+
+    function runMaintenance() {
+        runProcess(["noctiri", "maintenance"], "Reading snapshots and update state…", "maintenance");
+    }
+
+    function runMemory() {
+        runProcess(["noctiri", "memory"], "Measuring proportional memory use…", "memory");
+    }
+
+    function runNoctiriAction(arguments, message, operationName) {
+        runProcess(["env", "NOCTIRI_GUI=true", "noctiri"].concat(arguments), message, operationName);
+    }
+
+    function selectTab(index) {
+        if (checking)
+            return;
+        activeTab = index;
+        rollbackArmed = false;
+        if (index === 0)
+            runDoctor(false);
+        else if (index === 1)
+            runMaintenance();
+        else
+            runMemory();
     }
 
     Component.onCompleted: runDoctor(false)
@@ -69,13 +113,14 @@ ShellRoot {
 
         stdout: StdioCollector {
             onStreamFinished: {
-                root.report = text;
-                root.parseSummary(text);
+                root.report = root.cleanOutput(text);
+                if (root.operation === "health")
+                    root.parseSummary(text);
             }
         }
 
         stderr: StdioCollector {
-            onStreamFinished: root.processError = text
+            onStreamFinished: root.processError = root.cleanOutput(text)
         }
 
         onExited: function(exitCode, exitStatus) {
@@ -205,7 +250,11 @@ ShellRoot {
                             font.weight: Font.Bold
                         }
                         Text {
-                            text: root.checking ? "Working…" : "Desktop health and safe session recovery"
+                            text: root.checking ? "Working…" : root.activeTab === 0
+                                ? "Desktop health and safe session recovery"
+                                : root.activeTab === 1
+                                    ? "Snapshots, updates, and validated rollback"
+                                    : "Actual process cost and reclaimable memory"
                             color: root.checking ? root.accentColor : root.mutedColor
                             font.family: root.fontFamily
                             font.pixelSize: 13
@@ -238,6 +287,43 @@ ShellRoot {
 
                 RowLayout {
                     Layout.fillWidth: true
+                    spacing: 8
+                    Repeater {
+                        model: root.tabNames
+                        Rectangle {
+                            required property int index
+                            required property string modelData
+                            Layout.fillWidth: true
+                            implicitHeight: 38
+                            radius: 11
+                            color: root.activeTab === index
+                                ? Qt.alpha(root.accentColor, 0.2)
+                                : tabMouse.containsMouse ? Qt.alpha(root.surfaceColor, 0.72) : Qt.alpha(root.surfaceColor, 0.42)
+                            border.width: root.activeTab === index ? 1 : 0
+                            border.color: root.accentColor
+                            Text {
+                                anchors.centerIn: parent
+                                text: modelData
+                                color: root.activeTab === index ? root.accentColor : root.foregroundColor
+                                font.family: root.fontFamily
+                                font.pixelSize: 14
+                                font.weight: root.activeTab === index ? Font.Bold : Font.Medium
+                            }
+                            MouseArea {
+                                id: tabMouse
+                                anchors.fill: parent
+                                enabled: !root.checking
+                                hoverEnabled: true
+                                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                onClicked: root.selectTab(index)
+                            }
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    visible: root.activeTab === 0
                     spacing: 12
                     MetricCard { label: "passed"; count: root.passed; metricColor: root.successColor }
                     MetricCard { label: "warnings"; count: root.warnings; metricColor: root.warningColor }
@@ -278,6 +364,7 @@ ShellRoot {
 
                 RowLayout {
                     Layout.fillWidth: true
+                    visible: root.activeTab === 0
                     spacing: 10
                     Text {
                         Layout.fillWidth: true
@@ -297,6 +384,68 @@ ShellRoot {
                         label: "Safe repair"
                         available: !root.checking
                         onClicked: root.runDoctor(true)
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    visible: root.activeTab === 1
+                    spacing: 10
+                    Text {
+                        Layout.fillWidth: true
+                        text: "Updates snapshot first. A graphical administrator prompt appears only when a protected file changes."
+                        color: root.mutedColor
+                        font.family: root.fontFamily
+                        font.pixelSize: 12
+                        wrapMode: Text.WordWrap
+                    }
+                    ActionButton {
+                        label: "Refresh"
+                        available: !root.checking
+                        onClicked: root.runMaintenance()
+                    }
+                    ActionButton {
+                        label: "Snapshot"
+                        available: !root.checking
+                        onClicked: root.runNoctiriAction(["snapshot"], "Creating a configuration snapshot…", "snapshot")
+                    }
+                    ActionButton {
+                        label: "Update"
+                        primary: true
+                        available: !root.checking
+                        onClicked: root.runNoctiriAction(["update"], "Updating Noctiri safely…", "update")
+                    }
+                    ActionButton {
+                        label: root.rollbackArmed ? "Confirm rollback" : "Rollback latest"
+                        available: !root.checking
+                        onClicked: {
+                            if (!root.rollbackArmed) {
+                                root.rollbackArmed = true;
+                                root.report = "Press Confirm rollback to restore the newest snapshot. A safety snapshot will be created first.";
+                            } else {
+                                root.runNoctiriAction(["rollback", "latest", "--yes"], "Restoring the newest snapshot…", "rollback");
+                            }
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    visible: root.activeTab === 2
+                    spacing: 10
+                    Text {
+                        Layout.fillWidth: true
+                        text: "PSS is the useful application figure because shared libraries are counted proportionally."
+                        color: root.mutedColor
+                        font.family: root.fontFamily
+                        font.pixelSize: 12
+                        wrapMode: Text.WordWrap
+                    }
+                    ActionButton {
+                        label: "Refresh memory"
+                        primary: true
+                        available: !root.checking
+                        onClicked: root.runMemory()
                     }
                 }
             }

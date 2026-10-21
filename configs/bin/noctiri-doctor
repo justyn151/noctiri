@@ -7,6 +7,7 @@ FAIL_COUNT=0
 NEED_SERVICES=false
 NEED_MUSIC=false
 NEED_THEME=false
+NEED_MEMORY=false
 REPAIR=false
 
 case "${1:-}" in
@@ -384,12 +385,27 @@ else
     warn "Screenshot OCR command is missing"
 fi
 
-memory_used_mib="$(awk '/MemTotal:/ { total=$2 } /MemAvailable:/ { available=$2 } END { printf "%d", (total-available)/1024 }' /proc/meminfo)"
+memory_total_mib="$(awk '/MemTotal:/ { printf "%d", $2/1024 }' /proc/meminfo)"
+memory_available_mib="$(awk '/MemAvailable:/ { printf "%d", $2/1024 }' /proc/meminfo)"
+memory_used_mib=$((memory_total_mib - memory_available_mib))
+memory_available_percent=$((memory_available_mib * 100 / memory_total_mib))
+memory_pss_kib=0
+while IFS= read -r process_id; do
+    process_id="${process_id//[[:space:]]/}"
+    [[ -n "$process_id" && -r "/proc/$process_id/smaps_rollup" ]] || continue
+    process_pss="$(awk '/^Pss:/ { print $2; exit }' "/proc/$process_id/smaps_rollup" 2>/dev/null || true)"
+    [[ "$process_pss" =~ ^[0-9]+$ ]] || continue
+    ((memory_pss_kib += process_pss))
+done < <(ps -o pid= -u "$(id -u)")
+memory_pss_mib=$((memory_pss_kib / 1024))
+
 if (( memory_used_mib <= 1500 )); then
-    pass "Memory in use is ${memory_used_mib} MiB (within the 1500 MiB target)"
+    pass "Kernel-reported memory use is ${memory_used_mib} MiB (within the 1500 MiB target)"
 else
-    warn "Memory in use is ${memory_used_mib} MiB (above the 1500 MiB target)"
+    warn "Kernel-reported memory use is ${memory_used_mib} MiB (above the 1500 MiB target)"
+    NEED_MEMORY=true
 fi
+pass "User-session processes use ${memory_pss_mib} MiB PSS; ${memory_available_mib} MiB (${memory_available_percent}%) remains available"
 
 section "Gaming graphics"
 if [[ "${ID:-unknown}" == "void" ]]; then
@@ -445,7 +461,10 @@ fi
 if [[ "$NEED_THEME" == true ]]; then
     printf '  Suggested theme/font repair: ./install.sh --theme-only\n'
 fi
-if (( WARN_COUNT > 0 || FAIL_COUNT > 0 )); then
+if [[ "$NEED_MEMORY" == true ]]; then
+    printf '  Memory detail: open Noctiri Doctor → Memory, or run noctiri memory\n'
+fi
+if [[ "$NEED_SERVICES" == true || "$NEED_MUSIC" == true || "$NEED_THEME" == true ]]; then
     printf '  Safe user-session repair: noctiri-doctor --repair\n'
 fi
 

@@ -53,6 +53,14 @@ render_home_template() {
 
 have() { command -v "$1" >/dev/null 2>&1; }
 
+run_privileged() {
+    if [[ "${NOCTIRI_GUI:-false}" == true ]] && have pkexec; then
+        pkexec "$@"
+    else
+        sudo "$@"
+    fi
+}
+
 import_graphical_session_environment() {
     local process_id process_name name value
 

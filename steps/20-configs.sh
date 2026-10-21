@@ -38,9 +38,10 @@ install_noctiri_commands() {
         "$HOME/.local/bin/noctiri" 0755
     install_file "$ROOT_DIR/configs/bin/noctiri-screenshot-ocr" \
         "$HOME/.local/bin/noctiri-screenshot-ocr" 0755
-    install_file "$ROOT_DIR/configs/applications/noctiri-update.desktop" \
-        "$HOME/.local/share/applications/noctiri-update.desktop"
-    install_file "$ROOT_DIR/configs/applications/noctiri-rollback.desktop" \
+    # Maintenance now lives in the Doctor window. Remove launchers installed by
+    # the short-lived standalone implementation when upgrading.
+    rm -f \
+        "$HOME/.local/share/applications/noctiri-update.desktop" \
         "$HOME/.local/share/applications/noctiri-rollback.desktop"
 
     repository_record="$(mktemp)"
@@ -579,16 +580,16 @@ merge_firefox_policy_at_path() {
     input_file="$tmp_dir/policies.json"
     output_file="$tmp_dir/policies.updated.json"
 
-    if sudo test -e "$policy_path"; then
-        # Redirection is performed by the normal-user shell. sudo is used only to
-        # read the protected source, avoiding root-owned temporary files.
-        if ! sudo cat -- "$policy_path" > "$input_file"; then
-            rm -rf "$tmp_dir"
-            return 1
+    if [[ -e "$policy_path" ]]; then
+        if ! cat -- "$policy_path" > "$input_file"; then
+            if ! run_privileged cat -- "$policy_path" > "$input_file"; then
+                rm -rf "$tmp_dir"
+                return 1
+            fi
         fi
         backup_file="$BACKUP_DIR/${policy_path#/}"
         mkdir -p "$(dirname "$backup_file")"
-        if ! sudo cat -- "$policy_path" > "$backup_file"; then
+        if ! cp -- "$input_file" "$backup_file"; then
             rm -rf "$tmp_dir"
             return 1
         fi
@@ -651,8 +652,7 @@ PY
         rm -rf "$tmp_dir"
         return 1
     fi
-    if ! sudo mkdir -p "$(dirname "$policy_path")" \
-        || ! sudo install -m 0644 "$output_file" "$policy_path"; then
+    if ! run_privileged install -D -m 0644 "$output_file" "$policy_path"; then
         rm -rf "$tmp_dir"
         return 1
     fi

@@ -17,6 +17,14 @@ info() { printf '%s==>%s %s\n' "$green" "$reset" "$*"; }
 warn() { printf '%sWarning:%s %s\n' "$yellow" "$reset" "$*" >&2; }
 die() { printf '%sError:%s %s\n' "$red" "$reset" "$*" >&2; exit 1; }
 
+run_privileged() {
+    if [[ "${NOCTIRI_GUI:-false}" == true ]] && command -v pkexec >/dev/null 2>&1; then
+        pkexec "$@"
+    else
+        sudo "$@"
+    fi
+}
+
 import_graphical_environment() {
     local process_name process_id name value
     process_id=""
@@ -136,7 +144,25 @@ command_snapshots() {
 }
 
 command_rollback() {
-    local requested="${1:-latest}" target before answer
+    local requested=latest requested_set=false assume_yes=false target before answer argument
+    for argument in "$@"; do
+        case "$argument" in
+            --yes) assume_yes=true ;;
+            latest)
+                [[ "$requested_set" == false ]] \
+                    || die "Usage: noctiri rollback [SNAPSHOT] [--yes]"
+                requested=latest
+                requested_set=true
+                ;;
+            -*) die "Usage: noctiri rollback [SNAPSHOT] [--yes]" ;;
+            *)
+                [[ "$requested_set" == false ]] \
+                    || die "Usage: noctiri rollback [SNAPSHOT] [--yes]"
+                requested="$argument"
+                requested_set=true
+                ;;
+        esac
+    done
     [[ -d "$SNAPSHOT_DIR" ]] || die "No snapshots are available"
     if [[ "$requested" == "latest" ]]; then
         target="$(find "$SNAPSHOT_DIR" -mindepth 1 -maxdepth 1 -type d -print | sort -r | head -n 1)"
@@ -145,9 +171,11 @@ command_rollback() {
     fi
     [[ -n "$target" && -r "$target/home.tar.gz" ]] || die "Snapshot not found: $requested"
 
-    printf 'Restore configuration snapshot %s? [y/N] ' "${target##*/}"
-    read -r answer
-    [[ "$answer" =~ ^[Yy]$ ]] || exit 0
+    if [[ "$assume_yes" != true ]]; then
+        printf 'Restore configuration snapshot %s? [y/N] ' "${target##*/}"
+        read -r answer
+        [[ "$answer" =~ ^[Yy]$ ]] || exit 0
+    fi
 
     before="$(create_snapshot before-rollback)"
     info "Safety snapshot created: ${before##*/}"
@@ -186,11 +214,11 @@ command_update() {
         # shellcheck disable=SC1091
         source /etc/os-release
         case "${ID:-}" in
-            void) sudo xbps-install -Suy ;;
+            void) run_privileged xbps-install -Suy ;;
             *) die "System updates are currently implemented only for Void Linux" ;;
         esac
         if command -v flatpak >/dev/null 2>&1; then
-            sudo flatpak update --system -y
+            run_privileged flatpak update --system -y
             flatpak update --user -y || true
         fi
     fi
@@ -321,15 +349,60 @@ command_status() {
     noctalia msg notification-dnd-status 2>/dev/null || printf 'unavailable\n'
 }
 
+command_maintenance() {
+    command_status
+    printf '\n'
+    command_snapshots
+}
+
+command_memory() {
+    local total_mib available_mib used_mib cache_mib shmem_mib pss_total=0
+    local pid pss comm tmp sorted
+    total_mib="$(awk '/MemTotal:/ { printf "%d", $2/1024 }' /proc/meminfo)"
+    available_mib="$(awk '/MemAvailable:/ { printf "%d", $2/1024 }' /proc/meminfo)"
+    used_mib=$((total_mib - available_mib))
+    cache_mib="$(awk '/^Cached:/ { cached=$2 } /^Buffers:/ { buffers=$2 } /^SReclaimable:/ { reclaimable=$2 } END { printf "%d", (cached+buffers+reclaimable)/1024 }' /proc/meminfo)"
+    shmem_mib="$(awk '/^Shmem:/ { printf "%d", $2/1024 }' /proc/meminfo)"
+    tmp="$(mktemp)"
+    sorted="$(mktemp)"
+    while IFS= read -r pid; do
+        pid="${pid//[[:space:]]/}"
+        [[ -n "$pid" && -r "/proc/$pid/smaps_rollup" ]] || continue
+        pss="$(awk '/^Pss:/ { print $2; exit }' "/proc/$pid/smaps_rollup" 2>/dev/null || true)"
+        [[ "$pss" =~ ^[0-9]+$ ]] || continue
+        comm="unknown"
+        IFS= read -r comm < "/proc/$pid/comm" || true
+        printf '%s\t%s\t%s\n' "$pss" "$comm" "$pid" >> "$tmp"
+        ((pss_total += pss))
+    done < <(ps -o pid= -u "$(id -u)")
+
+    sort -nr "$tmp" > "$sorted"
+    printf 'Memory overview\n'
+    printf '  Total:             %s MiB\n' "$total_mib"
+    printf '  Immediately available: %s MiB (%s%%)\n' \
+        "$available_mib" "$((available_mib * 100 / total_mib))"
+    printf '  Kernel-reported use: %s MiB\n' "$used_mib"
+    printf '  User-session PSS:  %s MiB\n' "$((pss_total / 1024))"
+    printf '  Reclaimable cache: %s MiB\n' "$cache_mib"
+    printf '  Shared memory:     %s MiB\n' "$shmem_mib"
+    printf '\nLargest user-session processes (proportional memory):\n'
+    head -n 12 "$sorted" | awk -F '\t' '{printf "  %-22s %6.1f MiB  pid %s\n", $2, $1/1024, $3}'
+    printf '\nPSS avoids counting shared libraries once per process. “Available” is the\n'
+    printf 'important pressure figure; cache is reclaimed automatically when applications need it.\n'
+    rm -f "$tmp" "$sorted"
+}
+
 usage() {
     cat <<'EOF'
 Usage: noctiri COMMAND
 
   status                     Show revision, latest snapshot, DND and memory
+  maintenance                Show status and configuration snapshots
+  memory                     Explain memory use and list top processes by PSS
   update [--system]          Snapshot, fast-forward, and apply managed configs
   snapshot                   Save managed user configuration now
   snapshots                  List available configuration snapshots
-  rollback [SNAPSHOT]        Restore a snapshot (latest by default)
+  rollback [SNAPSHOT] [--yes] Restore a snapshot (latest by default)
   dnd on|off|toggle|status   Control Do Not Disturb
   dnd schedule START END     Enable a low-memory daily DND schedule
   dnd disable-schedule       Disable the DND scheduler
@@ -340,6 +413,8 @@ import_graphical_environment || true
 
 case "${1:-help}" in
     status) shift; command_status "$@" ;;
+    maintenance) shift; command_maintenance "$@" ;;
+    memory) shift; command_memory "$@" ;;
     update) shift; command_update "$@" ;;
     snapshot) shift; command_snapshot "$@" ;;
     snapshots) shift; command_snapshots "$@" ;;
