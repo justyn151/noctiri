@@ -26,13 +26,27 @@ noctiri-edit = [
 noctiri-pdf = [
     { run = 'if command -v sioyek >/dev/null 2>&1; then sioyek %s1; else xdg-open %s1; fi', orphan = true, desc = "View PDF" },
 ]
+noctiri-audio = [
+    { run = 'if command -v mpv >/dev/null 2>&1; then mpv --force-window=immediate %s; else xdg-open %s1; fi', orphan = true, desc = "Play audio with MPV" },
+]
+noctiri-video = [
+    { run = 'if command -v mpv >/dev/null 2>&1; then mpv %s; else xdg-open %s1; fi', orphan = true, desc = "Play video with MPV" },
+]
 
 [open]
 prepend_rules = [
     { url = "*.{c,cc,cpp,h,hpp,css,go,html,ini,java,js,json,kdl,lua,md,py,rs,sh,toml,ts,tsx,txt,xml,yaml,yml}", use = [ "noctiri-edit", "open" ] },
     { url = "*.tex", use = [ "noctiri-edit", "open" ] },
     { mime = "application/pdf", use = [ "noctiri-pdf", "open" ] },
+    { mime = "audio/*", use = [ "noctiri-audio", "open" ] },
+    { mime = "video/*", use = [ "noctiri-video", "open" ] },
 ]
+
+# The built-in video preview already uses FFmpeg for thumbnails. Audio gets
+# an on-demand text preview from ffprobe; no player is started just by browsing.
+[[plugin.prepend_previewers]]
+mime = "audio/*"
+run = 'piper -- ffprobe -v error -select_streams a:0 -show_entries format=duration,size,bit_rate:format_tags=title,artist,album,date,genre:stream=codec_name,sample_rate,channels -of default=noprint_wrappers=1 "$1"'
 
 [[plugin.prepend_fetchers]]
 url = "*"

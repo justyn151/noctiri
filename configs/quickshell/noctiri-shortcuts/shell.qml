@@ -159,7 +159,7 @@ ShellRoot {
     ]
 
     readonly property var yaziFiles: [
-        { combo: "Enter / o", action: "Open the selected item" },
+        { combo: "Enter / o", action: "Open item (audio/video play in MPV)" },
         { combo: "Space", action: "Toggle selection" },
         { combo: "v / V", action: "Start / clear visual selection" },
         { combo: "y / x / p", action: "Copy / cut / paste" },
@@ -191,7 +191,7 @@ ShellRoot {
         { combo: "[ / ]", action: "Previous / next tab" },
         { combo: "{ / }", action: "Move the current tab left / right" },
         { combo: "Ctrl + C", action: "Close the current tab" },
-        { combo: "T", action: "Maximize / restore the preview" },
+        { combo: "T", action: "Maximize / restore the preview (FFprobe for audio)" },
         { combo: "+ / -", action: "Zoom an image preview in / out" },
         { combo: "c m", action: "Change selected file permissions" },
         { combo: "w", action: "Open the task manager" }

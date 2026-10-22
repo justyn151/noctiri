@@ -102,6 +102,8 @@ install_configs() {
         && -f "$HOME/.local/state/noctalia/settings.toml" ]]; then
         backup_path "$HOME/.local/state/noctalia/settings.toml"
         rm -f "$HOME/.local/state/noctalia/settings.toml"
+    else
+        clear_noctalia_screenshot_region_override
     fi
 
     install_file "$ROOT_DIR/configs/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
@@ -120,6 +122,30 @@ install_configs() {
     if have systemctl; then
         systemctl --user daemon-reload >/dev/null 2>&1 || true
     fi
+}
+
+clear_noctalia_screenshot_region_override() {
+    local state_path="$HOME/.local/state/noctalia/settings.toml" tmp
+    [[ -f "$state_path" ]] || return 0
+
+    tmp="$(mktemp)"
+    awk '
+        /^[[:space:]]*\[[^]]+\]/ {
+            in_screenshot = ($0 ~ /^[[:space:]]*\[shell\.screenshot\][[:space:]]*(#.*)?$/)
+        }
+        in_screenshot && /^[[:space:]]*remember_last_region[[:space:]]*=/ { next }
+        { print }
+    ' "$state_path" > "$tmp"
+    if ! cmp -s "$state_path" "$tmp"; then
+        backup_path "$state_path"
+        # Keep a user-managed settings.toml symlink intact if one exists.
+        if [[ -L "$state_path" ]]; then
+            cp "$tmp" "$state_path"
+        else
+            install -m 0600 "$tmp" "$state_path"
+        fi
+    fi
+    rm -f "$tmp"
 }
 
 install_fantasque_system_font() {
@@ -364,6 +390,7 @@ install_yazi_integration() {
             yazi-rs/plugins:chmod
             yazi-rs/plugins:full-border
             yazi-rs/plugins:git
+            yazi-rs/plugins:piper
         )
         installed_plugins="$(ya pkg list 2>/dev/null || true)"
         missing_plugins=()

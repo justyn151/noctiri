@@ -103,7 +103,7 @@ popup_borders = false
     directory = "@@HOME@@/Pictures/Screenshots"
     filename_pattern = "Screenshot_%Y-%m-%d_%H-%M-%S"
     freeze_screen = true
-    remember_last_region = true
+    remember_last_region = false
     save_to_file = true
     show_cursor = false
 

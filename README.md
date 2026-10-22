@@ -33,8 +33,11 @@ Apps:
   MangoHud, GameMode, 32-bit graphics support, and hybrid-GPU launch helpers.
 
 Default media associations are set to qimgv for common images, mpv for common video and audio
-types, and Sioyek for PDF. VimTeX uses Sioyek directly for SyncTeX, compiles with Tectonic whenever
-a TeX buffer is saved, and refreshes the viewer after a successful build. Tectonic is used instead
+types, and Sioyek for PDF. Yazi opens audio and video with MPV; its preview pane uses FFmpeg
+thumbnails for video and FFprobe metadata for audio. rmpc remains the player for your MPD music
+library, not a general-purpose opener for arbitrary files. VimTeX uses Sioyek directly for SyncTeX,
+compiles with Tectonic whenever a TeX buffer is saved, and refreshes the viewer after a successful
+build. Tectonic is used instead
 of a multi-gigabyte TeX Live installation and downloads support files only when a document needs them.
 
 ## Wallpapers
@@ -123,6 +126,7 @@ history, and Do Not Disturb support, so these features do not add another always
 `Super+Shift+N` toggles DND, `Super+Shift+S` captures and annotates a region, and
 `Super+Shift+O` captures a region and copies English/Japanese/Chinese OCR text. Screenshots and OCR
 text are kept in `~/Pictures/Screenshots`.
+Region screenshots now start with an empty selection instead of reusing the last capture area.
 
 `Super+Alt+R` selects a region to record; `Super+Alt+Shift+R` selects a whole monitor. Press either
 shortcut again to stop and save an MP4 in `~/Videos/Recordings`. Recording runs only while active.

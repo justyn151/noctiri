@@ -336,7 +336,7 @@ else
 fi
 
 section "Daily utilities and recovery"
-for utility in keepassxc grim slurp wf-recorder; do
+for utility in keepassxc grim slurp wf-recorder ffprobe mpv; do
     if have "$utility"; then
         pass "$utility is available"
     else
@@ -367,7 +367,7 @@ else
     warn "Tesseract OCR is missing; rerun ./install.sh --utilities-only"
 fi
 
-required_yazi_plugins=(mount smart-enter smart-paste smart-filter toggle-pane zoom chmod full-border git)
+required_yazi_plugins=(mount smart-enter smart-paste smart-filter toggle-pane zoom chmod full-border git piper)
 missing_yazi_plugins=()
 if have ya; then
     installed_yazi_plugins="$(ya pkg list 2>/dev/null || true)"

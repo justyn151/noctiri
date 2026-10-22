@@ -13,7 +13,7 @@ install_daily_utility_packages() {
         void)
             sudo xbps-install -Sy \
                 keepassxc \
-                grim slurp wf-recorder \
+                grim slurp wf-recorder mpv ffmpeg \
                 tesseract-ocr \
                 tesseract-ocr-eng \
                 tesseract-ocr-jpn \
@@ -324,14 +324,14 @@ install_packages_fedora() {
         pipewire pipewire-alsa pipewire-pulseaudio wireplumber alsa-utils
         polkit gnome-keyring gnome-keyring-pam
         kitty firefox git curl tar xz unzip python3 xdg-utils xdg-user-dirs wl-clipboard
-        playerctl brightnessctl wf-recorder slurp
+        playerctl brightnessctl wf-recorder slurp mpv ffmpeg-free
         qt6ct plasma-breeze-qt6 breeze-icon-theme
         rsms-inter-fonts google-noto-sans-cjk-fonts
     )
     if profile_has desktop-apps; then
         pkgs+=(
             neovim zsh ripgrep flatpak
-            dolphin ark btop cava fastfetch qimgv mpv qpwgraph
+            dolphin ark btop cava fastfetch qimgv qpwgraph
         )
     fi
     sudo dnf install -y "${pkgs[@]}"
@@ -371,7 +371,7 @@ install_packages_void() {
         pipewire wireplumber libspa-bluetooth alsa-pipewire alsa-utils pulseaudio-utils
         polkit gnome-keyring
         kitty firefox git curl tar xz unzip python3 xdg-utils xdg-user-dirs wl-clipboard
-        playerctl brightnessctl wf-recorder slurp
+        playerctl brightnessctl wf-recorder slurp mpv
         qt6ct breeze-qt6 breeze-icons
         yazi ffmpeg 7zip jq poppler fd fzf zoxide resvg ImageMagick
         font-inter noto-fonts-cjk-sans
@@ -379,7 +379,7 @@ install_packages_void() {
     if profile_has desktop-apps; then
         pkgs+=(
             neovim zsh ripgrep flatpak
-            dolphin ark btop cava fastfetch qimgv mpv qpwgraph
+            dolphin ark btop cava fastfetch qimgv qpwgraph
         )
     fi
     sudo xbps-install -y "${pkgs[@]}"
