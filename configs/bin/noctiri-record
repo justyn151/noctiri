@@ -10,6 +10,12 @@ notify() {
     fi
 }
 
+refresh_indicator() {
+    if command -v noctalia >/dev/null 2>&1; then
+        noctalia msg plugin noctiri/recording:indicator all refresh >/dev/null 2>&1 || true
+    fi
+}
+
 mode=region
 audio=false
 for arg in "$@"; do
@@ -66,6 +72,7 @@ if recording_active; then
         exit 1
     fi
     rm -f -- "$pid_file" "$path_file"
+    refresh_indicator
     if [[ -s "$recording_path" ]]; then
         notify "Recording saved" "$recording_path"
         printf 'Saved: %s\n' "$recording_path"
@@ -116,5 +123,6 @@ if ! recording_active; then
     printf 'wf-recorder exited; see %s/wf-recorder.log\n' "$state_dir" >&2
     exit 1
 fi
+refresh_indicator
 notify "Screen recording started" "Press either recording shortcut again to stop."
 printf 'Recording: %s\n' "$recording_path"

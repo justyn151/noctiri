@@ -116,7 +116,10 @@ two-step confirmed rollback; its **Memory** tab shows the proportional cost of e
 separates reclaimable cache, kernel slab, shared buffers, locked/display pages, and kernel
 bookkeeping from ordinary process memory. The Doctor and shortcut-guide processes exit completely
 when their windows close. `Super+Shift+/` opens the shortcut guide, whose tabs cover the desktop,
-Neovim, Yazi, and rmpc controls installed by Noctiri.
+Neovim, Yazi, and rmpc controls installed by Noctiri. Search within a tab to find a key or action.
+After a Void reboot, run `noctiri-doctor` as a read-only smoke check, then try one screenshot and a
+short recording; the Doctor checks that their commands and bar plugin are installed, but does not
+capture the screen without your action.
 
 ## Daily utilities and safe updates
 
@@ -130,6 +133,8 @@ Region screenshots now start with an empty selection instead of reusing the last
 
 `Super+Alt+R` selects a region to record; `Super+Alt+Shift+R` selects a whole monitor. Press either
 shortcut again to stop and save an MP4 in `~/Videos/Recordings`. Recording runs only while active.
+While it runs, a red **REC** label appears in the Noctalia bar; click it to stop and save. The
+indicator reads the recorder's runtime state inside Noctalia and launches no extra daemon.
 For optional audio, start it from a terminal with `noctiri-record region --audio` or
 `noctiri-record screen --audio`; either shortcut still stops it. Audio uses wf-recorder's default
 audio source.

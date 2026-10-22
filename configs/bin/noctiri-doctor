@@ -396,6 +396,30 @@ else
     warn "Screenshot OCR command is missing"
 fi
 
+if [[ -x "$HOME/.local/bin/noctiri-record" ]]; then
+    pass "On-demand screen recorder is installed"
+else
+    warn "Screen recorder command is missing; rerun ./install.sh --utilities-only"
+fi
+if [[ -f "$HOME/.local/share/noctalia/plugins/noctiri-recording/plugin.toml" \
+    && -f "$HOME/.local/share/noctalia/plugins/noctiri-recording/widget.luau" ]]; then
+    pass "Recording indicator plugin is installed"
+else
+    warn "Recording indicator plugin is missing; rerun ./install.sh --utilities-only"
+fi
+if [[ -f "$HOME/.config/noctalia/config.toml" ]] \
+    && grep -Eq '^[[:space:]]*remember_last_region[[:space:]]*=[[:space:]]*false' \
+        "$HOME/.config/noctalia/config.toml"; then
+    pass "Region screenshots start with a fresh selection"
+else
+    warn "Region screenshots may reuse the last selection"
+fi
+if [[ -f "$HOME/.config/quickshell/noctiri-shortcuts/shell.qml" ]]; then
+    pass "Shortcut guide is installed"
+else
+    warn "Shortcut guide is missing; rerun ./install.sh --utilities-only"
+fi
+
 memory_total_mib="$(awk '/MemTotal:/ { printf "%d", $2/1024 }' /proc/meminfo)"
 memory_available_mib="$(awk '/MemAvailable:/ { printf "%d", $2/1024 }' /proc/meminfo)"
 memory_used_mib=$((memory_total_mib - memory_available_mib))

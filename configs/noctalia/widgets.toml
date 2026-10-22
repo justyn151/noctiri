@@ -46,6 +46,11 @@ title_scroll = "always"
 [widget.network]
 show_label = false
 
+[widget.recording]
+type = "noctiri/recording:indicator"
+capsule_border = "primary"
+capsule_border_width = 0.5
+
 [widget.session]
 capsule_border = "primary"
 capsule_border_width = 0.5

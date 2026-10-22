@@ -6,7 +6,7 @@ capsule_padding = 12.0
 capsule_thickness = 0.79999998584389687
 center = [ "workspaces" ]
 concave_edge_corners = false
-end = [ "media", "tray", "group:g1", "caffeine", "session" ]
+end = [ "recording", "media", "tray", "group:g1", "caffeine", "session" ]
 margin_edge = 8
 margin_ends = 200
 padding = 8
@@ -66,6 +66,9 @@ border = false
 offset_y = 24
 position = "bottom_center"
 scale = 0.80000000447034836
+
+[plugins]
+enabled = [ "noctiri/recording" ]
 
 [shell]
 button_borders = false

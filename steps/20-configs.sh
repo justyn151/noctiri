@@ -40,6 +40,10 @@ install_noctiri_commands() {
         "$HOME/.local/bin/noctiri-screenshot-ocr" 0755
     install_file "$ROOT_DIR/configs/bin/noctiri-record" \
         "$HOME/.local/bin/noctiri-record" 0755
+    install_file "$ROOT_DIR/configs/noctalia/plugins/noctiri-recording/plugin.toml" \
+        "$HOME/.local/share/noctalia/plugins/noctiri-recording/plugin.toml"
+    install_file "$ROOT_DIR/configs/noctalia/plugins/noctiri-recording/widget.luau" \
+        "$HOME/.local/share/noctalia/plugins/noctiri-recording/widget.luau"
     # Maintenance now lives in the Doctor window. Remove launchers installed by
     # the short-lived standalone implementation when upgrading.
     rm -f \
@@ -104,6 +108,7 @@ install_configs() {
         rm -f "$HOME/.local/state/noctalia/settings.toml"
     else
         clear_noctalia_screenshot_region_override
+        ensure_noctalia_recording_bar_override
     fi
 
     install_file "$ROOT_DIR/configs/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
@@ -117,6 +122,12 @@ install_configs() {
     fi
 
     mkdir -p "$HOME/Pictures/Screenshots" "$HOME/Pictures/Wallpapers"
+
+    if pgrep -x noctalia >/dev/null 2>&1; then
+        noctalia msg config-reload >/dev/null 2>&1 || true
+        noctalia msg plugins enable noctiri/recording >/dev/null 2>&1 \
+            || warn "Noctiri's recording indicator will activate after Noctalia restarts."
+    fi
 
     # Reload user systemd if this shell currently has a user manager; harmless on a TTY.
     if have systemctl; then
@@ -139,6 +150,44 @@ clear_noctalia_screenshot_region_override() {
     if ! cmp -s "$state_path" "$tmp"; then
         backup_path "$state_path"
         # Keep a user-managed settings.toml symlink intact if one exists.
+        if [[ -L "$state_path" ]]; then
+            cp "$tmp" "$state_path"
+        else
+            install -m 0600 "$tmp" "$state_path"
+        fi
+    fi
+    rm -f "$tmp"
+}
+
+ensure_noctalia_recording_bar_override() {
+    local state_path="$HOME/.local/state/noctalia/settings.toml" tmp
+    [[ -f "$state_path" ]] || return 0
+
+    tmp="$(mktemp)"
+    awk '
+        /^[[:space:]]*\[[^]]+\]/ {
+            if (in_plugins && !plugin_enabled) {
+                print "enabled = [ \"noctiri/recording\" ]"
+            }
+            in_default_bar = ($0 ~ /^[[:space:]]*\[bar\.default\][[:space:]]*(#.*)?$/)
+            in_plugins = ($0 ~ /^[[:space:]]*\[plugins\][[:space:]]*(#.*)?$/)
+            if (in_plugins) found_plugins = 1
+        }
+        in_default_bar && /^[[:space:]]*end[[:space:]]*=[[:space:]]*\[/ && $0 !~ /"recording"/ {
+            sub(/\[/, "[ \"recording\",")
+        }
+        in_plugins && /^[[:space:]]*enabled[[:space:]]*=[[:space:]]*\[/ {
+            plugin_enabled = 1
+            if ($0 !~ /"noctiri\/recording"/) sub(/\[/, "[ \"noctiri/recording\",")
+        }
+        { print }
+        END {
+            if (in_plugins && !plugin_enabled) print "enabled = [ \"noctiri/recording\" ]"
+            if (!found_plugins) print "\n[plugins]\nenabled = [ \"noctiri/recording\" ]"
+        }
+    ' "$state_path" > "$tmp"
+    if ! cmp -s "$state_path" "$tmp"; then
+        backup_path "$state_path"
         if [[ -L "$state_path" ]]; then
             cp "$tmp" "$state_path"
         else

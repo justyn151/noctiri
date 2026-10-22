@@ -1,0 +1,10 @@
+id = "noctiri/recording"
+name = "Noctiri Recording Indicator"
+version = "1.0.0"
+plugin_api = 24
+author = "Noctiri"
+description = "Shows an on-demand wf-recorder capture in the bar and stops it on click."
+
+[[widget]]
+id = "indicator"
+entry = "widget.luau"

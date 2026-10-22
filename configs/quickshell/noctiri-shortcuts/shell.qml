@@ -11,6 +11,7 @@ ShellRoot {
 
     readonly property string fontFamily: "FantasqueSansM Nerd Font"
     property int activeTab: 0
+    property string searchText: ""
 
     function paletteValue(name, fallback) {
         if (!paletteFile.loaded)
@@ -28,6 +29,34 @@ ShellRoot {
     readonly property color urgentColor: paletteValue("color1", "#ffb4ab")
 
     readonly property var tabNames: ["Desktop", "Neovim", "Yazi", "rmpc"]
+    readonly property var tabHints: [
+        "Niri, capture, and system controls",
+        "Editing, splits, completion, and LaTeX",
+        "Files, previews, archives, and drives",
+        "Playback, library, and queue"
+    ]
+
+    function filteredEntries(entries, query) {
+        const needle = query.trim().toLowerCase();
+        if (!needle)
+            return entries;
+        const result = [];
+        for (const entry of entries) {
+            if (entry.combo.toLowerCase().includes(needle)
+                    || entry.action.toLowerCase().includes(needle))
+                result.push(entry);
+        }
+        return result;
+    }
+
+    function hasMatches(cards, query) {
+        for (const card of cards) {
+            if (card.heading.toLowerCase().includes(query.trim().toLowerCase())
+                    || filteredEntries(card.entries, query).length > 0)
+                return true;
+        }
+        return false;
+    }
 
     function closeWindow() {
         // The guide is opened on demand, so closing it should release the
@@ -35,18 +64,25 @@ ShellRoot {
         Qt.quit();
     }
 
-    readonly property var essentials: [
+    readonly property var launchBindings: [
         { combo: "Super + Shift + /", action: "Toggle this shortcut window" },
         { combo: "Super + Shift + D", action: "Open Noctiri Doctor" },
         { combo: "Super + T", action: "Open Kitty" },
         { combo: "Super + D", action: "Open the app launcher" },
         { combo: "Super + P", action: "Open the wallpaper picker" },
-        { combo: "Super + E", action: "Open Yazi in Kitty" },
+        { combo: "Super + E", action: "Open Yazi in Kitty" }
+    ]
+
+    readonly property var captureBindings: [
         { combo: "Super + Shift + S", action: "Capture and annotate a region" },
+        { combo: "Super + Shift + A", action: "Annotate the whole screen" },
         { combo: "Print", action: "Capture the current monitor" },
         { combo: "Super + Shift + O", action: "OCR a region and copy its text" },
         { combo: "Super + Alt + R", action: "Start/stop recording a selected region" },
-        { combo: "Super + Alt + Shift + R", action: "Start/stop recording a monitor" },
+        { combo: "Super + Alt + Shift + R", action: "Start/stop recording a monitor" }
+    ]
+
+    readonly property var sessionBindings: [
         { combo: "Super + Ctrl + V", action: "Open encrypted clipboard history" },
         { combo: "Super + N", action: "Open notification history" },
         { combo: "Super + Shift + N", action: "Toggle Do Not Disturb" },
@@ -248,13 +284,15 @@ ShellRoot {
     ]
 
     readonly property var desktopLeft: [
-        { heading: "Essentials", entries: essentials },
+        { heading: "Launch", entries: launchBindings },
         { heading: "Focus and navigation", entries: focusBindings },
-        { heading: "System", entries: systemBindings }
+        { heading: "Layout", entries: layoutBindings }
     ]
     readonly property var desktopRight: [
+        { heading: "Capture", entries: captureBindings },
         { heading: "Move windows and workspaces", entries: movement },
-        { heading: "Layout", entries: layoutBindings }
+        { heading: "Session and history", entries: sessionBindings },
+        { heading: "System", entries: systemBindings }
     ]
     readonly property var nvimLeft: [
         { heading: "Editing basics", entries: nvimBasics },
@@ -292,25 +330,37 @@ ShellRoot {
     }
 
     component KeyRow: RowLayout {
+        id: keyRow
         required property string combo
         required property string action
         Layout.fillWidth: true
-        spacing: 12
+        spacing: 10
 
-        Text {
-            Layout.preferredWidth: 215
-            text: parent.combo
-            color: root.accentColor
-            font.family: root.fontFamily
-            font.pixelSize: 14
-            font.weight: Font.DemiBold
+        Rectangle {
+            Layout.preferredWidth: 188
+            Layout.preferredHeight: Math.max(28, keyText.implicitHeight + 10)
+            radius: 7
+            color: Qt.alpha(root.accentColor, 0.10)
+            border.width: 1
+            border.color: Qt.alpha(root.accentColor, 0.27)
+            Text {
+                id: keyText
+                width: parent.width - 14
+                anchors.centerIn: parent
+                text: keyRow.combo
+                color: root.accentColor
+                font.family: root.fontFamily
+                font.pixelSize: 12
+                font.weight: Font.DemiBold
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            }
         }
         Text {
             Layout.fillWidth: true
             text: parent.action
             color: root.foregroundColor
             font.family: root.fontFamily
-            font.pixelSize: 14
+            font.pixelSize: 13
             wrapMode: Text.WordWrap
         }
     }
@@ -318,12 +368,15 @@ ShellRoot {
     component ShortcutCard: Rectangle {
         required property string heading
         required property var entries
+        property var visibleEntries: heading.toLowerCase().includes(root.searchText.trim().toLowerCase())
+            ? entries : root.filteredEntries(entries, root.searchText)
         Layout.fillWidth: true
+        visible: visibleEntries.length > 0
         implicitHeight: cardContent.implicitHeight + 28
         radius: 14
-        color: Qt.alpha(root.surfaceColor, 0.58)
+        color: Qt.alpha(root.surfaceColor, 0.46)
         border.width: 1
-        border.color: Qt.alpha(root.mutedColor, 0.48)
+        border.color: Qt.alpha(root.mutedColor, 0.28)
 
         ColumnLayout {
             id: cardContent
@@ -335,7 +388,7 @@ ShellRoot {
                 text: parent.parent.heading
                 color: root.foregroundColor
                 font.family: root.fontFamily
-                font.pixelSize: 16
+                font.pixelSize: 15
                 font.weight: Font.Bold
             }
             Rectangle {
@@ -344,7 +397,7 @@ ShellRoot {
                 color: Qt.alpha(root.mutedColor, 0.45)
             }
             Repeater {
-                model: parent.parent.entries
+                model: parent.parent.visibleEntries
                 KeyRow {
                     required property var modelData
                     combo: modelData.combo
@@ -396,13 +449,24 @@ ShellRoot {
                 }
             }
         }
+
+        Text {
+            anchors.centerIn: parent
+            visible: root.searchText.trim().length > 0
+                && !root.hasMatches(page.leftCards, root.searchText)
+                && !root.hasMatches(page.rightCards, root.searchText)
+            text: "No shortcuts found in this tab"
+            color: root.mutedColor
+            font.family: root.fontFamily
+            font.pixelSize: 14
+        }
     }
 
     FloatingWindow {
         id: shortcutWindow
         visible: true
         title: "Noctiri Shortcuts"
-        implicitWidth: 980
+        implicitWidth: 1040
         implicitHeight: 720
         minimumSize.width: 720
         minimumSize.height: 480
@@ -445,7 +509,7 @@ ShellRoot {
                             font.weight: Font.Bold
                         }
                         Text {
-                            text: "Drag the header to move · choose a tab for app-specific controls"
+                            text: root.tabHints[root.activeTab] + " · drag to move · Esc to close"
                             color: root.mutedColor
                             font.family: root.fontFamily
                             font.pixelSize: 13
@@ -507,6 +571,38 @@ ShellRoot {
                                 onClicked: root.activeTab = index
                             }
                         }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 10
+                    TextField {
+                        id: searchField
+                        Layout.fillWidth: true
+                        implicitHeight: 38
+                        placeholderText: "Search keys or actions in this tab…"
+                        onTextChanged: root.searchText = text
+                        font.family: root.fontFamily
+                        font.pixelSize: 13
+                        color: root.foregroundColor
+                        background: Rectangle {
+                            radius: 9
+                            color: Qt.alpha(root.surfaceColor, 0.46)
+                            border.width: 1
+                            border.color: searchField.activeFocus
+                                ? root.accentColor : Qt.alpha(root.mutedColor, 0.28)
+                        }
+                        Keys.onEscapePressed: {
+                            if (text.length > 0) text = "";
+                            else root.closeWindow();
+                        }
+                    }
+                    Text {
+                        text: "Search this tab"
+                        color: root.mutedColor
+                        font.family: root.fontFamily
+                        font.pixelSize: 12
                     }
                 }
 
