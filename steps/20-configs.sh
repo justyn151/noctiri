@@ -204,6 +204,8 @@ install_departure_system_font() {
     case "$profile" in
         departure) install_departure_nerd_font ;;
         fantasque) install_fantasque_nerd_font ;;
+        maple) install_maple_nerd_font ;;
+        cozette) install_maple_nerd_font; install_cozette_font ;;
     esac
     if ! fc-match 'sans-serif:charset=3042' 2>/dev/null | grep -Eqi 'Noto.*CJK|Source Han'; then
         install_cjk_fallback_fonts
@@ -220,27 +222,48 @@ selected_font_profile() {
     fi
     profile="${profile:-departure}"
     case "$profile" in
-        departure|fantasque) printf '%s\n' "$profile" ;;
+        departure|fantasque|maple|cozette) printf '%s\n' "$profile" ;;
         *) die "Unknown font profile: $profile" ;;
     esac
 }
 
 font_family_names() {
-    if [[ "$(selected_font_profile)" == fantasque ]]; then
-        UI_FONT='FantasqueSansM Nerd Font'
-        MONO_FONT='FantasqueSansM Nerd Font Mono'
-    else
-        UI_FONT='DepartureMono Nerd Font'
-        MONO_FONT='DepartureMono Nerd Font Mono'
-    fi
+    case "$(selected_font_profile)" in
+        departure)
+            UI_FONT='DepartureMono Nerd Font'
+            MONO_FONT='DepartureMono Nerd Font Mono'
+            KITTY_FONT="$MONO_FONT"
+            KITTY_FONT_SIZE=11.5 ;;
+        fantasque)
+            UI_FONT='FantasqueSansM Nerd Font'
+            MONO_FONT='FantasqueSansM Nerd Font Mono'
+            KITTY_FONT="$MONO_FONT"
+            KITTY_FONT_SIZE=11.5 ;;
+        maple|cozette)
+            UI_FONT='Maple Mono NF'
+            MONO_FONT='Maple Mono NF'
+            KITTY_FONT="$MONO_FONT"
+            KITTY_FONT_SIZE=11.5
+            if [[ "$(selected_font_profile)" == cozette ]]; then
+                KITTY_FONT='Cozette'
+                KITTY_FONT_SIZE=13.0
+            fi ;;
+    esac
 }
 
 install_font_template() {
-    local source="$1" destination="$2" tmp
+    local source="$1" destination="$2" tmp target_mono target_size
     font_family_names
+    target_mono="$MONO_FONT"
+    target_size=11.5
+    if [[ "$source" == "$ROOT_DIR/configs/kitty/kitty.conf" ]]; then
+        target_mono="$KITTY_FONT"
+        target_size="$KITTY_FONT_SIZE"
+    fi
     tmp="$(mktemp)"
-    sed -e "s|DepartureMono Nerd Font Mono|$MONO_FONT|g" \
+    sed -e "s|DepartureMono Nerd Font Mono|$target_mono|g" \
         -e "s|DepartureMono Nerd Font|$UI_FONT|g" \
+        -e "s|font_size        11.5|font_size        $target_size|g" \
         -e "s|@@HOME@@|$HOME|g" "$source" > "$tmp"
     install_file "$tmp" "$destination"
     rm -f "$tmp"

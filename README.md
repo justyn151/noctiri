@@ -287,10 +287,13 @@ To install or repair only the desktop font configuration:
 ./install.sh --font-only
 ```
 
-This applies the saved font choice (DepartureMono by default). Switch between DepartureMono and
-Fantasque Sans Mono from Doctor’s Fonts tab, or run `noctiri font set departure|fantasque`.
-Both Nerd Font archives are pinned to version 3.5.1 and checksum-verified; Fantasque is downloaded
-only when selected. The choice is saved under `~/.config/noctiri/` and survives Noctiri updates.
+This applies the saved font choice (DepartureMono by default). Doctor’s Fonts tab has a dropdown
+and Apply button for DepartureMono, Fantasque Sans Mono, hinted Maple Mono NF, and Cozette; the same
+choices are available through `noctiri font set departure|fantasque|maple|cozette`.
+The Cozette profile uses its bitmap face in Kitty at 13 pt and Maple Mono NF for the desktop UI,
+since Cozette does not scale cleanly across arbitrary UI sizes. Font archives are pinned and
+checksum-verified; alternatives are downloaded only when selected. The choice is saved under
+`~/.config/noctiri/` and survives Noctiri updates.
 Noto Sans CJK is installed as the fallback for
 Chinese, Japanese, and Korean glyphs, including applications running through Flatpak. GTK 3/4,
 GNOME interface settings, Qt6ct, KDE applications, Kitty, and Noctalia receive explicit settings as

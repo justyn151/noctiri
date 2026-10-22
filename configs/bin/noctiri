@@ -468,18 +468,21 @@ command_font() {
             printf 'Selected font: %s\n' "$current"
             if command -v fc-match >/dev/null 2>&1; then
                 printf 'UI resolves to: %s\n' "$(fc-match -f '%{family}\n' sans-serif | head -n 1)"
-                printf 'Terminal resolves to: %s\n' "$(fc-match -f '%{family}\n' monospace | head -n 1)"
+                printf 'Monospace resolves to: %s\n' "$(fc-match -f '%{family}\n' monospace | head -n 1)"
             fi
-            printf 'Choose: noctiri font set departure|fantasque\n'
+            if [[ -r "$CONFIG_HOME/kitty/kitty.conf" ]]; then
+                printf 'Kitty configured for: %s\n' "$(awk '$1 == "font_family" { $1=""; sub(/^[[:space:]]+/, ""); print; exit }' "$CONFIG_HOME/kitty/kitty.conf")"
+            fi
+            printf 'Choose: noctiri font set departure|fantasque|maple|cozette\n'
             ;;
         set)
-            [[ $# -eq 2 ]] || die "Usage: noctiri font set departure|fantasque"
-            case "$profile" in departure|fantasque) ;; *) die "Choose departure or fantasque" ;; esac
+            [[ $# -eq 2 ]] || die "Usage: noctiri font set departure|fantasque|maple|cozette"
+            case "$profile" in departure|fantasque|maple|cozette) ;; *) die "Choose departure, fantasque, maple, or cozette" ;; esac
             repo="$(repository_path)"
             NOCTIRI_FONT_PROFILE="$profile" bash "$repo/install.sh" --font-only
             info "Selected $profile. Reopen applications to refresh their fonts."
             ;;
-        *) die "Usage: noctiri font status|set departure|fantasque" ;;
+        *) die "Usage: noctiri font status|set departure|fantasque|maple|cozette" ;;
     esac
 }
 
@@ -491,7 +494,7 @@ Usage: noctiri COMMAND
   maintenance                Show status and configuration snapshots
   memory                     Explain memory use and list top processes by PSS
   startup [--kitty]          Check fresh-login memory; optionally time hidden Kitty launch
-  font status|set PROFILE    View or switch DepartureMono/Fantasque font
+  font status|set PROFILE    View or switch DepartureMono, Fantasque, Maple, or Cozette
   update [--system]          Snapshot, fast-forward, and apply managed configs
   snapshot                   Save managed user configuration now
   snapshots                  List available configuration snapshots

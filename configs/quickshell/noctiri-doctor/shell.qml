@@ -20,6 +20,8 @@ ShellRoot {
     property string operation: "health"
     property bool rollbackArmed: false
     readonly property var tabNames: ["Health", "Maintenance", "Memory", "Fonts"]
+    readonly property var fontLabels: ["DepartureMono", "Fantasque Sans Mono", "Maple Mono NF", "Cozette · Kitty only"]
+    readonly property var fontProfiles: ["departure", "fantasque", "maple", "cozette"]
 
     function paletteValue(name, fallback) {
         if (!paletteFile.loaded)
@@ -92,7 +94,7 @@ ShellRoot {
     }
 
     function runFonts() {
-        runProcess(["noctiri", "font", "status"], "Reading font selection…", "fonts");
+        runProcess(["noctiri", "font", "status"], "Reading font selection…", "fonts-status");
     }
 
     function runNoctiriAction(arguments, message, operationName) {
@@ -133,6 +135,11 @@ ShellRoot {
                 root.report = root.cleanOutput(text);
                 if (root.operation === "health")
                     root.parseSummary(text);
+                if (root.operation === "fonts-status") {
+                    const match = text.match(/Selected font: (departure|fantasque|maple|cozette)/);
+                    if (match)
+                        fontChoice.currentIndex = root.fontProfiles.indexOf(match[1]);
+                }
             }
         }
 
@@ -482,21 +489,44 @@ ShellRoot {
                     spacing: 10
                     Text {
                         Layout.fillWidth: true
-                        text: "Choose a desktop font. Open apps may need a restart; no background service is added."
+                        text: "Cozette changes Kitty only; Maple remains the UI font. Reopen apps after applying."
                         color: root.mutedColor
                         font.family: root.fontFamily
                         font.pixelSize: 12
                         wrapMode: Text.WordWrap
                     }
-                    ActionButton {
-                        label: "DepartureMono"
-                        available: !root.checking
-                        onClicked: root.runNoctiriAction(["font", "set", "departure"], "Applying DepartureMono…", "fonts")
+                    ComboBox {
+                        id: fontChoice
+                        Layout.preferredWidth: 220
+                        implicitHeight: 38
+                        model: root.fontLabels
+                        enabled: !root.checking
+                        font.family: root.fontFamily
+                        font.pixelSize: 13
+                        background: Rectangle {
+                            radius: 9
+                            color: Qt.alpha(root.surfaceColor, 0.72)
+                            border.width: 1
+                            border.color: root.accentColor
+                        }
+                        contentItem: Text {
+                            leftPadding: 12
+                            rightPadding: fontChoice.indicator.width + fontChoice.spacing
+                            text: fontChoice.displayText
+                            color: root.foregroundColor
+                            font.family: root.fontFamily
+                            font.pixelSize: 13
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                        }
                     }
                     ActionButton {
-                        label: "Fantasque"
+                        label: "Apply font"
+                        primary: true
                         available: !root.checking
-                        onClicked: root.runNoctiriAction(["font", "set", "fantasque"], "Applying Fantasque…", "fonts")
+                        onClicked: root.runNoctiriAction(
+                            ["font", "set", root.fontProfiles[fontChoice.currentIndex]],
+                            "Applying " + fontChoice.currentText + "…", "fonts-set")
                     }
                 }
             }

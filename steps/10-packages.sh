@@ -996,6 +996,48 @@ install_fantasque_nerd_font() {
     fc-cache -f
 }
 
+install_maple_nerd_font() {
+    log "Installing hinted Maple Mono NF 7.9"
+    local font_dir="$HOME/.local/share/fonts/MapleMonoNF" tmp
+    if fc-list : family 2>/dev/null | grep -Fqi 'Maple Mono NF'; then
+        ok "Maple Mono NF already installed"
+        return
+    fi
+    tmp="$(mktemp -d)"
+    curl -fL --retry 3 -o "$tmp/MapleMono-NF.zip" \
+        https://github.com/subframe7536/maple-font/releases/download/v7.9/MapleMono-NF.zip
+    printf '%s  %s\n' \
+        '59098b87c895d871635d37680e88000ae2b2b25b55428195b228ec589e35fb89' \
+        "$tmp/MapleMono-NF.zip" | sha256sum -c -
+    mkdir -p "$font_dir"
+    unzip -q "$tmp/MapleMono-NF.zip" -d "$font_dir"
+    rm -rf "$tmp"
+    fc-cache -f
+    fc-list : family 2>/dev/null | grep -Fqi 'Maple Mono NF' \
+        || die "Maple Mono NF was installed but Fontconfig cannot find it"
+}
+
+install_cozette_font() {
+    log "Installing Cozette bitmap font 1.30.0"
+    local font_dir="$HOME/.local/share/fonts/Cozette" tmp
+    if fc-match -f '%{file}\n' 'Cozette' 2>/dev/null | grep -Eqi '\.otb$'; then
+        ok "Cozette already installed"
+        return
+    fi
+    tmp="$(mktemp -d)"
+    curl -fL --retry 3 -o "$tmp/cozette.otb" \
+        https://github.com/the-moonwitch/Cozette/releases/download/v.1.30.0/cozette.otb
+    printf '%s  %s\n' \
+        'cbcb83dc626b55eae5d79808a2db2fc87bdc0886b63d0226a5789968f8392d49' \
+        "$tmp/cozette.otb" | sha256sum -c -
+    mkdir -p "$font_dir"
+    install -m 0644 "$tmp/cozette.otb" "$font_dir/cozette.otb"
+    rm -rf "$tmp"
+    fc-cache -f
+    fc-match -f '%{file}\n' 'Cozette' 2>/dev/null | grep -Eqi '\.otb$' \
+        || die "Cozette's bitmap face is not available to Fontconfig on this system"
+}
+
 install_cjk_fallback_fonts() {
     log "Installing Chinese, Japanese, and Korean fallback fonts"
     case "$DISTRO_ID" in

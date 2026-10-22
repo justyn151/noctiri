@@ -308,6 +308,7 @@ fi
 case "$font_profile" in
     departure) expected_font='DepartureMono Nerd Font' ;;
     fantasque) expected_font='FantasqueSansM Nerd Font' ;;
+    maple|cozette) expected_font='Maple Mono NF' ;;
     *) expected_font='DepartureMono Nerd Font'; warn "Unknown font profile '$font_profile'" ;;
 esac
 if have fc-match && fc-match "$expected_font" 2>/dev/null | grep -Fqi "$expected_font"; then
@@ -315,6 +316,15 @@ if have fc-match && fc-match "$expected_font" 2>/dev/null | grep -Fqi "$expected
 else
     fail "$expected_font is missing"
     NEED_THEME=true
+fi
+
+if [[ "$font_profile" == cozette ]]; then
+    if have fc-match && fc-match -f '%{file}\n' 'Cozette' 2>/dev/null | grep -Eqi '\.otb$'; then
+        pass "Cozette bitmap font is available for Kitty"
+    else
+        fail "Cozette bitmap font is missing or disabled"
+        NEED_THEME=true
+    fi
 fi
 
 if have fc-match \
