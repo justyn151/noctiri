@@ -25,7 +25,6 @@ usage() {
         printf '  --services-only    Repair Wi-Fi, Bluetooth, PipeWire, and brightness persistence\n'
         printf '  --firefox-only     Install Firefox policies, extensions, and Noctalia theming\n'
         printf '  --zsh-only         Install Zsh, suggestions/highlighting, and smooth Kitty cursor settings\n'
-        printf '  --dwl-only         Install the optional Void DWL + Foot + Somebar preview\n'
         printf '  --font-only        Install and apply Fantasque Sans Mono across the desktop\n'
         printf '  --documents-only   Install Sioyek, CoC/TexLab, and compact Tectonic LaTeX support\n'
         printf '  --music-only       Install rmpc, PipeWire-backed MPD, and MPRIS bar integration\n'
@@ -58,7 +57,6 @@ while (( $# > 0 )); do
         --services-only) MODE=services ;;
         --firefox-only) MODE=firefox ;;
         --zsh-only) MODE=zsh ;;
-        --dwl-only) MODE=dwl ;;
         --font-only) MODE=font ;;
         --documents-only) MODE=documents ;;
         --music-only) MODE=music ;;
@@ -209,16 +207,6 @@ if [[ "$MODE" == "zsh" ]]; then
     printf '\nZsh-only mode: installing Zsh, completions, and Kitty cursor settings without changing the desktop stack.\n\n'
     install_zsh_shell
     printf '\nZsh setup complete. Start it now with zsh; log out once to make it the login shell everywhere.\n'
-    exit 0
-fi
-
-if [[ "$MODE" == "dwl" ]]; then
-    printf '\nDWL preview mode: Niri and Noctalia will not be changed or rebuilt.\n'
-    printf 'A separate greeter session will be installed; your existing default session is preserved.\n\n'
-    install_dwl_preview
-    printf '\n\033[1;32mDWL preview installation complete.\033[0m\n'
-    printf 'Log out normally, then select "DWL (Noctiri Preview)" in the greeter.\n'
-    printf 'DWL is intentionally not started or made the default by this installer.\n'
     exit 0
 fi
 

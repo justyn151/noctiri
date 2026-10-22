@@ -45,8 +45,6 @@ Noctiri installation profiles
   3. Full
      Everything in Standard, plus Steam, Gamescope, MangoHud, GameMode,
      32-bit graphics libraries, and hybrid-GPU launch helpers.
-
-DWL is an independent preview and is never installed by these profiles.
 EOF
 }
 
@@ -108,7 +106,6 @@ print_install_review() {
     else
         printf '  Gaming:       excluded (can be added later with --steam-only)\n'
     fi
-    printf '  DWL preview:  excluded (always installed separately with --dwl-only)\n'
 }
 
 save_install_profile() {

@@ -32,10 +32,6 @@ Apps:
 - Full adds Steam (native on x86-64 glibc Void; Flatpak fallback elsewhere), Gamescope,
   MangoHud, GameMode, 32-bit graphics support, and hybrid-GPU launch helpers.
 
-An optional, side-by-side Void preview is also available for the setup shown in Bread on
-Penguins' **I moved to Wayland :D** video: the creator's patched DWL fork, Foot, Somebar,
-Someblocks, and Liberation Mono. It does not replace or edit the Niri + Noctalia flavour.
-
 Default media associations are set to qimgv for common images, mpv for common video and audio
 types, and Sioyek for PDF. VimTeX uses Sioyek directly for SyncTeX, compiles with Tectonic whenever
 a TeX buffer is saved, and refreshes the viewer after a successful build. Tectonic is used instead
@@ -88,7 +84,7 @@ Choose non-interactively or inspect the profiles without starting installation:
 
 The selected profile is remembered for later non-interactive runs. Repair modes such as
 `--services-only`, `--music-only`, and `--steam-only` remain independent, so a Minimal system can
-add one feature later without changing profiles. DWL is always separate under `--dwl-only`.
+add one feature later without changing profiles.
 
 Completed stages are recorded under `~/.local/state/noctiri-installer/completed/`. On later full
 runs, each completed stage defaults to **skip** but can be rerun when you want to update or repair
@@ -281,9 +277,8 @@ This pins the Fantasque Sans Mono Nerd Font 3.5.1 archive and verifies its check
 `FantasqueSansM Nerd Font Mono` for monospace. Noto Sans CJK is installed as the fallback for
 Chinese, Japanese, and Korean glyphs, including applications running through Flatpak. GTK 3/4,
 GNOME interface settings, Qt6ct, KDE applications, Kitty, and Noctalia receive explicit settings as
-well. The separate DWL preview's Foot and Somebar styling is left unchanged. Existing applications
-may cache fonts, so reopen them; one logout refreshes the entire Niri session. Web pages and
-documents that deliberately specify a typeface are not overridden.
+well. Existing applications may cache fonts, so reopen them; one logout refreshes the entire Niri
+session. Web pages and documents that deliberately specify a typeface are not overridden.
 
 To install, configure, and check NetworkManager, Bluetooth, and PipeWire without rebuilding Niri or
 Noctalia:
@@ -306,47 +301,6 @@ The Void source build of Noctalia Greeter also applies Noctiri's animated passwo
 styling: only the wallpaper area directly behind the translucent login card is softly blurred on the
 GPU; the rest of the background and the card's text stay sharp. The installer never restarts greetd
 automatically, so the new appearance is picked up at the next normal logout or reboot.
-
-## Optional DWL preview (Void)
-
-Install the initial terminal + compositor + bar experiment without rebuilding or changing Niri:
-
-```bash
-./install.sh --dwl-only
-```
-
-The mode pins the exact creator DWL revision referenced by the video and matching known-good
-Somebar/Someblocks revisions, builds DWL against Void's `wlroots0.19-devel`, and installs a separate
-`DWL (Noctiri Preview)` Wayland session. It does not restart greetd or change the remembered/default
-session. Log out normally and choose that session from the greeter when you want to test it.
-
-The terminal and bar explicitly use **Liberation Mono**, which is the sharp monospace face used by
-the referenced dotfiles (alongside the broader Liberation, Libertinus, and Noto Sans Nerd Font
-families). Foot uses a 17-pixel font size so its apparent size remains stable across display DPI.
-
-Initial DWL keys:
-
-- `Super+Enter`: Foot
-- `Super+D`: wmenu application launcher
-- `Super+B`: Firefox
-- `Super+E`: Yazi in Foot
-- `Super+J/K`: focus next/previous window
-- `Super+Shift+J/K`: rotate windows
-- `Super+H/L`: change the main-window ratio
-- `Super+Shift+Enter`: promote the focused window to master
-- `Super+T`, `Super+M`, `Super+Space`: tile, monocle, or cycle layout
-- `Super+Shift+Space`: toggle floating
-- `Super+F`: toggle fullscreen
-- `Super+G`: toggle gaps
-- `Super+1..9`: view a tag; add `Shift` to move a window there
-- `Super+Q`: close the focused window
-- `Super+Shift+Q`: exit DWL
-- `Ctrl+Alt+F1..F12`: switch TTYs
-
-The output rule is connector-independent and lets wlroots select each display's preferred mode,
-rather than hard-coding a laptop panel name or refresh rate. On an Intel + nouveau hybrid laptop,
-the session wrapper automatically selects Intel for DWL to avoid the same nouveau startup hang that
-the Niri configuration works around.
 
 The script detects the distribution from `/etc/os-release` and requests sudo only for system
 packages/configuration. When the Void package stage runs, it performs a full XBPS update first
@@ -439,8 +393,3 @@ another machine to use that monitor mode or scale.
 - Spicetify: https://spicetify.app/docs/getting-started
 - Vesktop Flatpak: https://github.com/flathub/dev.vencord.Vesktop
 - Bibata: https://github.com/ful1e5/Bibata_Cursor
-- Video setup: https://www.youtube.com/watch?v=FpWhd-UtJ2M
-- Creator DWL fork: https://github.com/BreadOnPenguins/dwl
-- Somebar: https://git.sr.ht/~raphi/somebar
-- Someblocks: https://git.sr.ht/~raphi/someblocks
-- Foot: https://codeberg.org/dnkl/foot

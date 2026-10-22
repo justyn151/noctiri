@@ -40,8 +40,6 @@ profile_output="$($ROOT_DIR/install.sh --list-profiles)"
 grep -Fq '1. Minimal' <<< "$profile_output"
 grep -Fq '2. Standard (recommended)' <<< "$profile_output"
 grep -Fq '3. Full' <<< "$profile_output"
-grep -Fq 'DWL is an independent preview' <<< "$profile_output"
-
 if "$ROOT_DIR/install.sh" --profile minimal --doctor >/dev/null 2>&1; then
     die '--profile unexpectedly combined with a repair mode'
 fi

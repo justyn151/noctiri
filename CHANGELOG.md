@@ -3,13 +3,15 @@
 This installer was generated from the supplied `setup-export.tar.gz`.
 
 Sanitization/portability changes:
+- Removed the experimental DWL/Foot/Somebar flavour and its installer mode so Noctiri focuses on
+  the supported Niri + Noctalia desktop.
 - Expanded Yazi into a complete on-demand file workflow without adding a daemon: smart enter and
   paste behavior, Git status, size/date metadata, full and zoomable previews, Noctalia-colored
   selection state, archive creation, permission editing, drive management, and explicit Neovim/PDF
   opening rules. The installer and Doctor now manage and verify the matching official plugins.
 - Added reviewed Minimal, Standard, and Full installation profiles. The interactive installer
   remembers the last choice, supports `--profile` for unattended runs, keeps all repair-only modes
-  independent, and never folds the optional DWL preview into the normal Niri installation.
+  independent, and keeps optional application groups out of the core Niri installation.
 - Added a low-overhead daily-utilities layer around Noctalia's built-in encrypted clipboard,
   screenshot annotation/history, notification history, and Do Not Disturb controls. Added
   on-demand multilingual screenshot OCR, KeePassXC plus its Firefox extension, and Yazi drive and
