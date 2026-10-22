@@ -17,7 +17,7 @@ Core desktop:
 
 Theme/integration:
 - Bibata Modern Ice cursor
-- Fantasque Sans Mono Nerd Font 3.5.1 for the desktop UI and terminals, with Noto fallback for CJK and other scripts
+- DepartureMono Nerd Font 3.5.1 for the desktop UI and terminals, with Noto fallback for CJK and other scripts
 - qt6ct + Breeze Qt style/icons
 - Noctalia templates for `btop`, `cava`, KDE/Qt, Kitty, Niri, Yazi, and Pywalfox
 - Native XDG file picker integration
@@ -287,9 +287,9 @@ To install or repair only the desktop font configuration:
 ./install.sh --font-only
 ```
 
-This pins the Fantasque Sans Mono Nerd Font 3.5.1 archive and verifies its checksum, then selects
-`FantasqueSansM Nerd Font` for Fontconfig's system UI, sans, and serif aliases and
-`FantasqueSansM Nerd Font Mono` for monospace. Noto Sans CJK is installed as the fallback for
+This pins the DepartureMono Nerd Font 3.5.1 archive and verifies its checksum, then selects
+`DepartureMono Nerd Font` for Fontconfig's system UI, sans, and serif aliases and
+`DepartureMono Nerd Font Mono` for monospace. Noto Sans CJK is installed as the fallback for
 Chinese, Japanese, and Korean glyphs, including applications running through Flatpak. GTK 3/4,
 GNOME interface settings, Qt6ct, KDE applications, Kitty, and Noctalia receive explicit settings as
 well. Existing applications may cache fonts, so reopen them; one logout refreshes the entire Niri

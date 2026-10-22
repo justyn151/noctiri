@@ -956,22 +956,22 @@ install_bibata_cursor_void() {
     rm -rf "$tmp"
 }
 
-install_fantasque_nerd_font() {
-    log "Installing Fantasque Sans Mono Nerd Font 3.5.1"
-    local font_dir="$HOME/.local/share/fonts/FantasqueSansMonoNerd"
-    if fc-list : family 2>/dev/null | grep -qi 'FantasqueSansM Nerd Font Mono'; then
-        ok "Fantasque Sans Mono Nerd Font already installed"
+install_departure_nerd_font() {
+    log "Installing DepartureMono Nerd Font 3.5.1"
+    local font_dir="$HOME/.local/share/fonts/DepartureMonoNerd"
+    if fc-list : family 2>/dev/null | grep -qi 'DepartureMono Nerd Font Mono'; then
+        ok "DepartureMono Nerd Font already installed"
         return
     fi
     mkdir -p "$font_dir"
     local tmp
     tmp="$(mktemp -d)"
-    curl -fL --retry 3 -o "$tmp/FantasqueSansMono.zip" \
-        https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/FantasqueSansMono.zip
+    curl -fL --retry 3 -o "$tmp/DepartureMono.zip" \
+        https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/DepartureMono.zip
     printf '%s  %s\n' \
-        '083c543efbfbb1be47897c02c2285ad7f7b75bd74765fad38d8a04f9db45c6f4' \
-        "$tmp/FantasqueSansMono.zip" | sha256sum -c -
-    unzip -q "$tmp/FantasqueSansMono.zip" -d "$font_dir"
+        'a49e33d74093541c26f48cfb94f3db7bcf9f4d6c975cb0de34dd3a25bb4e4993' \
+        "$tmp/DepartureMono.zip" | sha256sum -c -
+    unzip -q "$tmp/DepartureMono.zip" -d "$font_dir"
     rm -rf "$tmp"
     fc-cache -f
 }

@@ -79,7 +79,7 @@ clipboard_enabled = true
 clipboard_history_max_entries = 100
 clipboard_keep_from_closed_apps = true
 corner_radius_scale = 0.85000001266598701
-# Keep this generic so Pango/Fontconfig can use Fantasque for Latin and Nerd
+# Keep this generic so Pango/Fontconfig can use DepartureMono for Latin and Nerd
 # glyphs while falling back to Noto for CJK and other writing systems.
 font_family = "sans-serif"
 popup_borders = false

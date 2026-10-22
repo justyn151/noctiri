@@ -25,7 +25,7 @@ usage() {
         printf '  --services-only    Repair Wi-Fi, Bluetooth, PipeWire, and brightness persistence\n'
         printf '  --firefox-only     Install Firefox policies, extensions, and Noctalia theming\n'
         printf '  --zsh-only         Install Zsh, suggestions/highlighting, and smooth Kitty cursor settings\n'
-        printf '  --font-only        Install and apply Fantasque Sans Mono across the desktop\n'
+        printf '  --font-only        Install and apply DepartureMono Nerd Font across the desktop\n'
         printf '  --documents-only   Install Sioyek, CoC/TexLab, and compact Tectonic LaTeX support\n'
         printf '  --music-only       Install rmpc, PipeWire-backed MPD, and MPRIS bar integration\n'
         printf '  --steam-only       Install Steam, GPU offload, Gamescope, MangoHud, and GameMode\n'
@@ -118,7 +118,7 @@ fi
 
 if [[ "$MODE" == "theme" ]]; then
     printf '\nTheme-only mode: packages, builds, greeter, wallpapers, and apps will be skipped.\n\n'
-    install_fantasque_system_font
+    install_departure_system_font
     repair_theme_sync
     pywalfox_status=0
     configure_pywalfox || pywalfox_status=$?
@@ -128,9 +128,11 @@ if [[ "$MODE" == "theme" ]]; then
 fi
 
 if [[ "$MODE" == "font" ]]; then
-    printf '\nFont-only mode: installing and applying Fantasque Sans Mono without rebuilding the desktop.\n\n'
-    install_fantasque_system_font
-    printf '\n\033[1;32mFantasque Sans Mono configuration complete.\033[0m\n'
+    printf '\nFont-only mode: installing and applying DepartureMono without rebuilding the desktop.\n\n'
+    install_departure_system_font
+    install_noctiri_doctor
+    install_shortcut_window
+    printf '\n\033[1;32mDepartureMono configuration complete.\033[0m\n'
     printf 'Reopen applications to refresh their fonts; log out once to refresh the complete session.\n'
     exit 0
 fi
@@ -238,7 +240,7 @@ if [[ "$DISTRO_ID" == "void" ]] && ! step_is_complete greeter-panel-blur-v3; the
     run_stateful_step greeter-panel-blur-v3 \
         "Noctalia Greeter animation and glass-effect build" install_noctalia_greeter_void
 fi
-run_stateful_step fantasque-system-font-v2 "Fantasque Sans Mono with CJK fallback fonts" install_fantasque_system_font
+run_stateful_step departure-system-font-v1 "DepartureMono Nerd Font with CJK fallback fonts" install_departure_system_font
 if profile_has editor; then
     run_stateful_step neovim-editor-v3 "Neovim, CoC runtime, beam cursor, and Vim removal" install_neovim_editor
 else

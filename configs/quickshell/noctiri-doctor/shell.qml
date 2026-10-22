@@ -9,7 +9,7 @@ import QtQuick.Layouts
 ShellRoot {
     id: root
 
-    readonly property string fontFamily: "FantasqueSansM Nerd Font"
+    readonly property string fontFamily: "DepartureMono Nerd Font"
     property string report: "Preparing desktop checks…"
     property string processError: ""
     property bool checking: false

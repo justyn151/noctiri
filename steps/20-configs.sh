@@ -197,14 +197,14 @@ ensure_noctalia_recording_bar_override() {
     rm -f "$tmp"
 }
 
-install_fantasque_system_font() {
-    install_fantasque_nerd_font
+install_departure_system_font() {
+    install_departure_nerd_font
     install_cjk_fallback_fonts
     configure_system_fonts
 }
 
 configure_system_fonts() {
-    log "Making Fantasque Sans Mono the Niri desktop font"
+    log "Making DepartureMono Nerd Font the Niri desktop font"
 
     install_file "$ROOT_DIR/configs/fonts/fonts.conf" \
         "$HOME/.config/fontconfig/fonts.conf"
@@ -229,19 +229,19 @@ configure_system_fonts() {
 
     if have gsettings; then
         gsettings set org.gnome.desktop.interface font-name \
-            'FantasqueSansM Nerd Font 10' >/dev/null 2>&1 || true
+            'DepartureMono Nerd Font 10' >/dev/null 2>&1 || true
         gsettings set org.gnome.desktop.interface document-font-name \
-            'FantasqueSansM Nerd Font 10' >/dev/null 2>&1 || true
+            'DepartureMono Nerd Font 10' >/dev/null 2>&1 || true
         gsettings set org.gnome.desktop.interface monospace-font-name \
-            'FantasqueSansM Nerd Font Mono 10' >/dev/null 2>&1 || true
+            'DepartureMono Nerd Font Mono 10' >/dev/null 2>&1 || true
     fi
 
     if pgrep -x noctalia >/dev/null 2>&1; then
         noctalia msg config-reload >/dev/null 2>&1 \
-            || warn "Noctalia will load Fantasque Sans Mono after the next login."
+            || warn "Noctalia will load DepartureMono after the next login."
     fi
 
-    ok "Configured Fantasque Sans Mono with Noto script fallback across the desktop"
+    ok "Configured DepartureMono with Noto script fallback across the desktop"
 }
 
 discover_niri_environment_for_font_reload() {
@@ -261,11 +261,11 @@ import sys
 source, destination = sys.argv[1:]
 text = open(source, encoding="utf-8").read()
 values = {
-    "font": "FantasqueSansM Nerd Font,10,-1,5,400,0,0,0,0,0",
-    "fixed": "FantasqueSansM Nerd Font Mono,10,-1,5,400,0,0,0,0,0",
-    "menuFont": "FantasqueSansM Nerd Font,10,-1,5,400,0,0,0,0,0",
-    "smallestReadableFont": "FantasqueSansM Nerd Font,8,-1,5,400,0,0,0,0,0",
-    "toolBarFont": "FantasqueSansM Nerd Font,10,-1,5,400,0,0,0,0,0",
+    "font": "DepartureMono Nerd Font,10,-1,5,400,0,0,0,0,0",
+    "fixed": "DepartureMono Nerd Font Mono,10,-1,5,400,0,0,0,0,0",
+    "menuFont": "DepartureMono Nerd Font,10,-1,5,400,0,0,0,0,0",
+    "smallestReadableFont": "DepartureMono Nerd Font,8,-1,5,400,0,0,0,0,0",
+    "toolBarFont": "DepartureMono Nerd Font,10,-1,5,400,0,0,0,0,0",
 }
 section = re.search(r"(?ms)^\[General\]\n(?P<body>.*?)(?=^\[|\Z)", text)
 if section is None:
@@ -305,7 +305,7 @@ else:
     body = section.group("body")
     pattern = re.compile(r"(?m)^font_family\s*=.*$")
     # Noctalia renders text with Pango. A generic family preserves Fontconfig's
-    # full fallback chain: Fantasque remains first, while Noto supplies CJK.
+    # full fallback chain: DepartureMono remains first, while Noto supplies CJK.
     value = 'font_family = "sans-serif"'
     body = pattern.sub(value, body, count=1) if pattern.search(body) else body + value + "\n"
     text = text[:section.start("body")] + body + text[section.end("body"):]

@@ -301,10 +301,10 @@ else
     warn "No XDG portal backend is running"
 fi
 
-if have fc-match && fc-match 'FantasqueSansM Nerd Font' 2>/dev/null | grep -qi Fantasque; then
-    pass "Fantasque Sans Mono is available"
+if have fc-match && fc-match 'DepartureMono Nerd Font' 2>/dev/null | grep -qi DepartureMono; then
+    pass "DepartureMono Nerd Font is available"
 else
-    fail "Fantasque Sans Mono is missing"
+    fail "DepartureMono Nerd Font is missing"
     NEED_THEME=true
 fi
 
