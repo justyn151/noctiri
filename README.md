@@ -124,6 +124,12 @@ history, and Do Not Disturb support, so these features do not add another always
 `Super+Shift+O` captures a region and copies English/Japanese/Chinese OCR text. Screenshots and OCR
 text are kept in `~/Pictures/Screenshots`.
 
+`Super+Alt+R` selects a region to record; `Super+Alt+Shift+R` selects a whole monitor. Press either
+shortcut again to stop and save an MP4 in `~/Videos/Recordings`. Recording runs only while active.
+For optional audio, start it from a terminal with `noctiri-record region --audio` or
+`noctiri-record screen --audio`; either shortcut still stops it. Audio uses wf-recorder's default
+audio source.
+
 KeePassXC is installed with the normal-install Firefox extension. Open KeePassXC once, create or
 open a database, then enable Firefox under **Settings → Browser Integration**. Yazi includes
 Noctalia-colored cut/copy markers, image/PDF/video/archive previews, Git status, smart enter/paste,

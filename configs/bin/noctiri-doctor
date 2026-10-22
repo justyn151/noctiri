@@ -336,7 +336,7 @@ else
 fi
 
 section "Daily utilities and recovery"
-for utility in keepassxc grim slurp; do
+for utility in keepassxc grim slurp wf-recorder; do
     if have "$utility"; then
         pass "$utility is available"
     else

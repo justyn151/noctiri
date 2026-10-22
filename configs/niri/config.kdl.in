@@ -434,6 +434,8 @@ binds {
     Print hotkey-overlay-title="Screenshot current monitor" { spawn "noctalia" "msg" "screenshot-fullscreen"; }
     Mod+Shift+A hotkey-overlay-title="Annotate the screen" { spawn "noctalia" "msg" "screenshot-annotate"; }
     Mod+Shift+O hotkey-overlay-title="OCR a screen region" { spawn "noctiri-screenshot-ocr"; }
+    Mod+Alt+R hotkey-overlay-title="Start/stop region recording" { spawn "noctiri-record" "region"; }
+    Mod+Alt+Shift+R hotkey-overlay-title="Start/stop monitor recording" { spawn "noctiri-record" "screen"; }
     Mod+Ctrl+V hotkey-overlay-title="Clipboard history" { spawn "noctalia" "msg" "panel-toggle" "clipboard"; }
     Mod+N hotkey-overlay-title="Notification history" { spawn "noctalia" "msg" "panel-toggle" "control-center" "notifications"; }
     Mod+Shift+N hotkey-overlay-title="Toggle Do Not Disturb" { spawn "noctalia" "msg" "notification-dnd-toggle"; }

@@ -29,7 +29,7 @@ usage() {
         printf '  --documents-only   Install Sioyek, CoC/TexLab, and compact Tectonic LaTeX support\n'
         printf '  --music-only       Install rmpc, PipeWire-backed MPD, and MPRIS bar integration\n'
         printf '  --steam-only       Install Steam, GPU offload, Gamescope, MangoHud, and GameMode\n'
-        printf '  --utilities-only   Install clipboard/OCR/history, KeePassXC, Yazi drive and archive tools\n'
+        printf '  --utilities-only   Install clipboard/OCR/history, recording, KeePassXC, and Yazi tools\n'
         printf '  --doctor           Run read-only Noctiri desktop health checks\n'
 }
 
@@ -167,7 +167,7 @@ if [[ "$MODE" == "utilities" ]]; then
     printf '\nUtilities-only mode: installing daily-use tools without rebuilding Niri or Noctalia.\n\n'
     install_daily_utilities
     printf '\n\033[1;32mDaily utilities installed.\033[0m\n'
-    printf 'Use Super+Ctrl+V for clipboard history, Super+N for notifications, and Super+Shift+O for OCR.\n'
+    printf 'Use Super+Ctrl+V for clipboard history, Super+Shift+O for OCR, and Super+Alt+R for recording.\n'
     printf 'Open KeePassXC once to create a database and connect its Firefox extension.\n'
     exit 0
 fi

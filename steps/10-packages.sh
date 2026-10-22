@@ -13,7 +13,7 @@ install_daily_utility_packages() {
         void)
             sudo xbps-install -Sy \
                 keepassxc \
-                grim slurp \
+                grim slurp wf-recorder \
                 tesseract-ocr \
                 tesseract-ocr-eng \
                 tesseract-ocr-jpn \
@@ -324,7 +324,7 @@ install_packages_fedora() {
         pipewire pipewire-alsa pipewire-pulseaudio wireplumber alsa-utils
         polkit gnome-keyring gnome-keyring-pam
         kitty firefox git curl tar xz unzip python3 xdg-utils xdg-user-dirs wl-clipboard
-        playerctl brightnessctl
+        playerctl brightnessctl wf-recorder slurp
         qt6ct plasma-breeze-qt6 breeze-icon-theme
         rsms-inter-fonts google-noto-sans-cjk-fonts
     )
@@ -371,7 +371,7 @@ install_packages_void() {
         pipewire wireplumber libspa-bluetooth alsa-pipewire alsa-utils pulseaudio-utils
         polkit gnome-keyring
         kitty firefox git curl tar xz unzip python3 xdg-utils xdg-user-dirs wl-clipboard
-        playerctl brightnessctl
+        playerctl brightnessctl wf-recorder slurp
         qt6ct breeze-qt6 breeze-icons
         yazi ffmpeg 7zip jq poppler fd fzf zoxide resvg ImageMagick
         font-inter noto-fonts-cjk-sans

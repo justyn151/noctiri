@@ -38,6 +38,8 @@ install_noctiri_commands() {
         "$HOME/.local/bin/noctiri" 0755
     install_file "$ROOT_DIR/configs/bin/noctiri-screenshot-ocr" \
         "$HOME/.local/bin/noctiri-screenshot-ocr" 0755
+    install_file "$ROOT_DIR/configs/bin/noctiri-record" \
+        "$HOME/.local/bin/noctiri-record" 0755
     # Maintenance now lives in the Doctor window. Remove launchers installed by
     # the short-lived standalone implementation when upgrading.
     rm -f \
@@ -68,7 +70,7 @@ install_daily_utilities() {
     if pgrep -x noctalia >/dev/null 2>&1; then
         noctalia msg config-reload >/dev/null 2>&1 || true
     fi
-    ok "Installed Noctalia daily utilities, OCR, Yazi drive controls, and KeePassXC"
+    ok "Installed Noctalia daily utilities, OCR, screen recording, Yazi drive controls, and KeePassXC"
 }
 
 install_configs() {

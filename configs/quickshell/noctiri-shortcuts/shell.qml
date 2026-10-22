@@ -45,6 +45,8 @@ ShellRoot {
         { combo: "Super + Shift + S", action: "Capture and annotate a region" },
         { combo: "Print", action: "Capture the current monitor" },
         { combo: "Super + Shift + O", action: "OCR a region and copy its text" },
+        { combo: "Super + Alt + R", action: "Start/stop recording a selected region" },
+        { combo: "Super + Alt + Shift + R", action: "Start/stop recording a monitor" },
         { combo: "Super + Ctrl + V", action: "Open encrypted clipboard history" },
         { combo: "Super + N", action: "Open notification history" },
         { combo: "Super + Shift + N", action: "Toggle Do Not Disturb" },
