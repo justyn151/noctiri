@@ -976,6 +976,26 @@ install_departure_nerd_font() {
     fc-cache -f
 }
 
+install_fantasque_nerd_font() {
+    log "Installing Fantasque Sans Mono Nerd Font 3.5.1"
+    local font_dir="$HOME/.local/share/fonts/FantasqueSansMonoNerd"
+    if fc-list : family 2>/dev/null | grep -qi 'FantasqueSansM Nerd Font Mono'; then
+        ok "Fantasque Sans Mono Nerd Font already installed"
+        return
+    fi
+    mkdir -p "$font_dir"
+    local tmp
+    tmp="$(mktemp -d)"
+    curl -fL --retry 3 -o "$tmp/FantasqueSansMono.zip" \
+        https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/FantasqueSansMono.zip
+    printf '%s  %s\n' \
+        '083c543efbfbb1be47897c02c2285ad7f7b75bd74765fad38d8a04f9db45c6f4' \
+        "$tmp/FantasqueSansMono.zip" | sha256sum -c -
+    unzip -q "$tmp/FantasqueSansMono.zip" -d "$font_dir"
+    rm -rf "$tmp"
+    fc-cache -f
+}
+
 install_cjk_fallback_fonts() {
     log "Installing Chinese, Japanese, and Korean fallback fonts"
     case "$DISTRO_ID" in

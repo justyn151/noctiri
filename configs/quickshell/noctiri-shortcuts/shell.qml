@@ -9,7 +9,7 @@ import QtQuick.Layouts
 ShellRoot {
     id: root
 
-    readonly property string fontFamily: "DepartureMono Nerd Font"
+    readonly property string fontFamily: "sans-serif"
     property int activeTab: 0
     property string searchText: ""
 

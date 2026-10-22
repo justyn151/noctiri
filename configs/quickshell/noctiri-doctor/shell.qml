@@ -9,7 +9,7 @@ import QtQuick.Layouts
 ShellRoot {
     id: root
 
-    readonly property string fontFamily: "DepartureMono Nerd Font"
+    readonly property string fontFamily: "sans-serif"
     property string report: "Preparing desktop checks…"
     property string processError: ""
     property bool checking: false
@@ -19,7 +19,7 @@ ShellRoot {
     property int activeTab: 0
     property string operation: "health"
     property bool rollbackArmed: false
-    readonly property var tabNames: ["Health", "Maintenance", "Memory"]
+    readonly property var tabNames: ["Health", "Maintenance", "Memory", "Fonts"]
 
     function paletteValue(name, fallback) {
         if (!paletteFile.loaded)
@@ -86,6 +86,15 @@ ShellRoot {
         runProcess(["noctiri", "memory"], "Measuring proportional memory use…", "memory");
     }
 
+    function runStartup(kitty) {
+        runProcess(kitty ? ["noctiri", "startup", "--kitty"] : ["noctiri", "startup"],
+                   "Checking this login session…", "startup");
+    }
+
+    function runFonts() {
+        runProcess(["noctiri", "font", "status"], "Reading font selection…", "fonts");
+    }
+
     function runNoctiriAction(arguments, message, operationName) {
         runProcess(["env", "NOCTIRI_GUI=true", "noctiri"].concat(arguments), message, operationName);
     }
@@ -99,8 +108,10 @@ ShellRoot {
             runDoctor(false);
         else if (index === 1)
             runMaintenance();
-        else
+        else if (index === 2)
             runMemory();
+        else
+            runFonts();
     }
 
     Component.onCompleted: runDoctor(false)
@@ -452,6 +463,40 @@ ShellRoot {
                         primary: true
                         available: !root.checking
                         onClicked: root.runMemory()
+                    }
+                    ActionButton {
+                        label: "Login check"
+                        available: !root.checking
+                        onClicked: root.runStartup(false)
+                    }
+                    ActionButton {
+                        label: "Check Kitty"
+                        available: !root.checking
+                        onClicked: root.runStartup(true)
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    visible: root.activeTab === 3
+                    spacing: 10
+                    Text {
+                        Layout.fillWidth: true
+                        text: "Choose a desktop font. Open apps may need a restart; no background service is added."
+                        color: root.mutedColor
+                        font.family: root.fontFamily
+                        font.pixelSize: 12
+                        wrapMode: Text.WordWrap
+                    }
+                    ActionButton {
+                        label: "DepartureMono"
+                        available: !root.checking
+                        onClicked: root.runNoctiriAction(["font", "set", "departure"], "Applying DepartureMono…", "fonts")
+                    }
+                    ActionButton {
+                        label: "Fantasque"
+                        available: !root.checking
+                        onClicked: root.runNoctiriAction(["font", "set", "fantasque"], "Applying Fantasque…", "fonts")
                     }
                 }
             }

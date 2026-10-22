@@ -287,13 +287,19 @@ To install or repair only the desktop font configuration:
 ./install.sh --font-only
 ```
 
-This pins the DepartureMono Nerd Font 3.5.1 archive and verifies its checksum, then selects
-`DepartureMono Nerd Font` for Fontconfig's system UI, sans, and serif aliases and
-`DepartureMono Nerd Font Mono` for monospace. Noto Sans CJK is installed as the fallback for
+This applies the saved font choice (DepartureMono by default). Switch between DepartureMono and
+Fantasque Sans Mono from Doctor’s Fonts tab, or run `noctiri font set departure|fantasque`.
+Both Nerd Font archives are pinned to version 3.5.1 and checksum-verified; Fantasque is downloaded
+only when selected. The choice is saved under `~/.config/noctiri/` and survives Noctiri updates.
+Noto Sans CJK is installed as the fallback for
 Chinese, Japanese, and Korean glyphs, including applications running through Flatpak. GTK 3/4,
 GNOME interface settings, Qt6ct, KDE applications, Kitty, and Noctalia receive explicit settings as
 well. Existing applications may cache fonts, so reopen them; one logout refreshes the entire Niri
 session. Web pages and documents that deliberately specify a typeface are not overridden.
+
+Doctor’s Memory tab has a one-shot Login check. Run it within ten minutes of login to save the
+first sample for that boot and compare later checks; it does not run in the background. The optional
+Kitty check measures a hidden process launch and exit, not the time to draw a visible window.
 
 To install, configure, and check NetworkManager, Bluetooth, and PipeWire without rebuilding Niri or
 Noctalia:

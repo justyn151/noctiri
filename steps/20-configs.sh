@@ -133,6 +133,7 @@ install_configs() {
     if have systemctl; then
         systemctl --user daemon-reload >/dev/null 2>&1 || true
     fi
+    apply_selected_font_configs
 }
 
 clear_noctalia_screenshot_region_override() {
@@ -198,27 +199,74 @@ ensure_noctalia_recording_bar_override() {
 }
 
 install_departure_system_font() {
-    install_departure_nerd_font
-    install_cjk_fallback_fonts
+    local profile
+    profile="$(selected_font_profile)"
+    case "$profile" in
+        departure) install_departure_nerd_font ;;
+        fantasque) install_fantasque_nerd_font ;;
+    esac
+    if ! fc-match 'sans-serif:charset=3042' 2>/dev/null | grep -Eqi 'Noto.*CJK|Source Han'; then
+        install_cjk_fallback_fonts
+    fi
     configure_system_fonts
+    mkdir -p "$HOME/.config/noctiri"
+    printf '%s\n' "$profile" > "$HOME/.config/noctiri/font-profile"
 }
 
-configure_system_fonts() {
-    log "Making DepartureMono Nerd Font the Niri desktop font"
+selected_font_profile() {
+    local profile="${NOCTIRI_FONT_PROFILE:-}"
+    if [[ -z "$profile" && -r "$HOME/.config/noctiri/font-profile" ]]; then
+        IFS= read -r profile < "$HOME/.config/noctiri/font-profile"
+    fi
+    profile="${profile:-departure}"
+    case "$profile" in
+        departure|fantasque) printf '%s\n' "$profile" ;;
+        *) die "Unknown font profile: $profile" ;;
+    esac
+}
 
-    install_file "$ROOT_DIR/configs/fonts/fonts.conf" \
+font_family_names() {
+    if [[ "$(selected_font_profile)" == fantasque ]]; then
+        UI_FONT='FantasqueSansM Nerd Font'
+        MONO_FONT='FantasqueSansM Nerd Font Mono'
+    else
+        UI_FONT='DepartureMono Nerd Font'
+        MONO_FONT='DepartureMono Nerd Font Mono'
+    fi
+}
+
+install_font_template() {
+    local source="$1" destination="$2" tmp
+    font_family_names
+    tmp="$(mktemp)"
+    sed -e "s|DepartureMono Nerd Font Mono|$MONO_FONT|g" \
+        -e "s|DepartureMono Nerd Font|$UI_FONT|g" \
+        -e "s|@@HOME@@|$HOME|g" "$source" > "$tmp"
+    install_file "$tmp" "$destination"
+    rm -f "$tmp"
+}
+
+apply_selected_font_configs() {
+    font_family_names
+    log "Applying $UI_FONT desktop font"
+
+    install_font_template "$ROOT_DIR/configs/fonts/fonts.conf" \
         "$HOME/.config/fontconfig/fonts.conf"
-    install_file "$ROOT_DIR/configs/fonts/gtk-settings.ini" \
+    install_font_template "$ROOT_DIR/configs/fonts/gtk-settings.ini" \
         "$HOME/.config/gtk-3.0/settings.ini"
-    install_file "$ROOT_DIR/configs/fonts/gtk-settings.ini" \
+    install_font_template "$ROOT_DIR/configs/fonts/gtk-settings.ini" \
         "$HOME/.config/gtk-4.0/settings.ini"
-    render_home_template "$ROOT_DIR/configs/qt6ct/qt6ct.conf.in" \
+    install_font_template "$ROOT_DIR/configs/qt6ct/qt6ct.conf.in" \
         "$HOME/.config/qt6ct/qt6ct.conf"
-    install_file "$ROOT_DIR/configs/kitty/kitty.conf" \
+    install_font_template "$ROOT_DIR/configs/kitty/kitty.conf" \
         "$HOME/.config/kitty/kitty.conf"
 
     set_kde_font_preferences
     set_noctalia_font_preference
+}
+
+configure_system_fonts() {
+    apply_selected_font_configs
     fc-cache -f
     if have flatpak && flatpak info com.spotify.Client >/dev/null 2>&1; then
         timeout 30 flatpak run --command=fc-cache com.spotify.Client -f >/dev/null 2>&1 \
@@ -229,19 +277,19 @@ configure_system_fonts() {
 
     if have gsettings; then
         gsettings set org.gnome.desktop.interface font-name \
-            'DepartureMono Nerd Font 10' >/dev/null 2>&1 || true
+            "$UI_FONT 10" >/dev/null 2>&1 || true
         gsettings set org.gnome.desktop.interface document-font-name \
-            'DepartureMono Nerd Font 10' >/dev/null 2>&1 || true
+            "$UI_FONT 10" >/dev/null 2>&1 || true
         gsettings set org.gnome.desktop.interface monospace-font-name \
-            'DepartureMono Nerd Font Mono 10' >/dev/null 2>&1 || true
+            "$MONO_FONT 10" >/dev/null 2>&1 || true
     fi
 
     if pgrep -x noctalia >/dev/null 2>&1; then
         noctalia msg config-reload >/dev/null 2>&1 \
-            || warn "Noctalia will load DepartureMono after the next login."
+            || warn "Noctalia will load $UI_FONT after the next login."
     fi
 
-    ok "Configured DepartureMono with Noto script fallback across the desktop"
+    ok "Configured $UI_FONT with Noto script fallback across the desktop"
 }
 
 discover_niri_environment_for_font_reload() {
@@ -254,18 +302,19 @@ set_kde_font_preferences() {
     [[ -f "$config_path" ]] || printf '[General]\n' > "$config_path"
     backup_path "$config_path"
     tmp="$(mktemp)"
-    python3 - "$config_path" "$tmp" <<'PY'
+    font_family_names
+    python3 - "$config_path" "$tmp" "$UI_FONT" "$MONO_FONT" <<'PY'
 import re
 import sys
 
-source, destination = sys.argv[1:]
+source, destination, ui_font, mono_font = sys.argv[1:]
 text = open(source, encoding="utf-8").read()
 values = {
-    "font": "DepartureMono Nerd Font,10,-1,5,400,0,0,0,0,0",
-    "fixed": "DepartureMono Nerd Font Mono,10,-1,5,400,0,0,0,0,0",
-    "menuFont": "DepartureMono Nerd Font,10,-1,5,400,0,0,0,0,0",
-    "smallestReadableFont": "DepartureMono Nerd Font,8,-1,5,400,0,0,0,0,0",
-    "toolBarFont": "DepartureMono Nerd Font,10,-1,5,400,0,0,0,0,0",
+    "font": f"{ui_font},10,-1,5,400,0,0,0,0,0",
+    "fixed": f"{mono_font},10,-1,5,400,0,0,0,0,0",
+    "menuFont": f"{ui_font},10,-1,5,400,0,0,0,0,0",
+    "smallestReadableFont": f"{ui_font},8,-1,5,400,0,0,0,0,0",
+    "toolBarFont": f"{ui_font},10,-1,5,400,0,0,0,0,0",
 }
 section = re.search(r"(?ms)^\[General\]\n(?P<body>.*?)(?=^\[|\Z)", text)
 if section is None:

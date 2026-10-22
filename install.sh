@@ -25,7 +25,7 @@ usage() {
         printf '  --services-only    Repair Wi-Fi, Bluetooth, PipeWire, and brightness persistence\n'
         printf '  --firefox-only     Install Firefox policies, extensions, and Noctalia theming\n'
         printf '  --zsh-only         Install Zsh, suggestions/highlighting, and smooth Kitty cursor settings\n'
-        printf '  --font-only        Install and apply DepartureMono Nerd Font across the desktop\n'
+        printf '  --font-only        Apply saved font profile (or NOCTIRI_FONT_PROFILE override)\n'
         printf '  --documents-only   Install Sioyek, CoC/TexLab, and compact Tectonic LaTeX support\n'
         printf '  --music-only       Install rmpc, PipeWire-backed MPD, and MPRIS bar integration\n'
         printf '  --steam-only       Install Steam, GPU offload, Gamescope, MangoHud, and GameMode\n'
@@ -128,11 +128,11 @@ if [[ "$MODE" == "theme" ]]; then
 fi
 
 if [[ "$MODE" == "font" ]]; then
-    printf '\nFont-only mode: installing and applying DepartureMono without rebuilding the desktop.\n\n'
+    printf '\nFont-only mode: applying the selected font without rebuilding the desktop.\n\n'
     install_departure_system_font
     install_noctiri_doctor
     install_shortcut_window
-    printf '\n\033[1;32mDepartureMono configuration complete.\033[0m\n'
+    printf '\n\033[1;32mFont configuration complete.\033[0m\n'
     printf 'Reopen applications to refresh their fonts; log out once to refresh the complete session.\n'
     exit 0
 fi

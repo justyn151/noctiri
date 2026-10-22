@@ -408,6 +408,81 @@ command_memory() {
     rm -f "$tmp" "$sorted"
 }
 
+command_startup() {
+    local session_pid session_age used saved_file previous="" previous_boot="" now boot_id kitty=false
+    [[ "${1:-}" == "--kitty" || $# -eq 0 ]] || die "Usage: noctiri startup [--kitty]"
+    [[ "${1:-}" == "--kitty" ]] && kitty=true
+    session_pid="$(pgrep -u "$(id -u)" -xo niri 2>/dev/null || true)"
+    [[ -n "$session_pid" ]] || die "Niri is not running; log in to measure a desktop session"
+    session_age="$(ps -o etimes= -p "$session_pid" | tr -d ' ')"
+    [[ "$session_age" =~ ^[0-9]+$ ]] || die "Could not measure Niri session age"
+    used="$(memory_used_mib)"
+    saved_file="$STATE_DIR/startup-baseline"
+    boot_id="$(< /proc/sys/kernel/random/boot_id)"
+    printf 'Niri session age: %s min %s sec\n' "$((session_age / 60))" "$((session_age % 60))"
+    printf 'Memory now: %s MiB kernel-reported use (target: 1500 MiB)\n' "$used"
+    if [[ -r "$saved_file" ]]; then
+        read -r previous_boot previous _ < "$saved_file"
+    fi
+    if (( session_age <= 600 )) && [[ "$previous_boot" != "$boot_id" ]]; then
+        mkdir -p "$STATE_DIR"
+        printf '%s %s %s\n' "$boot_id" "$used" "$(date +%s)" > "$saved_file"
+        printf 'First fresh-login sample saved for this boot. Close heavyweight apps for an idle baseline.\n'
+    elif (( session_age <= 600 )); then
+        printf 'Earlier fresh-login sample: %s MiB; change: %+d MiB\n' \
+            "$previous" "$((used - previous))"
+    else
+        printf 'This session is older than 10 minutes; this is not a fresh-login baseline.\n'
+        if [[ "$previous_boot" == "$boot_id" && "$previous" =~ ^[0-9]+$ ]]; then
+            printf 'Earlier fresh-login sample: %s MiB; change: %+d MiB\n' \
+                "$previous" "$((used - previous))"
+        fi
+    fi
+    if (( used > 1500 )); then
+        printf 'Above target. Use the Memory tab for PSS and cache breakdown; this number is not app RAM alone.\n'
+    else
+        printf 'Within the 1500 MiB target.\n'
+    fi
+    if [[ "$kitty" == true ]]; then
+        command -v kitty >/dev/null 2>&1 || die "Kitty is not installed"
+        [[ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]] || die "No graphical display available for Kitty check"
+        now="$(date +%s%3N)"
+        if timeout 10 kitty --start-as hidden /bin/true >/dev/null 2>&1; then
+            printf 'Kitty hidden process launch/exit: %s ms\n' "$(( $(date +%s%3N) - now ))"
+            printf 'This includes startup and exit, not visible-window render time.\n'
+        else
+            warn "Kitty did not complete a hidden launch within 10 seconds"
+            return 1
+        fi
+    fi
+}
+
+command_font() {
+    local action="${1:-status}" profile="${2:-}" current=departure repo
+    if [[ -r "$CONFIG_HOME/noctiri/font-profile" ]]; then
+        IFS= read -r current < "$CONFIG_HOME/noctiri/font-profile"
+    fi
+    case "$action" in
+        status)
+            [[ $# -eq 1 || $# -eq 0 ]] || die "Usage: noctiri font status"
+            printf 'Selected font: %s\n' "$current"
+            if command -v fc-match >/dev/null 2>&1; then
+                printf 'UI resolves to: %s\n' "$(fc-match -f '%{family}\n' sans-serif | head -n 1)"
+                printf 'Terminal resolves to: %s\n' "$(fc-match -f '%{family}\n' monospace | head -n 1)"
+            fi
+            printf 'Choose: noctiri font set departure|fantasque\n'
+            ;;
+        set)
+            [[ $# -eq 2 ]] || die "Usage: noctiri font set departure|fantasque"
+            case "$profile" in departure|fantasque) ;; *) die "Choose departure or fantasque" ;; esac
+            repo="$(repository_path)"
+            NOCTIRI_FONT_PROFILE="$profile" bash "$repo/install.sh" --font-only
+            info "Selected $profile. Reopen applications to refresh their fonts."
+            ;;
+        *) die "Usage: noctiri font status|set departure|fantasque" ;;
+    esac
+}
+
 usage() {
     cat <<'EOF'
 Usage: noctiri COMMAND
@@ -415,6 +490,8 @@ Usage: noctiri COMMAND
   status                     Show revision, latest snapshot, DND and memory
   maintenance                Show status and configuration snapshots
   memory                     Explain memory use and list top processes by PSS
+  startup [--kitty]          Check fresh-login memory; optionally time hidden Kitty launch
+  font status|set PROFILE    View or switch DepartureMono/Fantasque font
   update [--system]          Snapshot, fast-forward, and apply managed configs
   snapshot                   Save managed user configuration now
   snapshots                  List available configuration snapshots
@@ -431,6 +508,8 @@ case "${1:-help}" in
     status) shift; command_status "$@" ;;
     maintenance) shift; command_maintenance "$@" ;;
     memory) shift; command_memory "$@" ;;
+    startup) shift; command_startup "$@" ;;
+    font) shift; command_font "$@" ;;
     update) shift; command_update "$@" ;;
     snapshot) shift; command_snapshot "$@" ;;
     snapshots) shift; command_snapshots "$@" ;;

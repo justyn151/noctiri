@@ -301,10 +301,19 @@ else
     warn "No XDG portal backend is running"
 fi
 
-if have fc-match && fc-match 'DepartureMono Nerd Font' 2>/dev/null | grep -qi DepartureMono; then
-    pass "DepartureMono Nerd Font is available"
+font_profile=departure
+if [[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/noctiri/font-profile" ]]; then
+    IFS= read -r font_profile < "${XDG_CONFIG_HOME:-$HOME/.config}/noctiri/font-profile"
+fi
+case "$font_profile" in
+    departure) expected_font='DepartureMono Nerd Font' ;;
+    fantasque) expected_font='FantasqueSansM Nerd Font' ;;
+    *) expected_font='DepartureMono Nerd Font'; warn "Unknown font profile '$font_profile'" ;;
+esac
+if have fc-match && fc-match "$expected_font" 2>/dev/null | grep -Fqi "$expected_font"; then
+    pass "$expected_font is available"
 else
-    fail "DepartureMono Nerd Font is missing"
+    fail "$expected_font is missing"
     NEED_THEME=true
 fi
 
