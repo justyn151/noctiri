@@ -115,7 +115,15 @@ install_configs() {
     render_home_template "$ROOT_DIR/configs/qt6ct/qt6ct.conf.in" "$HOME/.config/qt6ct/qt6ct.conf"
     ensure_btop_theme_selected
     install_file "$ROOT_DIR/configs/kde/kdeglobals" "$HOME/.config/kdeglobals"
-    install_file "$ROOT_DIR/configs/portals/niri-portals.conf" "$HOME/.config/xdg-desktop-portal/niri-portals.conf"
+    if [[ "$DISTRO_ID" == "void" ]]; then
+        # Void removes the KDE portal backend, so its file chooser must use
+        # the installed GTK backend rather than the Fedora/KDE preference.
+        install_file "$ROOT_DIR/configs/portals/niri-portals-void.conf" \
+            "$HOME/.config/xdg-desktop-portal/niri-portals.conf"
+    else
+        install_file "$ROOT_DIR/configs/portals/niri-portals.conf" \
+            "$HOME/.config/xdg-desktop-portal/niri-portals.conf"
+    fi
     if [[ "$DISTRO_ID" == "fedora" ]]; then
         install_file "$ROOT_DIR/configs/systemd/kde-portal-override.conf" \
             "$HOME/.config/systemd/user/plasma-xdg-desktop-portal-kde.service.d/override.conf"

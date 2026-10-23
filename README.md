@@ -12,7 +12,7 @@ Core desktop:
 - Standard XDG home folders (`Desktop`, `Documents`, `Downloads`, `Music`, `Pictures`, `Public`, `Templates`, and `Videos`)
 - XWayland Satellite
 - PipeWire + WirePlumber
-- XDG portals (GNOME + GTK; KDE is retained only on Fedora)
+- XDG portals (GNOME + GTK on Void, including the file chooser; KDE is retained only on Fedora)
 - Polkit and GNOME Keyring PAM integration
 
 Theme/integration:
