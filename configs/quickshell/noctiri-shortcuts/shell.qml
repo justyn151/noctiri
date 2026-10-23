@@ -483,6 +483,12 @@ ShellRoot {
             border.color: root.accentColor
             focus: true
             Keys.onEscapePressed: root.closeWindow()
+            Keys.onPressed: event => {
+                if (event.key === Qt.Key_Slash && event.modifiers === Qt.NoModifier) {
+                    searchField.forceActiveFocus();
+                    event.accepted = true;
+                }
+            }
 
             ColumnLayout {
                 anchors.fill: parent
@@ -509,7 +515,7 @@ ShellRoot {
                             font.weight: Font.Bold
                         }
                         Text {
-                            text: root.tabHints[root.activeTab] + " · drag to move · Esc to close"
+                            text: root.tabHints[root.activeTab] + " · / to search · drag to move · Esc to close"
                             color: root.mutedColor
                             font.family: root.fontFamily
                             font.pixelSize: 13
@@ -599,7 +605,7 @@ ShellRoot {
                         }
                     }
                     Text {
-                        text: "Search this tab"
+                        text: "/ to search"
                         color: root.mutedColor
                         font.family: root.fontFamily
                         font.pixelSize: 12
