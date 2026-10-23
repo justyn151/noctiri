@@ -182,6 +182,7 @@ ShellRoot {
     readonly property var nvimTex: [
         { combo: "Space + l x", action: "Toggle VimTeX compile-on-save" },
         { combo: "Space + l b", action: "Build the document once" },
+        { combo: "Space + l o", action: "Show TeX build and download output" },
         { combo: "Space + l v", action: "Open the generated PDF" }
     ]
 

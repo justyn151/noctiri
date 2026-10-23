@@ -61,6 +61,73 @@ else
 end
 
 local tex_group = vim.api.nvim_create_augroup("noctiri_tex_completion", { clear = true })
+local tex_build = { started_ns = nil, timer = nil, previous_statusline = nil, build_statusline = nil }
+
+function _G.NoctiriTexBuildStatus()
+    if not tex_build.started_ns then return "" end
+    local elapsed = math.floor(((vim.uv or vim.loop).hrtime() - tex_build.started_ns) / 1e9)
+    return ("TeX: building / fetching files %ds [Space l o: output]"):format(elapsed)
+end
+
+local function finish_tex_build(result)
+    if not tex_build.started_ns then return end
+    local elapsed = math.floor(((vim.uv or vim.loop).hrtime() - tex_build.started_ns) / 1e9)
+    tex_build.started_ns = nil
+    if tex_build.timer then
+        tex_build.timer:stop()
+        tex_build.timer:close()
+        tex_build.timer = nil
+    end
+    if vim.o.statusline == tex_build.build_statusline then
+        vim.o.statusline = tex_build.previous_statusline
+    end
+    tex_build.previous_statusline = nil
+    tex_build.build_statusline = nil
+    vim.cmd("redrawstatus")
+    if result == "success" and elapsed >= 3 then
+        vim.notify("TeX PDF ready (" .. elapsed .. "s)", vim.log.levels.INFO)
+    elseif result == "failed" then
+        vim.notify("TeX build failed. Press Space l o for Tectonic output or run :VimtexErrors.", vim.log.levels.ERROR)
+    end
+end
+
+vim.api.nvim_create_autocmd("User", {
+    group = tex_group,
+    pattern = "VimtexEventCompileStarted",
+    callback = function()
+        if not tex_build.started_ns then
+            tex_build.previous_statusline = vim.o.statusline
+            local base = tex_build.previous_statusline ~= ""
+                and tex_build.previous_statusline or "%<%f %h%m%r%=%-14.(%l,%c%V%) %P"
+            tex_build.build_statusline = base .. "  %{v:lua.NoctiriTexBuildStatus()}"
+            vim.o.statusline = tex_build.build_statusline
+        end
+        tex_build.started_ns = (vim.uv or vim.loop).hrtime()
+        if not tex_build.timer then
+            tex_build.timer = (vim.uv or vim.loop).new_timer()
+            tex_build.timer:start(0, 1000, vim.schedule_wrap(function()
+                if tex_build.started_ns then vim.cmd("redrawstatus") end
+            end))
+        end
+    end,
+    desc = "Show Tectonic build and first-use download activity",
+})
+vim.api.nvim_create_autocmd("User", {
+    group = tex_group,
+    pattern = "VimtexEventCompileSuccess",
+    callback = function() finish_tex_build("success") end,
+})
+vim.api.nvim_create_autocmd("User", {
+    group = tex_group,
+    pattern = "VimtexEventCompileFailed",
+    callback = function() finish_tex_build("failed") end,
+})
+vim.api.nvim_create_autocmd("User", {
+    group = tex_group,
+    pattern = "VimtexEventCompileStopped",
+    callback = function() finish_tex_build("stopped") end,
+})
+
 vim.api.nvim_create_autocmd("FileType", {
     group = tex_group,
     pattern = "tex",
@@ -80,6 +147,8 @@ vim.api.nvim_create_autocmd("FileType", {
             vim.cmd("silent update")
             vim.cmd("VimtexCompileSS")
         end, { buffer = args.buf, desc = "Build TeX once" })
+        map("n", "<localleader>lo", "<cmd>VimtexCompileOutput<CR>",
+            { buffer = args.buf, desc = "Show Tectonic compiler and download output" })
         map("n", "<localleader>lv", function()
             local ok, pdf = pcall(vim.fn.eval, "b:vimtex.viewer.out()")
             if not ok or pdf == "" or vim.fn.filereadable(pdf) == 0 then
@@ -105,14 +174,6 @@ if vim.fn.executable("tectonic") == 1 then
             end
         end,
         desc = "Compile the TeX project with Tectonic after saving",
-    })
-    vim.api.nvim_create_autocmd("User", {
-        group = tex_group,
-        pattern = "VimtexEventCompileFailed",
-        callback = function()
-            vim.notify("TeX build failed. Run :VimtexErrors for the compiler errors.", vim.log.levels.ERROR)
-        end,
-        desc = "Explain failed TeX builds",
     })
 end
 

@@ -240,9 +240,11 @@ lightweight document stack and its CoC runtime.
 On Void, the installer runs Sioyek through its packaged xcb backend because that build does not
 include Qt's native Wayland platform plugin; this affects only Sioyek and leaves the desktop native
 Wayland.
-Inside a TeX buffer, `Space+l,x` toggles compile-on-save, `Space+l,b` builds once, and `Space+l,v`
-opens the generated PDF. If no readable PDF exists, the viewer shortcut now points to
-`:VimtexErrors` instead of opening an empty viewer. Compile-on-save starts enabled for each TeX buffer.
+Inside a TeX buffer, `Space+l,x` toggles compile-on-save, `Space+l,b` builds once, `Space+l,o`
+shows Tectonic's build/download output, and `Space+l,v` opens the generated PDF. While a build is
+running, the status line shows an elapsed timer; the first build may fetch TeX resources. If no
+readable PDF exists, the viewer shortcut points to `:VimtexErrors` instead of opening an empty
+viewer. Compile-on-save starts enabled for each TeX buffer.
 
 Firefox receives a deliberately small default extension set through its normal-install policy:
 Pywalfox, uBlock Origin, SponsorBlock, Ctrl+Number to switch tabs, and KeePassXC-Browser. Normal-installed extensions
