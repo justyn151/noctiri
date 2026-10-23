@@ -486,6 +486,20 @@ command_font() {
     esac
 }
 
+command_audio() {
+    [[ "${1:-}" == supervise && $# -eq 1 ]] || die "Usage: noctiri audio supervise"
+    # Fedora's user systemd units own PipeWire. Void starts this once from
+    # Niri because dbus-run-session does not run XDG autostart entries.
+    local distro_id=""
+    if [[ -r /etc/os-release ]]; then
+        distro_id="$(sed -n 's/^ID=//p' /etc/os-release | head -n 1 | tr -d '"')"
+    fi
+    [[ "$distro_id" == void ]] || return 0
+    [[ -x "$HOME/.local/bin/noctiri-audio-session" ]] \
+        || die "Void audio supervisor is missing; run ./install.sh --services-only"
+    exec "$HOME/.local/bin/noctiri-audio-session"
+}
+
 usage() {
     cat <<'EOF'
 Usage: noctiri COMMAND
@@ -495,6 +509,7 @@ Usage: noctiri COMMAND
   memory                     Explain memory use and list top processes by PSS
   startup [--kitty]          Check fresh-login memory; optionally time hidden Kitty launch
   font status|set PROFILE    View or switch DepartureMono, Fantasque, Maple, or Cozette
+  audio supervise            Keep the Void PipeWire session running (Niri startup)
   update [--system]          Snapshot, fast-forward, and apply managed configs
   snapshot                   Save managed user configuration now
   snapshots                  List available configuration snapshots
@@ -513,6 +528,7 @@ case "${1:-help}" in
     memory) shift; command_memory "$@" ;;
     startup) shift; command_startup "$@" ;;
     font) shift; command_font "$@" ;;
+    audio) shift; command_audio "$@" ;;
     update) shift; command_update "$@" ;;
     snapshot) shift; command_snapshot "$@" ;;
     snapshots) shift; command_snapshots "$@" ;;

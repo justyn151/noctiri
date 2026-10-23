@@ -311,6 +311,10 @@ layout {
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
 spawn-at-startup "noctalia"
+// Void's dbus-run-session does not start XDG autostart entries. The helper is
+// a singleton and monitors PipeWire for the lifetime of this Niri session.
+// On Fedora this command exits immediately and systemd manages audio instead.
+spawn-at-startup "noctiri" "audio" "supervise"
 // Exits immediately unless the user enabled a DND schedule with
 // `noctiri dnd schedule HH:MM HH:MM`.
 spawn-at-startup "noctiri" "dnd" "daemon"

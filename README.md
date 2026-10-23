@@ -312,9 +312,10 @@ Noctalia:
 ```
 
 On Void, this enables D-Bus and Bluetooth runit services; adds the login user to the required groups;
-enables WirePlumber, PipeWire's PulseAudio interface, XDG autostart, and ALSA integration; enables
+enables WirePlumber, PipeWire's PulseAudio interface, a fallback XDG autostart entry, and ALSA integration; enables
 persistent screen-brightness save/restore; and checks the repaired services. PipeWire runs beneath a
-single-instance session supervisor and an elogind resume hook cleanly recreates the stack after
+single-instance session supervisor launched directly by Niri on Void (where its non-systemd session
+does not run XDG autostart entries), and an elogind resume hook cleanly recreates the stack after
 suspend. BlueZ and WirePlumber are configured to restore trusted Bluetooth audio profiles and retry
 them after resume. During a full install, the NetworkManager handoff is deliberately postponed until
 Flatpak, wallpaper, and Spicetify downloads are finished. If another network manager is active, the
